@@ -1,0 +1,125 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowInstanceDetailPage WorkflowInstanceDetailPage should renders correctly 1`] = `
+<div
+  className="ui container mt3"
+>
+  <div
+    className="ui breadcrumb block mb3"
+  >
+    <a
+      className="section"
+      onClick={[Function]}
+    >
+      Workflows
+    </a>
+    <i
+      aria-hidden="true"
+      className="right angle icon divider"
+      onClick={[Function]}
+    />
+    <a
+      className="section"
+      onClick={[Function]}
+    />
+    <i
+      aria-hidden="true"
+      className="right angle icon divider"
+      onClick={[Function]}
+    />
+    <div
+      className="active section"
+      onClick={[Function]}
+    />
+  </div>
+  <div
+    className="flex mb2"
+  >
+    <h3
+      className="ui grey header mt0 flex-auto ellipsis"
+    >
+      <div
+        className="ui red label ml0 mr1"
+        onClick={[Function]}
+      >
+        test-statusLabel
+      </div>
+      <div
+        className="ui blue label ml0 mr1"
+        onClick={[Function]}
+      >
+        Workflow Instance
+      </div>
+      test-title
+       - 
+      <div
+        className="sub header fs-9 color-grey mt1"
+      >
+        <div>
+          updated 
+          <time
+            dateTime="1966-02-01T00:00:00.000Z"
+            title="Feb 1, 1966 UTC"
+          >
+            55 years ago
+          </time>
+           
+          
+        </div>
+      </div>
+    </h3>
+    <div
+      className="ml1"
+    >
+      <span
+        className="ellipsis pr1 fs-9 breakout color-grey"
+      >
+        test-id
+      </span>
+      <span
+        className="fs-9 color-grey"
+      />
+    </div>
+  </div>
+  <div
+    className="mb3"
+  >
+    <p>
+      test-desc
+    </p>
+  </div>
+  <div
+    0="t"
+    1="e"
+    10="r"
+    11="e"
+    12="a"
+    13="d"
+    2="s"
+    3="t"
+    4="-"
+    5="m"
+    6="s"
+    7="g"
+    8="S"
+    9="p"
+    className="ui message"
+  >
+    test-statusMsg
+  </div>
+  <div
+    className="ui red tiny progress"
+    data-percent={100}
+  >
+    <div
+      className="bar"
+      style={
+        Object {
+          "width": "100%",
+        }
+      }
+    />
+  </div>
+  This workflow instance does not have any steps
+</div>
+`;

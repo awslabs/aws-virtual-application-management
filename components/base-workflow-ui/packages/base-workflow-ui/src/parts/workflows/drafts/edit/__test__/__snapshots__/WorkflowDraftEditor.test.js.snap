@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowDraftEditor WorkflowDraftEditor should renders correctly 1`] = `
+<div
+  className="ui container mt3"
+>
+  <div
+    className="ui breadcrumb block mb3"
+  >
+    <a
+      className="section"
+      onClick={[Function]}
+    >
+      Workflow Drafts
+    </a>
+    <i
+      aria-hidden="true"
+      className="right angle icon divider"
+      onClick={[Function]}
+    />
+    <div
+      className="active section"
+      onClick={[Function]}
+    >
+      undefined
+    </div>
+  </div>
+</div>
+`;

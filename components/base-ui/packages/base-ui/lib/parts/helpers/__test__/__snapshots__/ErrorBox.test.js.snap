@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ErrorBox renders correctly 1`] = `
+<div
+  className="p3"
+>
+  <div
+    className="ui negative message clearfix"
+  >
+    <div
+      className="header"
+    >
+      A problem was encountered
+    </div>
+    <p>
+      Hmm... something went wrong
+    </p>
+  </div>
+</div>
+`;

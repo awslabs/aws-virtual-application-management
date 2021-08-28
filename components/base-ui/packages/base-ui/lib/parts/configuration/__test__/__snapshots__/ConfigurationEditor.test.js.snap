@@ -1,0 +1,56 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConfigurationEditor renders correctly 1`] = `
+<form
+  className="ui fluid form"
+  onSubmit={[Function]}
+>
+  <div
+    className="ui inverted dimmer"
+    onClick={[Function]}
+  >
+    <div
+      className="content"
+    >
+      <div
+        className="ui inverted text loader"
+      >
+        Processing
+      </div>
+    </div>
+  </div>
+  <div
+    className="ui padded segment mb3"
+  >
+    No configuration values are provided
+  </div>
+  <div
+    className="mt0 clearfix"
+  >
+    <button
+      className="ui blue icon right floated right labeled button ml2"
+      onClick={[Function]}
+      type="submit"
+    >
+      Next
+      <i
+        aria-hidden="true"
+        className="right arrow icon"
+        onClick={[Function]}
+      />
+    </button>
+    <button
+      className="ui right floated button"
+      onClick={[Function]}
+    >
+      Clear
+    </button>
+    <button
+      className="ui left floated button"
+      onClick={[Function]}
+    >
+      Cancel
+    </button>
+  </div>
+</form>
+`;

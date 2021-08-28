@@ -1,0 +1,85 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddStepDropDown AddStepDropDown should renders correctly 1`] = `
+<div
+  aria-disabled={false}
+  aria-expanded={false}
+  className="ui button fluid labeled search dropdown icon test-className"
+  color="blue"
+  onBlur={[Function]}
+  onChange={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onMouseDown={[Function]}
+  role="combobox"
+>
+  <input
+    aria-autocomplete="list"
+    autoComplete="off"
+    className="search"
+    onChange={[Function]}
+    style={
+      Object {
+        "width": undefined,
+      }
+    }
+    tabIndex={0}
+    type="text"
+    value=""
+  />
+  <div
+    aria-atomic={true}
+    aria-live="polite"
+    className="text"
+    role="alert"
+  >
+    Add Step
+  </div>
+  <i
+    aria-hidden="true"
+    className="plus icon"
+    onClick={[Function]}
+  />
+  <div
+    className="menu transition"
+    role="listbox"
+  >
+    <div
+      aria-checked={false}
+      aria-selected={true}
+      className="selected item"
+      onClick={[Function]}
+      role="option"
+      style={
+        Object {
+          "pointerEvents": "all",
+        }
+      }
+    >
+      <span
+        className="text"
+      >
+        test-title1
+      </span>
+    </div>
+    <div
+      aria-checked={false}
+      aria-selected={false}
+      className="item"
+      onClick={[Function]}
+      role="option"
+      style={
+        Object {
+          "pointerEvents": "all",
+        }
+      }
+    >
+      <span
+        className="text"
+      >
+        test-title2
+      </span>
+    </div>
+  </div>
+</div>
+`;

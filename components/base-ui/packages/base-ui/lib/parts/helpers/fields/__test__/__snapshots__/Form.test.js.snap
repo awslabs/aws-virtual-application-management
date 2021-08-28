@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Form renders correctly 1`] = `
+<form
+  className="ui fluid form"
+  onSubmit={[Function]}
+>
+  <div
+    className="ui inverted dimmer"
+    onClick={[Function]}
+  >
+    <div
+      className="content"
+    >
+      <div
+        className="ui inverted text loader"
+      >
+        Processing
+      </div>
+    </div>
+  </div>
+  <div
+    className="ui negative message mb3 mt0 animated fadeIn"
+  >
+    <div
+      className="header"
+    >
+      Please Correct The Following Errors
+    </div>
+    <ul
+      className="list"
+    >
+      <li
+        className="content"
+      >
+        foo
+      </li>
+      <li
+        className="content"
+      >
+        bar
+      </li>
+    </ul>
+  </div>
+</form>
+`;

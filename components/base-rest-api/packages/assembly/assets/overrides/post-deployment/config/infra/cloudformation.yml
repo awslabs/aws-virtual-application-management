@@ -1,0 +1,54 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Resources:
+  # IAM Role for the postDeployment Function
+  RolePostDeploymentLambda:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      Policies:
+        - PolicyName: db-access
+          PolicyDocument:
+            Statement:
+              Sid: dbaccess
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:DeleteItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+                - dynamodb:Scan
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbUsers}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbUsers}/index/*'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbUserRoles}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbUserRoles}/index/*'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbAuthenticationProviderTypes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbAuthenticationProviderConfigs}'
+        - PolicyName: param-store-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:PutParameter
+                - ssm:DeleteParameter
+              Resource: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+        - PolicyName: kms-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:DescribeKey
+                Resource: '*'

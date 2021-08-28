@@ -1,0 +1,58 @@
+{
+  "name": "@aws-ee/custom-domains",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The xxxx",
+  "author": "Amazon Web Services",
+  "license": "Apache 2.0",
+  "dependencies": {
+    "@aws-ee/base-custom-domains-cfn-resource": "workspace:*"
+  },
+  "devDependencies": {
+    "@aws-ee/base-cfn-lint-helper": "workspace:^0.0.1",
+    "@aws-ee/base-script-utils": "workspace:*",
+    "@aws-ee/base-serverless-settings-helper": "workspace:*",
+    "@babel/core": "^7.8.4",
+    "@babel/plugin-transform-runtime": "^7.8.3",
+    "@babel/preset-env": "^7.8.4",
+    "babel-jest": "^24.9.0",
+    "babel-loader": "^8.0.6",
+    "babel-plugin-source-map-support": "^2.1.1",
+    "copy-webpack-plugin": "^5.1.1",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-import-resolver-node": "^0.3.3",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jest": "^22.21.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "jest": "^24.9.0",
+    "jest-junit": "^10.0.0",
+    "js-yaml-loader": "^1.2.2",
+    "prettier": "^1.19.1",
+    "pretty-quick": "^1.11.1",
+    "regenerator-runtime": "^0.13.7",
+    "serverless": "^1.63.0",
+    "serverless-deployment-bucket": "^1.4.1",
+    "serverless-webpack": "^5.3.1",
+    "source-map-support": "^0.5.16",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10",
+    "webpack-node-externals": "^1.7.2"
+  },
+  "jest": {
+    "transform": {
+      "<rootDir>/src/.+\\.js$": "babel-jest"
+    }
+  },
+  "scripts": {
+    "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
+    "test:watch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
+    "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
+    "lint:eslint": "eslint --ignore-path .gitignore . ",
+    "lint:prettier": "prettier --check --ignore-path .gitignore '**/*.{js,jsx}' ",
+    "format": "pnpm run format:eslint && pnpm run format:prettier",
+    "format:eslint": "eslint --fix --ignore-path .gitignore . ",
+    "format:prettier": "prettier --write --ignore-path .gitignore '**/*.{js,jsx}' "
+  }
+}

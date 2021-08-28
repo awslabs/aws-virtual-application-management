@@ -1,0 +1,8 @@
+{
+  "packageType": "choco",
+  "packageInstall": {
+    "chocoPackage": "sourcetree"
+  },
+  "applicationName": "sourcetree",
+  "applicationExe": "C:\\Program Files (x86)\\Atlassian\\Sourcetree\\SourceTree.exe"
+}

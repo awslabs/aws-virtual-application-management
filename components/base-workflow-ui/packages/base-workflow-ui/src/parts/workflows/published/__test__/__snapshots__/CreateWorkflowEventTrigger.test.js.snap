@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CreateWorkflowEventTrigger CreateWorkflowEventTrigger should renders correctly 1`] = `
+<div
+  className="ui clearing segment p3"
+>
+  <form
+    className="ui fluid form"
+    onSubmit={[Function]}
+  >
+    <div
+      className="ui inverted dimmer"
+      onClick={[Function]}
+    >
+      <div
+        className="content"
+      >
+        <div
+          className="ui inverted text loader"
+        >
+          Processing
+        </div>
+      </div>
+    </div>
+    <div
+      className="mb4"
+    >
+      <h3
+        className="ui header field mt0 mb1"
+      >
+        <label
+          className="color-grey"
+          htmlFor="eventPattern--1"
+        >
+          Event Pattern
+        </label>
+      </h3>
+      <textarea
+        autoFocus={false}
+        checked={null}
+        className="field"
+        data-testid=""
+        disabled={false}
+        id="eventPattern--1"
+        name="eventPattern"
+        onBlur={[Function]}
+        onChange={[Function]}
+        onFocus={[Function]}
+        onInput={[Function]}
+        placeholder="Enter the event pattern that will trigger this workflow in JSON format"
+        rows={6}
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="mt3"
+    >
+      <button
+        className="ui blue icon right floated button ml2"
+        onClick={[Function]}
+        type="submit"
+      >
+        Create Event Trigger
+      </button>
+      <button
+        className="ui right floated button"
+        onClick={[Function]}
+      >
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>
+`;

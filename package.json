@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "fast-check": "^2.7.0",
+    "jest-fast-check": "^1.0.0"
+  },
+  "devDependencies": {
+    "serverless": "^1.63.0",
+    "@aws-ee/main-assembly": "workspace:*",
+    "@aws-ee/main-commands": "workspace:*",
+    "@aws-ee/main-registry-docs": "workspace:*",
+    "@aws-ee/base-serverless-solution-commands": "workspace:*",
+    "@aws-ee/base-serverless-settings-helper": "workspace:*"
+  },
+  "pnpm": {
+    "overrides": {
+      "xmlhttprequest-ssl": ">=1.6.1",
+      "axios": ">=0.21.1",
+      "immer": ">=8.0.1",
+      "trim": ">=0.0.3",
+      "dns-packet": ">=1.3.2",
+      "ssri": ">=8.0.1",
+      "prismjs": ">=1.23.0",
+      "urijs": ">=1.19.6",
+      "hosted-git-info": ">=2.8.9",
+      "browserslist": ">=4.16.5"
+    }
+  }
+}

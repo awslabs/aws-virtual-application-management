@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Age renders correctly 1`] = `
+<span
+  className=""
+>
+  <time
+    dateTime="1234-01-01T00:00:00.000Z"
+    title="1234"
+  >
+    788 years old
+  </time>
+</span>
+`;

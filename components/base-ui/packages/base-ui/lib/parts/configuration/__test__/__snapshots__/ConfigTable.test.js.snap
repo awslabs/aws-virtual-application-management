@@ -1,0 +1,63 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConfigTable renders correctly 1`] = `
+<table
+  className="ui very basic table animated fadeIn "
+>
+  <thead
+    className=""
+  >
+    <tr
+      className=""
+    >
+      <th
+        className="ten wide"
+      >
+        Key
+      </th>
+      <th
+        className="six wide"
+      >
+        Value
+      </th>
+    </tr>
+  </thead>
+  <tbody
+    className=""
+  >
+    <tr
+      className=""
+    >
+      <td
+        className="ten wide"
+      >
+        <div>
+          title
+        </div>
+        <div
+          className="fs-7 color-grey"
+        />
+      </td>
+      <td
+        className="six wide"
+      >
+        value
+      </td>
+    </tr>
+    <tr
+      className=""
+    >
+      <td
+        className="ten wide"
+      >
+        <div />
+      </td>
+      <td
+        className="six wide"
+      >
+        value
+      </td>
+    </tr>
+  </tbody>
+</table>
+`;

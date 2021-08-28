@@ -1,0 +1,220 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# The solution version (displayed in the UI)
+version: Not for any critical, production, or otherwise important code, data, or other Content.
+
+# The header for the popup modal
+versionDisclaimerHeader: Not for any critical, production, or otherwise important code, data, or other Content.
+
+# The content for the popup modal
+versionDisclaimerContent: >-
+  This sample code is provided to you as AWS Content under the AWS Customer Agreement,
+  or the relevant written agreement between you and AWS (whichever applies). You should not
+  use this sample code in your production accounts, or on production, or other critical data.
+  You are responsible for testing, securing, and optimizing the sample code as appropriate for
+  production grade use based on your specific quality control practices and standards. AWS may
+  reuse these assets in future engagements, but we will not share your confidential data nor
+  your intellectual property with other customers. Prototyping engagements are offered on a
+  no-fee basis. However, you may incur AWS charges for creating or using AWS chargeable resources,
+  such as running Amazon EC2 instances or using Amazon S3 storage.
+
+# Mappings of AWS regions to short names to be used in resource naming
+regionShortNamesMap:
+  'us-east-2': 'oh'
+  'us-east-1': 'va'
+  'us-west-1': 'ca'
+  'us-west-2': 'or'
+  'ap-east-1': 'hk'
+  'ap-south-1': 'mum'
+  'ap-northeast-3': 'osa'
+  'ap-northeast-2': 'sel'
+  'ap-southeast-1': 'sg'
+  'ap-southeast-2': 'syd'
+  'ap-northeast-1': 'ty'
+  'ca-central-1': 'ca'
+  'cn-north-1': 'cn'
+  'cn-northwest-1': 'nx'
+  'eu-central-1': 'fr'
+  'eu-west-1': 'irl'
+  'eu-west-2': 'ldn'
+  'eu-west-3': 'par'
+  'eu-north-1': 'sth'
+  'me-south-1': 'bhr'
+  'sa-east-1': 'sao'
+  'us-gov-east-1': 'gce'
+  'us-gov-west-1': 'gcw'
+
+# The default region to deploy to
+awsRegion: us-east-1
+
+# The environment name where you want to deploy the solution to. (e.g. developer1, developer2, demo, prod etc.)
+# This is also used for creating a namespace for resources. Usually, this is same as serverless "stage".
+# All resource names reference "envName" instead of directly using "opt:stage".
+# This indirection allows for easy incorporation of extra variables in the "envName", if required.
+# For example, if the same solution needs to be deployed across multiple AWS accounts we can easily
+# add account specific variable in "envName" for keeping the namespace specific to each account.
+envName: ${opt:stage}
+
+# Short region name
+# This is used in the namespace to avoid naming collisions to allow deploying the same solution across multiple regions
+# Currently using the ISO country code or state code or city abbreviation as short name of the region
+# See "regionShortNamesMap" defined above.
+# The above mapping needs to be updated when deploying to any region other than the ones listed above in future
+awsRegionShortName: ${self:custom.settings.regionShortNamesMap.${self:custom.settings.awsRegion}}
+
+# This prefix is used for naming various resources
+namespace: ${self:custom.settings.envName}-${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}
+
+# This is the namespace for naming resources that have global namespace such as S3 bucket names
+globalNamespace: ${self:custom.settings.awsAccountInfo.awsAccountId}-${self:custom.settings.namespace}
+
+# Name of the deployment bucket. The serverless framework uploads various artifacts to this bucket.
+# These artifacts include things like Lambda function code ZIP files, AWS CloudFormation Templates etc
+deploymentBucketName: ${self:custom.settings.globalNamespace}-artifacts
+
+# Bucket policy for the deployment bucket.
+deploymentBucketPolicy:
+  {
+    'Version': '2008-10-17',
+    'Statement':
+      [
+        {
+          'Sid': 'Deny requests that do not use TLS',
+          'Effect': 'Deny',
+          'Principal': '*',
+          'Action': 's3:*',
+          'Resource': 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*',
+          'Condition': { 'Bool': { 'aws:SecureTransport': 'false' } },
+        },
+        {
+          'Sid': 'Deny requests that do not use SigV4',
+          'Effect': 'Deny',
+          'Principal': '*',
+          'Action': 's3:*',
+          'Resource': 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*',
+          'Condition': { 'StringNotEquals': { 's3:signatureversion': 'AWS4-HMAC-SHA256' } },
+        },
+      ],
+  }
+
+# The short solution name is used to namespace a few AWS resources
+# Try to keep this setting short to avoid hitting long strings issues
+solutionName: vam
+
+# The environment type (e.g. dev, demo, prod). This is for grouping multiple environments
+# into types. For example, all developers' environments can be of type "dev". This can be
+# used for enabling conditionals in code that might need to be different between dev and
+# production builds (for example, enabling CORS for localhost for local development).
+envType: dev
+
+# This prefix is used to construct the full name of a table
+dbPrefix: ${self:custom.settings.namespace}
+
+# Root path in parameter store for parameters used by this solution.
+paramStoreRoot: '${self:custom.settings.envName}/${self:custom.settings.solutionName}'
+
+# THIS SETTING IS ONLY APPLICABLE FOR LOCAL DEVELOPMENT
+# A flag indicating if lambda function role's trust policy (assume role policy) should be automatically adjusted to
+# allow assuming the role from local machine (applicable only for local development)
+localRoleAutoAdjustTrust: true
+
+# i18n SETTINGS
+
+supportedLanguages: '{"en":"en", "en-US":"en", "en-GB":"en", "en-AU":"en", "ja":"ja"}'
+# supportedLanguages: '{"en":"en", "en-US":"en", "en-GB":"en", "en-AU":"en"}'
+
+defaultLanguage: 'en'
+
+# VAM SPECIFIC
+
+imageBuilderStackName: ${self:custom.settings.namespace}-image-builder
+
+# Whether to apply AD-joining to fleet instances
+adJoined: false
+
+# GSuite Domains that will be used with GDrive as a storage mechanism for the instances.
+# Use commas to separate the values e.g. myuniversity.edu,myfaculty.edu
+gsuiteDomains: ''
+
+# External hosts that will be added to AppStream stacks' config. This allows e.g. canvas.myuniversity.edu
+# to embed an AppStream iframe.
+embedHosts: ''
+
+# Specify the VPC and Subnet Ids to use for the Installer Host and AWS Managed Directory (if deployed).
+# These are optional parameters and if not specified a VPC will be created.
+# If not specifying, leave the strings empty
+
+vpcId: ''
+subnetIds: ''
+availabilityZones: ''
+
+cognitoAuthNProviderTitle: ''
+
+# Feature flag to enable/disable default encryption on DynamoDB tables via AWS owned keys
+# Customers who want to manage their own KMS keys should set this to true
+# Customers who want to use AWS-owned and managed keys should set this to false
+useCmkDynamoDbEncryption: true
+
+# ================================ Settings required by base-auth-cognito ===========================================
+# Defines the email addresses of admin users who should be provisioned when Post Deployment
+# runs. Admin details can be passed in a stringified JSON object where each item of the array
+# defines the user's "email", "firstName", and "lastName".
+# Example: [{"email": "admin@example.com", "firstName": "Example", "lastName": "Admin"}]
+# adminPrincipals: '[{"email": "admin@example.com", "firstName": "Example", "lastName": "Admin"}]'
+
+# ================================ Optional settings for base-auth-cognito ===========================================
+# Leave all the settings below commented out if you do not want to use
+# AWS Cognito User Pool or SAML 2.0 Identity Federation
+
+# If a Cognito user pool is setup for the solution, this setting indicates whether native
+# Cognito users should be used or if the Cognito user pool will only be used to federate via
+# other identity providers
+enableNativeUserPoolUsers: true
+
+# Array of identity provider ids.
+# The usual practice is to keep this same as the domain name of the IdP.
+# For example, when connecting with an IdP that has users "user1@domain1.com", "user2@domain1.com" etc then
+# the id should be set to "domain1.com"
+#
+# If you do not want to connect to SAML 2.0 Identity Provider then leave this setting commented out
+# or set it as empty array as follows.
+fedIdpIds: '[]'
+
+# Array of identity provider names. This array should be in same order as the "fedIdpIds"
+# Some name for the IdPs. (such as 'com.ee', 'EEAD' etc)
+#
+# If you do not want to connect to SAML 2.0 Identity Provider then leave this setting commented out
+# or set it as empty array as follows.
+fedIdpNames: '[]'
+
+# Array of identity provider display names. This array should be in same order as the "fedIdpIds"
+# Display name (such as 'Employee Login', 'AD Login' etc). This can be used in UI to login options.
+#
+# If you do not want to connect to SAML 2.0 Identity Provider then leave this setting commented out
+# or set it as empty array as follows.
+fedIdpDisplayNames: '[]'
+
+# Array of identity provider SAML metadata. This array should be in same order as the "fedIdpIds".
+#
+# If you do not want to connect to SAML 2.0 Identity Provider then leave this setting commented out
+# or set it as empty array as follows.
+#
+# fedIdpMetadatas: '[]'
+#
+# Get the Identity Provider SAML metadata file from IdP administrator and place it under
+# "main/config/settings/post-deployment/saml-metadata/" directory and replace "<idp-metadata-file-name>" below with the
+# name of the file.
+# For example, if you place "FOO.XML" under "main/config/settings/post-deployment/saml-metadata/" with IdP metadata then
+# set the following setting as '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/FOO.XML"]'
+fedIdpMetadatas: '[]'

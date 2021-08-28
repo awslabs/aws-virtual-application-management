@@ -1,0 +1,19 @@
+{
+  "name": "@aws-ee/vam-silky-smooth-deployments",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Silky Smooth Deployments",
+  "author": "Amazon Web Services",
+  "license": "SEE LICENSE IN LICENSE",
+  "devDependencies": {
+    "make-runnable": "^1.3.8",
+    "serverless": "^1.63.0",
+    "serverless-hooks-plugin": "^1.1.0",
+    "serverless-webpack": "^5.3.5",
+    "webpack-node-externals": "^2.5.2"
+  },
+  "dependencies": {
+    "@aws-ee/base-serverless-settings-helper": "workspace:*",
+    "@aws-ee/vam-generate-env-config": "workspace:*"
+  }
+}

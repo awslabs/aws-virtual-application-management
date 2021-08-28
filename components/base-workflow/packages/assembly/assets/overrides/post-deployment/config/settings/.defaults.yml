@@ -1,0 +1,42 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# The name of the workflowLoopRunner lambda
+workflowLambdaName: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner
+
+# DynamoDB table name for Step Templates
+dbStepTemplates: ${self:custom.settings.dbPrefix}-StepTemplates
+
+# DynamoDB table name for Workflow Templates
+dbWorkflowTemplates: ${self:custom.settings.dbPrefix}-WorkflowTemplates
+
+# DynamoDB table name for Workflows
+dbWorkflows: ${self:custom.settings.dbPrefix}-Workflows
+
+# DynamoDB table name for WorkflowEventTriggers
+dbWorkflowEventTriggers: ${self:custom.settings.dbPrefix}-WorkflowEventTriggers
+
+# DynamoDB table name for Workflow Templates Drafts
+dbWorkflowTemplateDrafts: ${self:custom.settings.dbPrefix}-WorkflowTemplateDrafts
+
+# DynamoDB table name for Workflow Drafts
+dbWorkflowDrafts: ${self:custom.settings.dbPrefix}-WorkflowDrafts
+
+# ARN of the workflow solution events handler, to register workflow event triggers
+workflowSolutionEventsHandlerArn: ${cf:${self:custom.settings.backendStackName}.WorkflowSolutionEventsHandlerArn}
+
+# CloudFormation stack name for the EventBridge infrastructure SDU
+eventbridgeInfraStackName: ${self:custom.settings.namespace}-eventbridge-infra
+
+# EventBridge solution-wide bus name
+solutionEventBusName: ${cf:${self:custom.settings.eventbridgeInfraStackName}.SolutionEventBusName} 

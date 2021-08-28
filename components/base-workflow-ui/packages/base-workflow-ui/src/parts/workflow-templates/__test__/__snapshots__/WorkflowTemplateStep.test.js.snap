@@ -1,0 +1,89 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowTemplateStep WorkflowTemplateStep should renders correctly 1`] = `
+<div
+  className="accordion ui flex-auto overflow-hidden pr1"
+>
+  <div
+    className="title"
+    onClick={[Function]}
+  >
+    <div
+      className="flex mt1 mb1"
+    >
+      <i
+        aria-hidden="true"
+        className="dropdown icon inline-block"
+        onClick={[Function]}
+        style={
+          Object {
+            "marginTop": "3px",
+          }
+        }
+      />
+      <div
+        className="ellipsis flex-auto"
+      />
+      <div
+        className="ellipsis pl1 pr1 breakout fs-9 color-grey"
+      >
+         v
+      </div>
+    </div>
+  </div>
+  <div
+    className="content animated pt3 pl2 pr2 pb2 mb2"
+  >
+    <i
+      aria-hidden="true"
+      className="file alternate outline icon mr1 color-grey"
+      onClick={[Function]}
+    />
+    <b>
+      Description
+    </b>
+    <div
+      className="ui divider mt1"
+    />
+    <div
+      className="mb4"
+    />
+    <div
+      className="mb4"
+    >
+      <i
+        aria-hidden="true"
+        className="cog icon mr1 color-grey"
+        onClick={[Function]}
+      />
+      <b>
+        Configuration
+      </b>
+      <div
+        className="ui divider mt1 mb3"
+      />
+      <div
+        className=""
+      >
+        No configuration entries are available
+      </div>
+    </div>
+    <i
+      aria-hidden="true"
+      className="list alternate outline icon mr1 color-grey"
+      onClick={[Function]}
+    />
+    <b>
+      Properties
+    </b>
+    <div
+      className="ui divider mt1 mb3"
+    />
+    <div
+      className=""
+    >
+      No properties are available
+    </div>
+  </div>
+</div>
+`;

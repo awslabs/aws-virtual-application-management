@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "fast-check": "^2.7.0",
+    "jest-fast-check": "^1.0.0"
+  },
+  "devDependencies": {
+    "serverless": "^1.63.0",
+    "@aws-ee/main-assembly": "workspace:*",
+    "@aws-ee/main-commands": "workspace:*",
+    "@aws-ee/main-registry-docs": "workspace:*",
+    "@aws-ee/base-serverless-solution-commands": "workspace:*",
+    "@aws-ee/base-serverless-settings-helper": "workspace:*"
+  }
+}

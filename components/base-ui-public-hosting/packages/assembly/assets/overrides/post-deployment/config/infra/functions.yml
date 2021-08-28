@@ -1,0 +1,21 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+postDeployment:
+  environment:
+    # ================================ Settings required by base-ui ===========================================
+    APP_SECURITY_EDGE_LAMBDA_ARN: ${self:custom.settings.securityEdgeLambdaArn}
+    APP_REDIRECTS_EDGE_LAMBDA_ARN: ${self:custom.settings.redirectsEdgeLambdaArn}
+    APP_CLOUD_FRONT_ID: ${self:custom.settings.cloudFrontId}
+    APP_CLOUD_FRONT_ALLOW_LIST_ID: ${self:custom.settings.cloudFrontAllowListId}
+    APP_CLOUD_FRONT_ALLOW_LIST_SECRET_NAME: ${self:custom.settings.cloudFrontAllowListSecretName}

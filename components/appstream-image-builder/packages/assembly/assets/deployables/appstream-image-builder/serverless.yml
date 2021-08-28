@@ -1,0 +1,72 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# For full config options, see docs.serverless.com
+# Note that most settings in here come from config/settings/*.yaml
+service: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-image-builder
+
+package:
+  individually: true
+  excludeDevDependencies: true
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ${self:custom.settings.awsRegion}
+  profile: ${self:custom.settings.awsProfile}
+  stackName: ${self:custom.settings.envName}-${self:service}
+  deploymentBucket:
+    name: ${self:custom.settings.deploymentBucketName}
+    serverSideEncryption: 'AES256'
+  stackTags: ${self:custom.tags}
+  versionFunctions: false # see https://medium.com/@mayconbordin/lessons-learned-building-a-large-serverless-project-on-aws-74d40f5b0b46
+  # All references beginning with ${self:*, ${opt:*, ${file:*, ${deep:*, and ${cf:* will be resolved by Serverless
+  # All other ${* references will be resolved by CloudFormation
+  # See https://forum.serverless.com/t/getting-handle-accountid-in-serverless-config/946/11 and
+  # See https://github.com/serverless/serverless/issues/5011
+  variableSyntax: '\$\{((((self|opt|deep|cf):)|file)((?!\$\{).)+?)}'
+  environment:
+    APP_ENV_TYPE: ${self:custom.settings.envType}
+    APP_ENV_NAME: ${self:custom.settings.envName}
+    APP_AWS_REGION: ${self:custom.settings.awsRegion}
+    APP_SOLUTION_NAME: ${self:custom.settings.solutionName}
+    APP_DB_PREFIX: ${self:custom.settings.dbPrefix}
+
+custom:
+  settings: ${file(./config/settings/.settings.js):merged}
+  tags:
+    Name: ${self:custom.settings.envName}-${self:service}
+  deploymentBucket:
+    policy: ${self:custom.settings.deploymentBucketPolicy}
+  serverless-offline:
+    port: 4000
+  s3Sync:
+    - bucketName: ${self:custom.settings.installerHostWorkBucketName}
+      localDir: data/dyncat
+      bucketPrefix: dyncat
+  remover:
+    prompt: false
+    buckets:
+      - ${self:custom.settings.gpoTemplateBucketName}
+      - ${self:custom.settings.installerHostWorkBucketName}
+
+resources:
+  - Description: VAM ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Image Builder
+  - ${file(./config/infra/cloudformation.yml)}
+
+plugins:
+  - serverless-deployment-bucket
+  - '@aws-ee/serverless-sync-to-s3'
+  - serverless-s3-remover
+  - '@aws-ee/base-serverless-backend-tools'
+  - '@aws-ee/base-cfn-lint-helper'

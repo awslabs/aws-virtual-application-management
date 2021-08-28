@@ -1,0 +1,46 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# ================================ Settings required by base-ui ===========================================
+
+# The stack name of the 'webinfra' serverless service
+webInfraStackName: ${self:custom.settings.namespace}-webinfra
+
+# The URL of the website as defined by the 'webinfra' stack
+# Used when (if) provisioning a Cognito User Pool so that Cognito can direct a user back to the site after auth
+websiteUrl: ${cf:${self:custom.settings.webInfraStackName}.WebsiteUrl}
+
+# The stack name of the 'edge-lambda' serverless service
+edgeLambdaStackName: ${self:custom.settings.namespace}-edgeLambda
+
+# ARN of a Lambda@Edge function that intercepts CloudFront responses and adds various security headers
+securityEdgeLambdaArn: ${cf:${self:custom.settings.edgeLambdaStackName}.SecurityEdgeLambdaArn}
+
+# ARN of a Lambda@Edge function that implements standard web server redirects that simplify directory handling when hosting a static site on S3
+redirectsEdgeLambdaArn: ${cf:${self:custom.settings.edgeLambdaStackName}.RedirectsEdgeLambdaArn}
+
+# ID of the CloudFront Distribution that should have Lambda@Edge function(s) associated
+cloudFrontId: ${cf:${self:custom.settings.webInfraStackName}.CloudFrontId}
+
+# ID of the CloudFront WAF IPSet allow list
+cloudFrontAllowListId: ${cf:${self:custom.settings.webInfraStackName}.WebsiteAllowListId}
+
+# Name of the CloudFront WAF IPSet Param Store secret string
+cloudFrontAllowListSecretName: '/${self:custom.settings.paramStoreRoot}/cloud-front-waf-allow-list'
+
+crossRegionCloudFormation:
+  edgeLambdaStackName:
+    - settingName: securityEdgeLambdaArn
+      outputKey: SecurityEdgeLambdaArn
+    - settingName: redirectsEdgeLambdaArn
+      outputKey: RedirectsEdgeLambdaArn

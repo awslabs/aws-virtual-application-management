@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EditableNameValueRow renders correctly 1`] = `
+<tr
+  className=""
+>
+  <td
+    className=""
+  />
+  <td
+    className=""
+  />
+  <td
+    className=""
+  >
+    <i
+      aria-hidden="true"
+      className="grey pencil icon ml1 cursor-pointer"
+      onClick={[Function]}
+    />
+    <i
+      aria-hidden="true"
+      className="grey trash icon ml1 cursor-pointer"
+      onClick={[Function]}
+    />
+  </td>
+</tr>
+`;

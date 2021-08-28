@@ -1,0 +1,16 @@
+{
+  "name": "@aws-ee/web-infra",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The website infrastructure",
+  "author": "Amazon Web Services",
+  "license": "Apache 2.0",
+  "devDependencies": {
+    "@aws-ee/base-cfn-lint-helper": "workspace:^0.0.1",
+    "@aws-ee/base-script-utils": "workspace:*",
+    "@aws-ee/base-serverless-settings-helper": "workspace:*",
+    "serverless": "^1.63.0",
+    "serverless-s3-remover": "^0.6.0",
+    "serverless-deployment-bucket": "^1.4.1"
+  }
+}

@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowTemplateDraftEditor WorkflowTemplateDraftEditor should renders correctly 1`] = `
+<div
+  className="ui container mt3"
+>
+  <div
+    className="ui breadcrumb block mb3"
+  >
+    <a
+      className="section"
+      onClick={[Function]}
+    >
+      Workflow Template Drafts
+    </a>
+    <i
+      aria-hidden="true"
+      className="right angle icon divider"
+      onClick={[Function]}
+    />
+    <div
+      className="active section"
+      onClick={[Function]}
+    >
+      undefined
+    </div>
+  </div>
+  <div
+    className="p0"
+  >
+    <div
+      className="ui negative message clearfix"
+    >
+      <div
+        className="header"
+      >
+        A problem was encountered
+      </div>
+      <p>
+        The workflow template draft "undefined" is not available
+      </p>
+    </div>
+  </div>
+</div>
+`;

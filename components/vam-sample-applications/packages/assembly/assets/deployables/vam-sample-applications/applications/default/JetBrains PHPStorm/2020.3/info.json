@@ -1,0 +1,8 @@
+{
+  "packageType": "choco",
+  "packageInstall": {
+    "chocoPackage": "phpstorm"
+  },
+  "applicationName": "phpstorm",
+  "applicationExe": "C:\\Program Files (x86)\\JetBrains\\PhpStorm 2020.3\\bin\\phpstorm64.exe"
+}

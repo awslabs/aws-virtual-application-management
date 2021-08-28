@@ -1,0 +1,58 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+version: 0.2
+
+env:
+  git-credential-helper: yes
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+
+  pre_build:
+    commands:
+      - echo "Initializing submodules"
+      - git submodule update --init --recursive
+      - echo "Installing PNPM"
+      - npm install -g pnpm
+      - echo "Installing dependencies"
+      - pnpm install -r
+      - printf "\n\n"
+      # Need to build all packages explicitly here.
+      # This is required because somehow the "pnpm run build" script in "prepare" hook does not work in AWS CodeBuild
+      # The "prepare" hook script is executed fine but the "build" script referenced in "prepare" does not execute
+      - echo "Building packages"
+      - pnpm run build -r
+      - printf "\n\n"
+
+  build:
+    commands:
+      - echo "Assembling the solution "
+      - pnpx sls solution-assemble --stage "$ENV_NAME"
+
+artifacts:
+  files:
+    - '**/*'
+  name: SourceArtifact
+  discard-paths: no
+
+cache:
+  paths:
+    - node_modules/
+    - components/*/packages/*/node_modules/
+    - main/solution/*/node_modules/
+    - main/.generated-solution/cicd/*/node_modules/
+    - main/integration-tests/node_modules/
+    - main/packages/*/node_modules

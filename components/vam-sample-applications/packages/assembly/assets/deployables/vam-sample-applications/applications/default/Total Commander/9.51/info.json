@@ -1,0 +1,8 @@
+{
+  "packageType": "choco",
+  "packageInstall": {
+    "chocoPackage": "totalcommander"
+  },
+  "applicationName": "TotalCommander",
+  "applicationExe": "C:\\Program Files\\totalcmd\\TOTALCMD.EXE"
+}

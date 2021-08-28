@@ -1,0 +1,8 @@
+{
+  "packageType": "powershell",
+  "packageInstall": {
+    "script": "install.ps1"
+  },
+  "applicationName": "google_chrome",
+  "applicationExe": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+}

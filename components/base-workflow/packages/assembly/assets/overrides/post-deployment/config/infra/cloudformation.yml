@@ -1,0 +1,38 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Resources:
+  RolePostDeploymentLambda:
+    Properties:
+      Policies:
+        - PolicyName: 'db-access'
+          PolicyDocument:
+            Statement:
+              Sid: dbaccess
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbStepTemplates}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflowTemplates}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflows}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflowEventTriggers}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflowEventTriggers}/index/*'
+        - PolicyName: solution-event-bus-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - events:PutRule
+                - events:DeleteRule
+                - events:PutTargets
+                - events:RemoveTargets
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:events:${AWS::Region}:${AWS::AccountId}:rule/${self:custom.settings.solutionEventBusName}/*'

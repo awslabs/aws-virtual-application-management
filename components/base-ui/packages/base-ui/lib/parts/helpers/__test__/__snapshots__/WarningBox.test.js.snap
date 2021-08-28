@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WarningBox renders correctly 1`] = `
+<div
+  className="p3"
+>
+  <div
+    className="ui warning message mt2 mb2 clearfix"
+  >
+    <div
+      className="header"
+    >
+      Warning
+    </div>
+    <p>
+      Hmm... something is needing your attention
+    </p>
+  </div>
+</div>
+`;

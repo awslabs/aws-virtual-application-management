@@ -1,0 +1,61 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# The S3 bucket name used for S3 access logging
+loggingBucketName: ${cf:${self:custom.settings.webInfraStackName}.LoggingBucket}
+
+# VAM SPECIFIC
+# DynamoDB table name for KeyPairs
+
+dbAppstreamImages: ${self:custom.settings.dbPrefix}-AppstreamImages
+
+dbDynamicCatalogs: ${self:custom.settings.dbPrefix}-DynamicCatalogs
+
+dbGroupAccess: ${self:custom.settings.dbPrefix}-GroupAccess
+
+# ================================ Settings required by base-ui ===========================================
+
+# Name of the parameter in the parameter store to save the generated password of the root user
+webInfraStackName: ${self:custom.settings.namespace}-webinfra
+
+# URL of the website
+websiteUrl: ${cf:${self:custom.settings.webInfraStackName}.WebsiteUrl}
+
+
+# VAM SPECIFIC
+# Glue DB name for AppStream Usage Reports
+appstreamUsageReportsGlueDbName: ${self:custom.settings.namespace}-appstream-usage
+
+applicationRepoBucketName: ${self:custom.settings.globalNamespace}-application-repo
+
+# The S3 bucket name used for Cloud Trail logs
+cloudTrailBucketName: ${self:custom.settings.globalNamespace}-cloudtrail
+
+# The S3 bucket name used for appstream metrics analysis
+metricsBucketName: ${self:custom.settings.globalNamespace}-metrics
+
+dapConfigBucketName: ${self:custom.settings.globalNamespace}-dap-config
+
+activeDirectoryVPCSubnet: ${cf:${self:custom.settings.imageBuilderStackName}.ActiveDirectoryVPCPrivateSubnetA}
+adDomain: ${self:custom.settings.solutionName}-${self:custom.settings.envName}
+adDomainName: ${self:custom.settings.adDomain}.com
+ou: ou=Computers,ou=${self:custom.settings.adDomain},dc=${self:custom.settings.adDomain},dc=com
+imageBuilderIAMRoleArn: ${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderIAMRoleArn}
+appstreamImageArn: arn:aws:appstream:${self:custom.settings.awsRegion}::image/AppStream-WinServer2019-06-01-2021
+imageBuilderSecurityGroupId: ${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderSecurityGroup}
+installerInstanceSecurityGroup: ${cf:${self:custom.settings.imageBuilderStackName}.InstallerInstanceSecurityGroup}
+appstreamInstanceRoleArn: ${cf:${self:custom.settings.imageBuilderStackName}.AppstreamInstanceRoleArn}
+ltiConsumerKeyPrimary: ${self:custom.settings.namespace}-lti-consumer-key-primary
+ltiConsumerKeySecondary: ${self:custom.settings.namespace}-lti-consumer-key-secondary
+
+enableApiKeys: false

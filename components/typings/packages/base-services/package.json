@@ -1,0 +1,14 @@
+{
+  "name": "@types/aws-ee__base-services",
+  "private": true,
+  "version": "1.0.0",
+  "description": "TypeScript definitions for @aws-ee/base-services",
+  "main": "",
+  "types": "lib/index.d.ts",
+  "scripts": {},
+  "dependencies": {
+    "@types/aws-ee__base-services-container": "workspace:*",
+    "aws-sdk": "^2.848.0"
+  },
+  "license": "SEE LICENSE IN LICENSE"
+}

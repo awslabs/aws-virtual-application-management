@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "Name": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 3,
+      "pattern": "^[A-Za-z][A-Za-z0-9-_]+$"
+    },
+    "ImageName": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 3,
+      "pattern": "^[A-Za-z][A-Za-z0-9-_]+$"
+    },
+    "InstanceType": {},
+    "FleetType": {},
+    "MaxUserDurationInSeconds": {
+      "type": "number"
+    },
+    "DisconnectTimeoutInSeconds": {
+      "type": "number"
+    },
+    "IdleDisconnectTimeoutInSeconds": {
+      "type": "number"
+    },
+    "ComputeCapacity": {
+      "type": "object",
+      "properties": {
+        "DesiredInstances": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "required": [
+    "Name",
+    "ImageName",
+    "InstanceType",
+    "FleetType",
+    "MaxUserDurationInSeconds",
+    "DisconnectTimeoutInSeconds",
+    "IdleDisconnectTimeoutInSeconds",
+    "ComputeCapacity"
+  ]
+}

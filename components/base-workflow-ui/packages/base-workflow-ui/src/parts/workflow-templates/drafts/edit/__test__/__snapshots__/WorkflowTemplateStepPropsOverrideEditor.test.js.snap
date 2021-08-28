@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowTemplateStepPropsOverrideEditor WorkflowTemplateStepPropsOverrideEditor should renders correctly 1`] = `
+<div
+  className="test-className"
+>
+  <div
+    className="flex"
+  >
+    <div
+      className="flex-auto"
+    >
+      <i
+        aria-hidden="true"
+        className="file alternate outline icon mr1 color-grey"
+        onClick={[Function]}
+      />
+      <b>
+        Properties Override
+      </b>
+    </div>
+    <div
+      className="pl1 pr0"
+      onClick={[Function]}
+    >
+      <i
+        aria-hidden="true"
+        className="grey edit icon cursor-pointer"
+        onClick={[Function]}
+      />
+    </div>
+  </div>
+  <div
+    className="ui divider mt1 mb2"
+  />
+  <div>
+    No properties are available to override
+  </div>
+</div>
+`;

@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DocumentationClient renders correctly 1`] = `
+<div
+  style={
+    Object {
+      "bottom": "25px",
+      "height": "70px",
+      "position": "fixed",
+      "right": "25px",
+      "width": "70px",
+    }
+  }
+>
+  <button
+    className="ui blue huge circular icon button"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onMouseEnter={[Function]}
+    onMouseLeave={[Function]}
+  >
+    <i
+      aria-hidden="true"
+      className="help icon"
+      onClick={[Function]}
+    />
+  </button>
+</div>
+`;

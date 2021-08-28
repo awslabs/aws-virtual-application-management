@@ -1,0 +1,104 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Resources:
+  # Allow appstream:CreateUsageReportSubscription
+  RolePostDeploymentLambda:
+    Properties:
+      Policies:
+        - PolicyName: appstream-service-role-iam-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:GetRole
+                - iam:CreateRole
+                - iam:AttachRolePolicy
+                - iam:CreatePolicy
+                - iam:PassRole
+                - iam:GetPolicy
+              Resource:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/service-role/AmazonAppStreamServiceAccess'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/service-role/${self:custom.settings.appstreamUsageReportGlueRole}'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.appstreamGlueS3CrawlPolicyName}'
+                - 'arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/service-role/ApplicationAutoScalingForAmazonAppStreamAccess'
+        - PolicyName: create-appstreaam-glue-db-and-crawlers
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Action:
+                - glue:CreateDatabase
+                - glue:CreateClassifier
+                - glue:CreateCrawler
+                - glue:GetDatabase
+                - glue:GetClassifier
+                - glue:GetCrawler
+              Resource:
+                - '*'
+        - PolicyName: appstream-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Action:
+                - appstream:CreateUsageReportSubscription
+              Resource:
+                - '*'
+        - PolicyName: lambda-in-vpc-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:CreateNetworkInterface
+                  - ec2:DeleteNetworkInterface
+                Resource: '*'
+
+  AppstreamUsageReportGlueRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ${self:custom.settings.appstreamUsageReportGlueRole}
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'glue.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/service-role/'
+      # NOTE:
+      #   The policies below are added in the enable-appstream-usage-reports.js script.
+      #   This is due to it not being possible to determine the AppStreamUsageReportsBucket without calling the createAppstreamUsageReportSubscription
+      #   The commented policy below is an example of what the policy will look like at completion of the script
+      # Policies:
+      #   - PolicyName: "AllowGlueToCrawlS3"
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         -
+      #           Effect: "Allow"
+      #           Action: ["s3:GetObject"]
+      #           Resource:
+      #             - <AppStreamUsageReportsBucket>/sessions/*
+      #         - Effect: "Allow"
+      #           Action: ["s3:GetObject"]
+      #           Resource:
+      #             - <AppStreamUsageReportsBucket>/applications/*
+

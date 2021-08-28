@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BarGraph renders correctly 1`] = `
+<div
+  className="mr4"
+>
+  <div
+    className="fs-9 center mt1 mb1"
+  >
+    Tasks
+  </div>
+  <div />
+</div>
+`;

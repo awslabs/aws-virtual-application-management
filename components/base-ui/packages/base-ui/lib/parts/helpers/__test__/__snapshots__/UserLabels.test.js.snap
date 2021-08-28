@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`UserLabels renders correctly 1`] = `
+<div
+  className=""
+>
+  <div
+    className="ui image label mt1"
+    onClick={[Function]}
+  >
+    <div
+      className="detail"
+    >
+      username
+    </div>
+  </div>
+</div>
+`;

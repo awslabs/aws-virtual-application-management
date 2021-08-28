@@ -1,0 +1,169 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Conditions:
+  WebsiteUrlDefined: !Not
+    - !Equals [ '${self:custom.settings.websiteUrl}', '' ]
+
+  # The following condition is used only when "base-ui-private-hosting" component is being used and is defined by
+  # "base-ui-private-hosting" component as well but we need to define it here again to handle the case
+  # when "base-ui-private-hosting" is not used
+  UseVpceInUrl: !Equals [ '${self:custom.settings.useVpceInUrl}', true ]
+
+Resources:
+  RoleApiHandler:
+    Properties:
+      Policies:
+        - PolicyName: user-pool-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cognito-idp:AdminCreateUser
+                - cognito-idp:AdminGetUser
+                - cognito-idp:AdminUpdateUserAttributes
+                - cognito-idp:AdminDeleteUser
+              Resource: !GetAtt UserPool.Arn
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: ${self:custom.settings.cognitoUserPoolName}
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: false
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      Schema:
+        - Name: email
+          Mutable: true
+          Required: true
+
+  UserPoolAppClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: ${self:custom.settings.webappAppClientName}
+      RefreshTokenValidity: 7
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - implicit
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
+      CallbackURLs:
+        - !If
+          - WebsiteUrlDefined
+          - "${self:custom.settings.websiteUrl}"
+          - !If
+            - UseCustomDomain
+            - https://${self:custom.settings.domainName}
+            - !If
+              - UseVpceInUrl
+              - !Join [ '', [ 'https://', !Ref ApiGatewayRestApi, '-', !Sub '${self:custom.settings.vpcApiGatewayEndpoint}', '.execute-api.', !Ref AWS::Region, '.', !Ref AWS::URLSuffix, '/${opt:stage}' ] ]
+              - !Join [ '', [ 'https://', !Ref ApiGatewayRestApi, '.execute-api.', !Ref AWS::Region, '.', !Ref AWS::URLSuffix, '/${opt:stage}' ] ]
+        - !If [IsDev, http://localhost:3000, !Ref AWS::NoValue]
+      DefaultRedirectURI: !If
+        - WebsiteUrlDefined
+        - "${self:custom.settings.websiteUrl}"
+        - !If
+          - UseCustomDomain
+          - https://${self:custom.settings.domainName}
+          - !If
+            - UseVpceInUrl
+            - !Join [ '', [ 'https://', !Ref ApiGatewayRestApi, '-', !Sub '${self:custom.settings.vpcApiGatewayEndpoint}', '.execute-api.', !Ref AWS::Region, '.', !Ref AWS::URLSuffix, '/${opt:stage}' ] ]
+            - !Join [ '', [ 'https://', !Ref ApiGatewayRestApi, '.execute-api.', !Ref AWS::Region, '.', !Ref AWS::URLSuffix, '/${opt:stage}' ] ]
+      LogoutURLs:
+        - !If
+          - WebsiteUrlDefined
+          - "${self:custom.settings.websiteUrl}"
+          - !If
+            - UseCustomDomain
+            - https://${self:custom.settings.domainName}
+            - !If
+              - UseVpceInUrl
+              - !Join [ '', [ 'https://', !Ref ApiGatewayRestApi, '-', !Sub '${self:custom.settings.vpcApiGatewayEndpoint}', '.execute-api.', !Ref AWS::Region, '.', !Ref AWS::URLSuffix, '/${opt:stage}' ] ]
+              - !Join [ '', [ 'https://', !Ref ApiGatewayRestApi, '.execute-api.', !Ref AWS::Region, '.', !Ref AWS::URLSuffix, '/${opt:stage}' ] ]
+        - !If [IsDev, http://localhost:3000, !Ref AWS::NoValue]
+      ReadAttributes:
+        - email
+        - email_verified
+        - family_name
+        - given_name
+      WriteAttributes:
+        - email
+        - family_name
+        - given_name
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      UserPoolId: !Ref UserPool
+      Domain: 
+        Fn::Join:
+          - '-'
+          - - ${self:custom.settings.userPoolDomainPartialPrefix}
+            - Fn::Select:
+                - 4
+                - Fn::Split:
+                    - '-'
+                    - Fn::Select:
+                        - 2
+                        - Fn::Split:
+                            - /
+                            - Ref: AWS::StackId
+
+  ApiIntegrationTestAppClient:
+    Type: AWS::Cognito::UserPoolClient
+    Condition: IsDev
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: API Integration Tests
+      GenerateSecret: true
+      RefreshTokenValidity: 1 # Minimum is 1
+      AllowedOAuthFlowsUserPoolClient: false
+      ExplicitAuthFlows:
+        - ADMIN_NO_SRP_AUTH
+      ReadAttributes:
+        - email
+        - family_name
+        - given_name
+      WriteAttributes:
+        - email
+        - family_name
+        - given_name
+
+Outputs:
+  UserPoolId:
+    Description: ID of the Cognito User Pool
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: ID of the main Cognito User Pool App Client
+    Value: !Ref UserPoolAppClient
+  UserPoolDomainPrefix:
+    Description: Cognito domain prefix where the user pool's UI and OAuth endpoints are hosted
+    Value: !Ref UserPoolDomain
+  ApiIntegrationTestAppClient:
+    Condition: IsDev
+    Description: >-
+      A user pool app client that allows the ADMIN_NO_SRP_AUTH auth flow so API integration tests
+      can retrieve ID tokens
+    Value: !Ref ApiIntegrationTestAppClient

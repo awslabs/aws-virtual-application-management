@@ -1,0 +1,22 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# This name is hardcoded in the stack output; if change, keep in sync!
+# Use abbreviated name to keep function name below limit of 64 char
+acmCertCustResHandler:
+  handler: src/lambdas/acmCertificateCustomResource/handler.handler
+  role: RoleAcmCertificateCustomResourceHandler
+  tags: ${self:custom.tags}
+  timeout: 900 # 15 minutes
+  description: Handles the lifecycle of an ACM certificate, with domain validation; cleans up validation records upon resource deletion.
+  environment:

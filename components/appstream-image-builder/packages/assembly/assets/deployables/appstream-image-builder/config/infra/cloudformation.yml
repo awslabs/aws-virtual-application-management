@@ -1,0 +1,650 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Conditions:
+  DeployVpc: !Or
+    - !Equals ['${self:custom.settings.vpcId}', '']
+    - !Equals ['${self:custom.settings.subnetIds}', '']
+  DeployDirectoryService: !Or
+    - !Equals ['${self:custom.settings.dnsIpAddresses}', '']
+    - !Equals ['${self:custom.settings.directoryId}', '']
+    - !Equals ['${self:custom.settings.appStreamServiceAccountSecretArn}', '']
+    - !Equals ['${self:custom.settings.imageBuilderServiceAccountSecretArn}', '']
+  UpdateVpcDhcp: !Or
+    - !Condition DeployDirectoryService
+    - !Equals ['${self:custom.settings.updateVpc}', 'true']
+  DeployAppStreamDirectoryConfig: !Or
+    - !Condition DeployDirectoryService
+    - !Equals ['${self:custom.settings.deployAppStreamDirectoryConfig', 'true']
+
+Resources:
+  # =============================================================================================
+  # VPC
+  # =============================================================================================
+
+  ActiveDirectoryVPC:
+    Type: AWS::EC2::VPC
+    Condition: DeployVpc
+    Properties:
+      CidrBlock: 10.0.0.0/16
+
+  ActiveDirectoryIGW:
+    Type: AWS::EC2::InternetGateway
+    Condition: DeployVpc
+
+  ActiveDirectoryIGWAssn:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Condition: DeployVpc
+    Properties:
+      InternetGatewayId: !Ref ActiveDirectoryIGW
+      VpcId: !Ref ActiveDirectoryVPC
+
+  ActiveDirectoryVPCPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Condition: DeployVpc
+    Properties:
+      VpcId: !Ref ActiveDirectoryVPC
+
+  ActiveDirectoryVPCDefaultPublicRoute:
+    Type: AWS::EC2::Route
+    Condition: DeployVpc
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref ActiveDirectoryIGW
+      RouteTableId: !Ref ActiveDirectoryVPCPublicRouteTable
+    DependsOn: [ActiveDirectoryIGWAssn]
+
+  ActiveDirectoryVPCPublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Condition: DeployVpc
+    Properties:
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      VpcId: !Ref ActiveDirectoryVPC
+
+  ActiveDirectoryVPCPublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Condition: DeployVpc
+    Properties:
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      VpcId: !Ref ActiveDirectoryVPC
+
+  ActiveDirectoryVPCPublicSubnetARouteAssn:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: DeployVpc
+    Properties:
+      RouteTableId: !Ref ActiveDirectoryVPCPublicRouteTable
+      SubnetId: !Ref ActiveDirectoryVPCPublicSubnetA
+
+  ActiveDirectoryVPCPublicSubnetBRouteAssn:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: DeployVpc
+    Properties:
+      RouteTableId: !Ref ActiveDirectoryVPCPublicRouteTable
+      SubnetId: !Ref ActiveDirectoryVPCPublicSubnetB
+
+  NatGatewayAEIP:
+    Type: AWS::EC2::EIP
+    Condition: DeployVpc
+    DependsOn: [ActiveDirectoryIGWAssn]
+    Properties:
+      Domain: vpc
+
+  NatGatewayA:
+    Type: AWS::EC2::NatGateway
+    Condition: DeployVpc
+    Properties:
+      AllocationId: !GetAtt NatGatewayAEIP.AllocationId
+      SubnetId: !Ref ActiveDirectoryVPCPublicSubnetA
+
+  ActiveDirectoryVPCPrivateRouteTableA:
+    Type: AWS::EC2::RouteTable
+    Condition: DeployVpc
+    Properties:
+      VpcId: !Ref ActiveDirectoryVPC
+
+  ActiveDirectoryVPCDefaultPublicRouteA:
+    Type: AWS::EC2::Route
+    Condition: DeployVpc
+    Properties:
+      RouteTableId: !Ref ActiveDirectoryVPCPrivateRouteTableA
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayA
+
+  ActiveDirectoryVPCPrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Condition: DeployVpc
+    Properties:
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      VpcId: !Ref ActiveDirectoryVPC
+
+  ActiveDirectoryVPCPrivateSubnetARouteAssn:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: DeployVpc
+    Properties:
+      RouteTableId: !Ref ActiveDirectoryVPCPrivateRouteTableA
+      SubnetId: !Ref ActiveDirectoryVPCPrivateSubnetA
+
+  NatGatewayBEIP:
+    Type: AWS::EC2::EIP
+    Condition: DeployVpc
+    DependsOn: [ActiveDirectoryIGWAssn]
+    Properties:
+      Domain: vpc
+
+  NatGatewayB:
+    Type: AWS::EC2::NatGateway
+    Condition: DeployVpc
+    Properties:
+      AllocationId: !GetAtt NatGatewayBEIP.AllocationId
+      SubnetId: !Ref ActiveDirectoryVPCPublicSubnetB
+
+  ActiveDirectoryVPCPrivateRouteTableB:
+    Type: AWS::EC2::RouteTable
+    Condition: DeployVpc
+    Properties:
+      VpcId: !Ref ActiveDirectoryVPC
+
+  ActiveDirectoryVPCDefaultPublicRouteB:
+    Type: AWS::EC2::Route
+    Condition: DeployVpc
+    Properties:
+      RouteTableId: !Ref ActiveDirectoryVPCPrivateRouteTableB
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayB
+
+  ActiveDirectoryVPCPrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Condition: DeployVpc
+    Properties:
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      VpcId: !Ref ActiveDirectoryVPC
+
+  ActiveDirectoryVPCPrivateSubnetBRouteAssn:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: DeployVpc
+    Properties:
+      RouteTableId: !Ref ActiveDirectoryVPCPrivateRouteTableB
+      SubnetId: !Ref ActiveDirectoryVPCPrivateSubnetB
+
+  ActiveDirectoryVPCFlowLog:
+    Type: AWS::EC2::FlowLog
+    Condition: DeployVpc
+    Properties:
+      ResourceType: VPC
+      ResourceId: !Ref ActiveDirectoryVPC
+      TrafficType: ALL
+      LogDestination: arn:aws:s3:::${self:custom.settings.loggingBucketName}
+      LogDestinationType: s3
+
+  # =============================================================================================
+  # Secret
+  # =============================================================================================
+
+  ImageBuilderADCredentials:
+    Type: AWS::SecretsManager::Secret
+    Condition: DeployDirectoryService
+    Properties:
+      Description: ib ad password
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "Admin"}'
+        GenerateStringKey: password
+
+  # =============================================================================================
+  # Directory Service
+  # =============================================================================================
+
+  ImageBuilderAD:
+    Type: AWS::DirectoryService::MicrosoftAD
+    Condition: DeployDirectoryService
+    Properties:
+      Name: ${self:custom.settings.adDomainName}
+      Password: !Sub '{{resolve:secretsmanager:${ImageBuilderADCredentials}:SecretString:password}}'
+      Edition: 'Standard'
+      VpcSettings:
+        VpcId: !If
+          - DeployVpc
+          - !Ref ActiveDirectoryVPC
+          - ${self:custom.settings.vpcId}
+        SubnetIds: !If
+          - DeployVpc
+          - [!Ref ActiveDirectoryVPCPrivateSubnetA, !Ref ActiveDirectoryVPCPrivateSubnetB]
+          - !Split [',', '${self:custom.settings.subnetIds}']
+    DependsOn: [ImageBuilderADCredentials]
+
+  ImageBuilderADDHCPOpts:
+    Type: AWS::EC2::DHCPOptions
+    Condition: UpdateVpcDhcp
+    Properties:
+      DomainNameServers: !If
+        - DeployDirectoryService
+        - - !Select [0, !GetAtt ImageBuilderAD.DnsIpAddresses]
+          - !Select [1, !GetAtt ImageBuilderAD.DnsIpAddresses]
+        - !Split [',', '${self:custom.settings.dnsIpAddresses}']
+
+  ImageBuilderADDHCPOptsAssociation:
+    Type: AWS::EC2::VPCDHCPOptionsAssociation
+    Condition: UpdateVpcDhcp
+    Properties:
+      DhcpOptionsId: !Ref ImageBuilderADDHCPOpts
+      VpcId: !If
+        - DeployVpc
+        - !Ref ActiveDirectoryVPC
+        - ${self:custom.settings.vpcId}
+
+  # =============================================================================================
+  # Image Builder
+  # =============================================================================================
+
+  ImageBuilderIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: appstream.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: ssm-param-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:PutParameter
+                - ssm:GetParameter
+                - ssm:GetParameters
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${InstallerHostWorkBucketParam}'
+
+        - PolicyName: appstream-image-builder-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - appstream:DescribeImageBuilders
+              Resource: !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image-builder/*'
+
+        - PolicyName: secret-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - DeployDirectoryService
+                - !Ref ImageBuilderADCredentials
+                - ${self:custom.settings.imageBuilderServiceAccountSecretArn}
+
+  ImageBuilderVPCSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: allow access from installer host to image builder
+      VpcId: !If
+        - DeployVpc
+        - !Ref ActiveDirectoryVPC
+        - ${self:custom.settings.vpcId}
+
+  ImageBuilderSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: allow access from installer host to image builder
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref InstallerInstanceSecurityGroup
+          FromPort: 5985
+          ToPort: 5986
+          IpProtocol: tcp
+      VpcId: !If
+        - DeployVpc
+        - !Ref ActiveDirectoryVPC
+        - ${self:custom.settings.vpcId}
+
+  # =============================================================================================
+  # Installer Host
+  # =============================================================================================
+
+  JoinADDocument:
+    Type: AWS::SSM::Document
+    Properties:
+      Content: !Sub
+        - |
+          {
+            "schemaVersion": "1.0",
+            "description": "Automatic Domain Join Configuration",
+            "runtimeConfig": {
+              "aws:domainJoin": {
+                "properties": {
+                  "directoryId": "${DirectoryId}",
+                  "directoryName": "${DomainName}",
+                  "directoryOU": "${self:custom.settings.ou}",
+                  "dnsIpAddresses": [ "${DnsIpAddress0}", "${DnsIpAddress1}" ]
+                }
+              }
+            }
+          }
+        - DirectoryId: !If
+            - DeployDirectoryService
+            - !GetAtt ImageBuilderAD.Alias
+            - ${self:custom.settings.directoryId}
+          DomainName: ${self:custom.settings.adDomainName}
+          DnsIpAddress0: !If
+            - DeployDirectoryService
+            - !Select [0, !GetAtt ImageBuilderAD.DnsIpAddresses]
+            - !Select [0, !Split [',', '${self:custom.settings.dnsIpAddresses}']]
+          DnsIpAddress1: !If
+            - DeployDirectoryService
+            - !Select [1, !GetAtt ImageBuilderAD.DnsIpAddresses]
+            - !Select [1, !Split [',', '${self:custom.settings.dnsIpAddresses}']]
+      DocumentType: Command
+
+  InstallerHostRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonSSMDirectoryServiceAccess
+      Policies:
+        - PolicyName: secret-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - DeployDirectoryService
+                - !Ref ImageBuilderADCredentials
+                - ${self:custom.settings.imageBuilderServiceAccountSecretArn}
+
+        - PolicyName: ssm-param-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:PutParameter
+                - ssm:GetParameter
+                - ssm:GetParameters
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${InstallerHostWorkBucketParam}'
+
+        - PolicyName: appstream-image-builder-creation
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - appstream:CreateImageBuilder
+                - appstream:DescribeImageBuilders
+              Resource: !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image-builder/*'
+
+  InstallerHostProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref InstallerHostRole
+
+  InstallerInstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: default bootstrap instance security group
+      GroupName: ${self:custom.settings.namespace}-installer-instance
+      VpcId: !If
+        - DeployVpc
+        - !Ref ActiveDirectoryVPC
+        - ${self:custom.settings.vpcId}
+
+  # =============================================================================================
+  # S3
+  # =============================================================================================
+
+  GPOTemplateBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: gpotemplate/
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketName: ${self:custom.settings.gpoTemplateBucketName}
+
+  GPOTemplateBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref GPOTemplateBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt GPOTemplateBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt GPOTemplateBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+  InstallerHostWorkBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: installerhost/
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketName: ${self:custom.settings.installerHostWorkBucketName}
+
+  InstallerHostWorkBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref InstallerHostWorkBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt InstallerHostWorkBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt InstallerHostWorkBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+          - Sid: allow image builder and appstream instance access
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub '${ImageBuilderIAMRole.Arn}'
+                - !Sub '${RoleAppstreamInstance.Arn}'
+                - !Sub '${InstallerHostRole.Arn}'
+            Action:
+              - s3:GetObject
+              - s3:ListBucket
+            Resource:
+              - !Sub '${InstallerHostWorkBucket.Arn}'
+              - !Sub '${InstallerHostWorkBucket.Arn}/*'
+
+  InstallerHostWorkBucketParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: !Ref InstallerHostWorkBucket
+      Name: '/${self:custom.settings.paramStoreRoot}/InstallerHostWorkBucket'
+
+  # =============================================================================================
+  # AppStream
+  # =============================================================================================
+
+  AppStreamDirectoryConfig:
+    Condition: DeployAppStreamDirectoryConfig
+    Type: AWS::AppStream::DirectoryConfig
+    Properties:
+      DirectoryName: ${self:custom.settings.adDomainName}
+      OrganizationalUnitDistinguishedNames:
+        - ${self:custom.settings.ou}
+      ServiceAccountCredentials:
+        AccountName: !If
+          - DeployDirectoryService
+          - !Sub '${self:custom.settings.adDomain}\{{resolve:secretsmanager:${ImageBuilderADCredentials}::username}}'
+          - '${self:custom.settings.adDomain}\{{resolve:secretsmanager:${self:custom.settings.appStreamServiceAccountSecretArn}::username}}'
+        AccountPassword: !If
+          - DeployDirectoryService
+          - !Sub '{{resolve:secretsmanager:${ImageBuilderADCredentials}::password}}'
+          - '{{resolve:secretsmanager:${self:custom.settings.appStreamServiceAccountSecretArn}::password}}'
+
+  # IAM role to be used for setup during appstream instance init
+  RoleAppstreamInstance:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: appstream.amazonaws.com
+            Action: 'sts:AssumeRole'
+
+  # =============================================================================================
+  # LTI security
+  # =============================================================================================
+
+  LTIConsumerSecretPrimary:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: LTI consumer secret
+      GenerateSecretString:
+        SecretStringTemplate: '{"ltiConsumerKey": "${self:custom.settings.namespace}-lti-consumer-key-primary"}'
+        GenerateStringKey: ltiConsumerSecret
+        ExcludePunctuation: true
+
+  LTIConsumerSecretSecondary:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: LTI consumer secret
+      GenerateSecretString:
+        SecretStringTemplate: '{"ltiConsumerKey": "${self:custom.settings.namespace}-lti-consumer-key-secondary"}'
+        GenerateStringKey: ltiConsumerSecret
+        ExcludePunctuation: true
+
+# =============================================================================================
+# Outputs
+# =============================================================================================
+Outputs:
+  GPOTemplateBucket:
+    Value: !Ref GPOTemplateBucket
+  ImageBuilderAdId:
+    Value: !If
+      - DeployDirectoryService
+      - !Ref ImageBuilderAD
+      - ${self:custom.settings.directoryId}
+  ImageBuilderADCredentialsArn:
+    Value: !If
+      - DeployDirectoryService
+      - !Ref ImageBuilderADCredentials
+      - ${self:custom.settings.imageBuilderServiceAccountSecretArn}
+  ImageBuilderADPrimary:
+    Value: !If
+      - DeployDirectoryService
+      - !Select [0, !GetAtt ImageBuilderAD.DnsIpAddresses]
+      - !Select [0, !Split [',', '${self:custom.settings.dnsIpAddresses}']]
+  ImageBuilderADSecondary:
+    Value: !If
+      - DeployDirectoryService
+      - !Select [1, !GetAtt ImageBuilderAD.DnsIpAddresses]
+      - !Select [1, !Split [',', '${self:custom.settings.dnsIpAddresses}']]
+  ImageBuilderIAMRoleArn:
+    Value: !GetAtt ImageBuilderIAMRole.Arn
+  AppstreamInstanceRoleArn:
+    Value: !GetAtt RoleAppstreamInstance.Arn
+  InstallerInstanceSecurityGroup:
+    Value: !Ref InstallerInstanceSecurityGroup
+  ImageBuilderSecurityGroup:
+    Value: !Ref ImageBuilderSecurityGroup
+  ImageBuilderVPCSecurityGroup:
+    Value: !Ref ImageBuilderVPCSecurityGroup
+  InstallerHostWorkBucket:
+    Value: !Ref InstallerHostWorkBucket
+  InstallerHostWorkBucketDomain:
+    Value: !GetAtt InstallerHostWorkBucket.DomainName
+  InstallerHostWorkBucketRegionalDomain:
+    Value: !GetAtt InstallerHostWorkBucket.RegionalDomainName
+  InstallerHostProfile:
+    Value: !Ref InstallerHostProfile
+  InstallerHostRole:
+    Value: !Ref InstallerHostRole
+  JoinADDocument:
+    Value: !Ref JoinADDocument
+
+  ActiveDirectoryVPC:
+    Value: !If
+      - DeployVpc
+      - !Ref ActiveDirectoryVPC
+      - ${self:custom.settings.vpcId}
+  ActiveDirectoryVPCPrivateSubnets:
+    Value: !If
+      - DeployVpc
+      - !Join [',', [!Ref ActiveDirectoryVPCPrivateSubnetA, !Ref ActiveDirectoryVPCPrivateSubnetB]]
+      - ${self:custom.settings.subnetIds}
+  ActiveDirectoryVPCPrivateSubnetA:
+    Value: !If
+      - DeployVpc
+      - !Ref ActiveDirectoryVPCPrivateSubnetA
+      - !Select [0, !Split [',', '${self:custom.settings.subnetIds}']]
+
+  LTIConsumerSecretPrimary:
+    Value: !Ref LTIConsumerSecretPrimary
+
+  LTIConsumerSecretSecondary:
+    Value: !Ref LTIConsumerSecretSecondary

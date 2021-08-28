@@ -1,0 +1,104 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+authenticationLayerHandler:
+  handler: src/lambdas/authentication-layer-handler/handler.handler
+  role: RoleAuthenticationLayerHandler
+  tags: ${self:custom.tags}
+  description: Handles the authentication layer for API handlers.
+  environment:
+    APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
+    APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
+
+apiHandler:
+  handler: src/lambdas/api-handler/handler.handler
+  role: RoleApiHandler
+  tags: ${self:custom.tags}
+  timeout: ${self:custom.settings.apiHandlerTimeout}
+  description: The API handler for all /api/* APIs
+  events:
+    # Public APIs
+    - http:
+        path: /api/authentication/public/provider/configs
+        method: GET
+        cors: true
+    - http:
+        path: /api/authentication/id-tokens
+        method: POST
+        cors: true
+    # Protected APIs
+    - http:
+        authorizer: 
+            name: authenticationLayerHandler
+            resultTtlInSeconds: 0
+        path: /api
+        method: GET
+        cors: true
+    - http:
+        authorizer: 
+            name: authenticationLayerHandler
+            resultTtlInSeconds: 0
+        path: /api/{proxy+}
+        method: GET
+        cors: true
+    - http:
+        authorizer: 
+            name: authenticationLayerHandler
+            resultTtlInSeconds: 0
+        path: /api
+        method: POST
+        cors: true
+    - http:
+        authorizer: 
+            name: authenticationLayerHandler
+            resultTtlInSeconds: 0
+        path: /api/{proxy+}
+        method: POST
+        cors: true
+    - http:
+        authorizer: 
+            name: authenticationLayerHandler
+            resultTtlInSeconds: 0
+        path: /api
+        method: PUT
+        cors: true
+    - http:
+        authorizer: 
+            name: authenticationLayerHandler
+            resultTtlInSeconds: 0
+        path: /api/{proxy+}
+        method: PUT
+        cors: true
+    - http:
+        authorizer: 
+            name: authenticationLayerHandler
+            resultTtlInSeconds: 0
+        path: /api
+        method: DELETE
+        cors: true
+    - http:
+        authorizer: 
+            name: authenticationLayerHandler
+            resultTtlInSeconds: 0
+        path: /api/{proxy+}
+        method: DELETE
+        cors: true
+  environment:
+    APP_CORS_ALLOW_LIST: ${self:custom.settings.corsAllowList}
+    APP_CORS_ALLOW_LIST_LOCAL: ${self:custom.settings.corsAllowListLocal}
+    APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
+    APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
+    APP_PARAM_STORE_ROOT: ${self:custom.settings.paramStoreRoot}
+    APP_API_URL: ${self:custom.settings.apiGatewayUrl}
+    APP_SUPPORTED_LANGUAGES: ${self:custom.settings.supportedLanguages}
+    APP_DEFAULT_LANGUAGE: ${self:custom.settings.defaultLanguage}

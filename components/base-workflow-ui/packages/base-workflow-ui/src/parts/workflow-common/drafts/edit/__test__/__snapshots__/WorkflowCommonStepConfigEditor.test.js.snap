@@ -1,0 +1,55 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowCommonStepConfigEditor renders correctly 1`] = `
+<div
+  className="test-className"
+>
+  <div
+    className="ui divider mt1 mb2"
+  />
+  <h2
+    className="ui grey center aligned header mt1 mb3"
+  >
+    Review Configuration Changes
+  </h2>
+  <div
+    className="ui padded segment"
+  >
+    No configuration values are provided
+  </div>
+  <div
+    className="mt3 clearfix"
+  >
+    <button
+      className="ui blue icon disabled right floated left labeled button ml2"
+      disabled={true}
+      onClick={[Function]}
+      tabIndex={-1}
+    >
+      <i
+        aria-hidden="true"
+        className="save icon"
+        onClick={[Function]}
+      />
+      Save
+    </button>
+    <button
+      className="ui icon right floated left labeled button"
+      onClick={[Function]}
+    >
+      Previous
+      <i
+        aria-hidden="true"
+        className="left arrow icon"
+        onClick={[Function]}
+      />
+    </button>
+    <button
+      className="ui left floated button"
+      onClick={[Function]}
+    >
+      Cancel
+    </button>
+  </div>
+</div>
+`;

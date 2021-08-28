@@ -1,0 +1,107 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# Options used when issuing JWT token such as which algorithm to use for hashing and how long to keep the tokens alive etc
+jwtOptions: '{"algorithm":"HS256","expiresIn":"2 days"}'
+
+# Name of the parameter in parameter store containing secret key for JWT. This key is used for signing and validating JWT tokens
+# issued by authentication providers
+paramStoreJwtSecret: '/${self:custom.settings.paramStoreRoot}/jwt/secret'
+
+# a list of domain names to allow in the API
+corsAllowList: '[]'
+
+# a list of domain names to allow in the API while in dev (envType == dev)
+corsAllowListLocal: '["http://localhost:3000"]'
+
+# The url of the backend api gateway
+apiGatewayUrl: !Sub 'https://${ApiGatewayRestApi}.execute-api.${self:custom.settings.awsRegion}.amazonaws.com/${opt:stage}'
+
+# Whether the backend shouold be verbose
+#isVerbose: yes
+isVerbose: no
+
+# API Handler Lambda timeout (in seconds)
+apiHandlerTimeout: 6
+
+
+# ================================ VPC ===========================================
+
+# The stack name of the 'vpc' serverless service
+vpcStackName: ${self:custom.settings.namespace}-vpc
+
+# vpc and subnet(s) entries
+vpcId: ${cf:${self:custom.settings.vpcStackName}.VpcId, ''}
+publicSubnetIds: ${cf:${self:custom.settings.vpcStackName}.PublicSubnetIds, ''}
+privateSubnetIds: ${cf:${self:custom.settings.vpcStackName}.PrivateSubnetIds, ''}
+vpcDefaultSecurityGroupId: ${cf:${self:custom.settings.vpcStackName}.VpcDefaultSecurityGroupId, ''}
+vpcApiGatewayEndpoint: ${cf:${self:custom.settings.vpcStackName}.VpcApiGatewayEndpoint, ''}
+usePrivateApi: 'true'
+
+# ================================ Custom Domains ===========================================
+
+# The stack name of the 'customDomains' serverless service
+customDomainsStackName: ${self:custom.settings.namespace}-customDomains
+
+# Hosted zone ID for the custom domain
+hostedZoneId: ${cf:${self:custom.settings.customDomainsStackName}.HostedZoneId, ''}
+
+# Base domain name for the custom domain
+baseDomainName: ${cf:${self:custom.settings.customDomainsStackName}.BaseDomainName, ''}
+
+# Lambda backing for ACM certificate custom resource
+acmCertificateCustomResourceLambdaArn: ${cf:${self:custom.settings.customDomainsStackName}.AcmCertificateCustomResourceLambdaArn}
+
+# Domain name to use, if custom domains; must be subdomain (or same) as 'hostedZoneDomainName'
+domainName: 'api.${self:custom.settings.baseDomainName}'
+apiBasePath: ''
+
+# ================================ Roles ===========================================
+
+# The name of the IAM role created for the Lambda API handler
+apiHandlerRoleName: ${self:custom.settings.namespace}-ApiHandler
+
+# The IAM role arn for the Lambda API handler, we need to define it in the settings because it is being passed to lambdas as an env var
+apiHandlerRoleArn: 'arn:${AWS::Partition}:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.apiHandlerRoleName}'
+
+# The name of the IAM role created for the Lambda authentication layer handler
+authenticationLayerHandlerRoleName: ${self:custom.settings.namespace}-AuthenticationLayerHandler
+
+# The IAM role arn for the Lambda authentication layer handler, we need to define it in the settings so it can be used in KMS key creation
+authenticationLayerHandlerRoleArn: 'arn:${AWS::Partition}:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.authenticationLayerHandlerRoleName}'
+
+# ================================ DB Settings ===========================================
+
+# The alias used for the KMS key created to encrypt/decrypt data in the DynamoDB tables
+dynamoDbKmsKeyAlias: ${self:custom.settings.namespace}-DynamoDbKey
+
+# DynamoDB table name for supported authentication provider types
+dbAuthenticationProviderTypes: ${self:custom.settings.dbPrefix}-AuthenticationProviderTypes
+
+# DynamoDB table name for authentication provider configurations
+dbAuthenticationProviderConfigs: ${self:custom.settings.dbPrefix}-AuthenticationProviderConfigs
+
+# DynamoDB table name for users
+dbUsers: ${self:custom.settings.dbPrefix}-Users
+
+# DynamoDB table name for UserRoles
+dbUserRoles: ${self:custom.settings.dbPrefix}-UserRoles
+
+# DyanmoDB table name for Token Revocation Table
+dbRevokedTokens: ${self:custom.settings.dbPrefix}-RevokedTokens
+
+# DynamoDB table name for Locks
+dbLocks: ${self:custom.settings.dbPrefix}-Locks
+
+# DynamoDB table name for Permissions
+dbPermissions: ${self:custom.settings.dbPrefix}-Permissions

@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Toggle renders correctly 1`] = `
+<div
+  className="mb4"
+>
+  <div
+    className="flex flex-wrap mb1"
+  >
+    <h3
+      className="ui header field mt0 mb0 mr2"
+    >
+      <label
+        className="color-grey"
+      />
+    </h3>
+    <div
+      className=""
+    >
+      <span
+        className="op-65 cursor-pointer"
+        onClick={[Function]}
+      >
+        <i
+          aria-hidden="true"
+          className="grey toggle off large icon mr1"
+          onClick={[Function]}
+        />
+        No
+      </span>
+    </div>
+  </div>
+</div>
+`;

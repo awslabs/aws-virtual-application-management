@@ -1,0 +1,24 @@
+{
+  "name": "@aws-ee/cicd-target",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CI/CD pipeline target implementation for the PoC",
+  "author": "Amazon Web Services",
+  "license": "SEE LICENSE IN LICENSE",
+  "devDependencies": {
+    "@aws-ee/base-cfn-lint-helper": "workspace:^0.0.1",
+    "@aws-ee/base-script-utils": "workspace:*",
+    "@aws-ee/base-serverless-settings-helper": "workspace:*",
+    "copy-webpack-plugin": "^7.0.0",
+    "lodash": "^4.17.20",
+    "serverless": "^1.63.0",
+    "serverless-deployment-bucket": "^1.4.1",
+    "serverless-hooks-plugin": "^1.1.0",
+    "serverless-plugin-scripts": "^1.0.2",
+    "serverless-webpack": "^5.3.5",
+    "webpack-node-externals": "^2.5.2"
+  },
+  "optionalDependencies": {
+    "fsevents": "*"
+  }
+}

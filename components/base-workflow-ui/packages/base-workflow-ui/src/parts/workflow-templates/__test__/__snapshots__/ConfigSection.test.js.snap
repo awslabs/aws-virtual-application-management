@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConfigSection renders correctly 1`] = `
+<div
+  className=""
+>
+  No configuration entries are available
+</div>
+`;

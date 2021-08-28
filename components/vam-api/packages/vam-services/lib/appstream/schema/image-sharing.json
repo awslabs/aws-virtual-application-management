@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "Name": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 3,
+      "pattern": "^[A-Za-z][A-Za-z0-9-]+$"
+    },
+    "SharedAccountId": {
+      "type": "string"
+    }
+  },
+  "required": ["Name", "SharedAccountId"]
+}

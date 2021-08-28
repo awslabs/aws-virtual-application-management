@@ -1,0 +1,228 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ * http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+import { ServicesContainer } from '@aws-ee/base-services-container';
+import DbServiceMock from '../../db-service';
+import AuthServiceMock from '../../authorization/authorization-service';
+import UserAuthzServiceMock from '../user-authz-service';
+import AuditServiceMock from '../../audit/audit-writer-service';
+import SettingsServiceMock from '../../settings/env-settings-service';
+import PluginRegistryServiceMock from '../../plugin-registry/plugin-registry-service';
+import UserCapabilitiesService from '../user-capabilities-service';
+import JsonSchemaValidationService from '../../json-schema-validation-service';
+
+// Mocked dependencies
+
+// we need the custom DbService Mock
+jest.mock('../../db-service');
+
+jest.mock('../../authorization/authorization-service');
+
+jest.mock('../user-authz-service');
+
+jest.mock('../../audit/audit-writer-service');
+
+jest.mock('../../settings/env-settings-service');
+
+jest.mock('../../plugin-registry/plugin-registry-service');
+
+describe('UserCapabilitiesService', () => {
+  let service = null;
+  let dbService = null;
+  let authorizationService = null;
+  const error = { code: 'ConditionalCheckFailedException' };
+  beforeEach(async () => {
+    authorizationService = new AuthServiceMock();
+
+    // Initialize services container and register dependencies
+    const container = new ServicesContainer();
+    // container.register('log', new Logger());
+    container.register('pluginRegistryService', new PluginRegistryServiceMock());
+    container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
+    container.register('dbService', new DbServiceMock());
+    container.register('authorizationService', authorizationService);
+    container.register('userAuthzService', new UserAuthzServiceMock());
+    container.register('auditWriterService', new AuditServiceMock());
+    container.register('settings', new SettingsServiceMock());
+    container.register('userCapabilitiesService', new UserCapabilitiesService());
+
+    await container.initServices();
+
+    // Get instance of the service we are testing
+    service = await container.find('userCapabilitiesService');
+    dbService = await container.find('dbService');
+  });
+
+  describe('create', () => {
+    it('should fail because the capability lacks an id', async () => {
+      // BUILD
+      const newUserCapability = {
+        description: 'Custom User Capability',
+      };
+
+      // OPERATE
+      try {
+        await service.create({}, newUserCapability);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
+    it('should fail because user capability already exists', async () => {
+      // BUILD
+      const newUserCapability = {
+        id: 'canDoTesting',
+        description: 'Custom User Capability',
+      };
+      dbService.table.update.mockImplementationOnce(() => {
+        throw error;
+      });
+
+      // OPERATE
+      try {
+        await service.create({}, newUserCapability);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('user capability with id "canDoTesting" already exists');
+      }
+    });
+
+    it('should try to create a user role', async () => {
+      // BUILD
+      const newUserCapability = {
+        id: 'canDoTesting',
+        description: 'Custom User Capability',
+      };
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.create({}, newUserCapability);
+
+      // CHECK
+      expect(dbService.table.key).toHaveBeenCalledWith(
+        expect.objectContaining({ entityType: 'capability', id: 'canDoTesting' }),
+      );
+      expect(service.audit).toHaveBeenCalledWith({}, expect.objectContaining({ action: 'create-user-capability' }));
+    });
+  });
+
+  describe('update', () => {
+    const id = 'customCapability';
+    const userRole = {
+      id,
+      description: 'Custom User Capability',
+      updatedBy: 'testuid',
+    };
+    it('should fail because no value of rev was provided', async () => {
+      // BUILD
+      const toUpdate = {
+        description: 'test',
+      };
+
+      service.find = jest.fn().mockResolvedValue(userRole);
+
+      // OPERATE
+      try {
+        await service.update({}, toUpdate);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
+    it('should fail because the user capability was just updated', async () => {
+      // BUILD
+      const toUpdate = {
+        id,
+        description: 'test',
+        rev: 2,
+      };
+      dbService.table.update.mockImplementationOnce(() => {
+        throw error;
+      });
+      service.find = jest.fn().mockResolvedValue(userRole);
+
+      // OPERATE
+      try {
+        await service.update({}, toUpdate);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual(
+          `user capability information changed by "testuid" just before your request is processed, please try again`,
+        );
+      }
+    });
+
+    it('should successfully try to update the user capability', async () => {
+      // BUILD
+      const toUpdate = {
+        id,
+        description: 'test',
+        rev: 2,
+      };
+
+      service.audit = jest.fn();
+
+      const nextCallIndex = authorizationService.assertAuthorized.mock.calls.length;
+
+      // OPERATE
+      await service.update({}, toUpdate);
+
+      // CHECK
+      expect(dbService.table.key).toHaveBeenCalledWith(expect.objectContaining({ id }));
+      expect(service.audit).toHaveBeenCalledWith({}, expect.objectContaining({ action: 'update-user-capability' }));
+      expect(authorizationService.assertAuthorized.mock.calls[nextCallIndex][1].action).toBe('update');
+    });
+  });
+
+  describe('delete', () => {
+    const id = 'customCapability';
+
+    it('should fail because the user capability does not exist', async () => {
+      // BUILD
+      dbService.table.delete.mockImplementationOnce(() => {
+        throw error;
+      });
+
+      // OPERATE
+      try {
+        await service.delete({}, { id });
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(service.boom.is(err, 'notFound')).toBe(true);
+      }
+    });
+
+    it('should successfully try to delete the user capability', async () => {
+      // BUILD
+      service.audit = jest.fn();
+
+      const nextCallIndex = authorizationService.assertAuthorized.mock.calls.length;
+
+      // OPERATE
+      await service.delete({}, { id });
+      // CHECK
+      expect(dbService.table.key).toHaveBeenCalledWith(expect.objectContaining({ id }));
+      expect(service.audit).toHaveBeenCalledWith({}, expect.objectContaining({ action: 'delete-user-capability' }));
+      expect(authorizationService.assertAuthorized.mock.calls[nextCallIndex][1].action).toBe('delete');
+    });
+  });
+});
