@@ -91,6 +91,7 @@ const executeViaSSM = async ({ instanceID, script, logBucket, aws }) => {
     InstanceIds: [instanceID],
     Parameters: {
       commands: [`${script}`],
+      executionTimeout: ['18000'],
     },
   };
 
