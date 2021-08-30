@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EditAuthenticationProvider renders correctly 1`] = `
+<div
+  className="ui container mt3"
+>
+  <div
+    className="mb4"
+  />
+</div>
+`;

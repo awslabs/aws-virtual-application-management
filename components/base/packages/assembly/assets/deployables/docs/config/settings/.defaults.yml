@@ -1,0 +1,47 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# ====================== S3 Deployment =================================
+
+# S3 bucket name used to host the static website
+#s3BucketName:
+
+# # ID of the CloudFront Distribution for the static website
+#s3CloudFrontDistributionId:
+
+# ================= GitHub Pages Deployment ============================
+
+# The username for a GitHub account that has commit access to this repo.
+# For your own repositories, this will usually be your GitHub username
+#ghpGitUser: ''
+
+# Set to true to use SSH instead of the default HTTPS for the connection to the GitHub repo
+#ghpUseSsh: true
+
+# The branch that the website will be deployed to.
+# Defaults to `gh-pages` for normal repos and `master` for repository names ending in "github.io"
+#ghpDeploymentBranch: 'gh-pages'
+
+# The branch that contains the latest docs changes that will be deployed.
+# Usually, the branch will be master, but it could be any branch (default or otherwise) except for `gh-pages`.
+# If nothing is set for this variable, then the current branch will be used.
+#ghpCurrentBranch: ''
+
+# A prefix in the url where the docs site resides
+docsSiteRootPath: ''
+
+# The Gateway API endpoint
+apiUrl: ${cf:${self:custom.settings.backendStackName}.CustomServiceEndpoint, cf:${self:custom.settings.backendStackName}.ServiceEndpoint}
+
+# The stack name of the 'backend' serverless service
+backendStackName: ${self:custom.settings.namespace}-backend

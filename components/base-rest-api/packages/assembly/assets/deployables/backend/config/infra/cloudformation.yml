@@ -1,0 +1,524 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Conditions:
+  IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
+  UseCustomDomain: !Not
+    - !Equals ['${self:custom.settings.hostedZoneId}', '']
+  HasApiBasePath: !Not
+    - !Equals ['${self:custom.settings.apiBasePath}', '']
+  UseVpc: !Not
+    - !Equals ['${self:custom.settings.vpcId}', '']
+  UseCmkEncryption: !Not [!Equals ['${self:custom.settings.useCmkDynamoDbEncryption}', false]]
+
+Resources:
+  # =============================================================================================
+  # IAM Roles
+  # =============================================================================================
+
+  # IAM Policy for AWS CloudWatch Log access by the Lambda functions
+  CwlLambdaPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource:
+            - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${self:custom.settings.envName}-*'
+            - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${self:custom.settings.envName}-*:log-stream:*'
+
+  # IAM Policy for AWS Lambda to attach to VPC
+  VpcLambdaPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Action:
+            - ec2:CreateNetworkInterface
+            - ec2:DescribeNetworkInterfaces
+            - ec2:DeleteNetworkInterface
+            - ec2:AssignPrivateIpAddresses
+            - ec2:UnassignPrivateIpAddresses
+          Resource: '*'
+
+  # IAM Policy for roles to access DynamoDB encryption key
+  DynamoDbKmsAccessPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Condition: UseCmkEncryption
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement: 
+          Effect: Allow
+          Action:
+            - kms:DescribeKey
+            - kms:GetKeyPolicy
+            - kms:PutKeyPolicy
+            - kms:GenerateDataKey*
+            - kms:Decrypt
+          Resource: !GetAtt DynamoDbKmsKey.Arn
+
+  # IAM Role for the authenticationLayerHandler function
+  RoleAuthenticationLayerHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: ${self:custom.settings.authenticationLayerHandlerRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref CwlLambdaPolicy
+        - !If
+          - UseVpc
+          - !Ref VpcLambdaPolicy
+          - !Ref AWS::NoValue
+        - !If
+          - UseCmkEncryption
+          - !Ref DynamoDbKmsAccessPolicy
+          - !Ref AWS::NoValue
+      Policies:
+        - PolicyName: db-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt [UsersDb, Arn]
+                - !Sub '${UsersDb.Arn}/index/*'
+                - !GetAtt [UserRolesDb, Arn]
+                - !Sub '${UserRolesDb.Arn}/index/*'
+                - !GetAtt [AuthenticationProviderTypesDb, Arn]
+                - !GetAtt [AuthenticationProviderConfigsDb, Arn]
+                - !GetAtt [RevokedTokensDb, Arn]
+        - PolicyName: param-store-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+
+  # IAM Role for the apiHandler Function
+  RoleApiHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: ${self:custom.settings.apiHandlerRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref CwlLambdaPolicy
+        - !If
+          - UseVpc
+          - !Ref VpcLambdaPolicy
+          - !Ref AWS::NoValue
+        - !If
+          - UseCmkEncryption
+          - !Ref DynamoDbKmsAccessPolicy
+          - !Ref AWS::NoValue
+      Policies:
+        - PolicyName: db-access
+          PolicyDocument:
+            Statement:
+              Sid: dbaccess
+              Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+                - dynamodb:GetItem
+                - dynamodb:BatchGetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt [AuthenticationProviderTypesDb, Arn]
+                - !GetAtt [AuthenticationProviderConfigsDb, Arn]
+                - !GetAtt [RevokedTokensDb, Arn]
+                - !GetAtt [UsersDb, Arn]
+                - !Sub '${UsersDb.Arn}/index/*'
+                - !GetAtt [UserRolesDb, Arn]
+                - !Sub '${UserRolesDb.Arn}/index/*'
+                - !GetAtt [LocksDb, Arn]
+                - !GetAtt [PermissionsDb, Arn]
+                - !Join ['', [!GetAtt [PermissionsDb, Arn], '/index/*']]
+        - PolicyName: param-store-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+
+  # =============================================================================================
+  # Custom Domains
+  # =============================================================================================
+
+  CertificateRaw:
+    # Expects DomainName, Region [optional], Tags [optional]
+    # Request/Delete ACM certificate (on delete waits for the certificate to not be in use)
+    # Does not trigger/manage any domain name validation
+    # Default property is the CertificateArn
+    Type: Custom::CertificateRaw
+    Condition: UseCustomDomain
+    Properties:
+      ServiceToken: ${self:custom.settings.acmCertificateCustomResourceLambdaArn}
+      DomainName: ${self:custom.settings.domainName}
+      Region: us-east-1
+      Tags: ${self:provider.stackTags}
+
+  CertificateDomainNameValidation:
+    # Expects CertificateArn, DomainName, HostedZoneId
+    # Manages lifecycle of domain validation records for a domain; fetches validation info from given CertificateArn
+    # Default property is the domain name followed by certificate arn, followed by hosted zone id, comma separated
+    Type: Custom::DnsValidation
+    Condition: UseCustomDomain
+    Properties:
+      ServiceToken: ${self:custom.settings.acmCertificateCustomResourceLambdaArn}
+      CertificateArn: !Ref CertificateRaw
+      DomainName: ${self:custom.settings.domainName}
+      HostedZoneId: ${self:custom.settings.hostedZoneId}
+
+  Certificate:
+    # Expects CertificateArn, Validations
+    # On create/update waits for certificate being issued, no-op on delete.
+    # Default property is Certificate Arn
+    Type: Custom::Certificate
+    Condition: UseCustomDomain
+    Properties:
+      ServiceToken: ${self:custom.settings.acmCertificateCustomResourceLambdaArn}
+      CertificateArn: !Ref CertificateRaw
+      Validations:
+        - !Ref CertificateDomainNameValidation
+
+  DomainName:
+    Type: AWS::ApiGateway::DomainName
+    Condition: UseCustomDomain
+    Properties:
+      DomainName: ${self:custom.settings.domainName}
+      CertificateArn: !Ref Certificate
+      SecurityPolicy: TLS_1_2
+
+  DomainRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: UseCustomDomain
+    Properties:
+      HostedZoneId: ${self:custom.settings.hostedZoneId}
+      RecordSets:
+        - Name: ${self:custom.settings.domainName}
+          Type: A
+          AliasTarget:
+            HostedZoneId: !GetAtt DomainName.DistributionHostedZoneId
+            DNSName: !GetAtt DomainName.DistributionDomainName
+
+  PathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Condition: UseCustomDomain
+    Properties:
+      BasePath: !If
+        - HasApiBasePath
+        - ${self:custom.settings.apiBasePath}
+        - !Ref AWS::NoValue
+      DomainName: !Ref DomainName
+      RestApiId: !Ref ApiGatewayRestApi
+      Stage: ${self:custom.settings.envName}
+
+  # =============================================================================================
+  # Dynamo DB
+  # =============================================================================================
+  DynamoDbKmsKey:
+    Condition: UseCmkEncryption
+    Type: AWS::KMS::Key
+    Properties:
+      Description: "CMK to be optionally applied to all DynamoDB tables"
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: dynamodb-kms-key
+        Statement:
+          - Sid: Allows adminstration of the key to the account root user
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - kms:Create*
+              - kms:Describe*
+              - kms:Enable*
+              - kms:List*
+              - kms:Put*
+              - kms:Update*
+              - kms:Revoke*
+              - kms:Disable*
+              - kms:Get*
+              - kms:Delete*
+              - kms:TagResource
+              - kms:UntagResource
+              - kms:ScheduleKeyDeletion
+              - kms:CancelKeyDeletion
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: '*'
+          - Sid: Allow use of the key in DynamoDB tables
+            Effect: Allow
+            Principal:
+              Service: dynamodb.amazonaws.com
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: '*'
+
+  DynamoDbKmsKeyAlias:
+    Condition: UseCmkEncryption
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/${self:custom.settings.dynamoDbKmsKeyAlias}
+      TargetKeyId:
+        !Ref DynamoDbKmsKey
+
+  UsersDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbUsers}
+      AttributeDefinitions:
+        - AttributeName: 'uid'
+          AttributeType: 'S'
+        - AttributeName: 'username'
+          AttributeType: 'S'
+        - AttributeName: 'ns'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'uid'
+          KeyType: 'HASH'
+      GlobalSecondaryIndexes:
+        - IndexName: Principal
+          KeySchema:
+            - AttributeName: 'username'
+              KeyType: 'HASH'
+            - AttributeName: 'ns'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: ALL
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  UserRolesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbUserRoles}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'entityType'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'entityType'
+          KeyType: 'RANGE'
+      GlobalSecondaryIndexes:
+        - IndexName: ByEntityType
+          KeySchema:
+            - AttributeName: 'entityType'
+              KeyType: 'HASH'
+            - AttributeName: 'id'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: ALL
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  AuthenticationProviderTypesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbAuthenticationProviderTypes}
+      AttributeDefinitions:
+        - AttributeName: 'type'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'type'
+          KeyType: 'HASH'
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  AuthenticationProviderConfigsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbAuthenticationProviderConfigs}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  RevokedTokensDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbRevokedTokens}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+  LocksDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbLocks}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  PermissionsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbPermissions}
+      AttributeDefinitions:
+        - AttributeName: 'principal'
+          AttributeType: 'S'
+        - AttributeName: 'actionResource'
+          AttributeType: 'S'
+          # resource is a reserved word, so call resource resourceId
+        - AttributeName: 'resourceId'
+          AttributeType: 'S'
+        - AttributeName: 'actionPrincipal'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'principal'
+          KeyType: 'HASH'
+        - AttributeName: 'actionResource'
+          KeyType: 'RANGE'
+      GlobalSecondaryIndexes:
+        - IndexName: Resource
+          KeySchema:
+            - AttributeName: 'resourceId'
+              KeyType: 'HASH'
+            - AttributeName: 'actionPrincipal'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: 'ALL'
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+# =============================================================================================
+# Outputs
+# =============================================================================================
+Outputs:
+  AuthenticationLayerHandlerRoleArn:
+    Value: !GetAtt RoleAuthenticationLayerHandler.Arn
+  ApiHandlerRoleArn:
+    Value: !GetAtt RoleApiHandler.Arn
+  CustomServiceEndpoint:
+    Condition: UseCustomDomain
+    Description: URL of the custom domain service endpoint
+    Value: !If
+      - HasApiBasePath
+      - https://${self:custom.settings.domainName}/${self:custom.settings.apiBasePath}
+      - https://${self:custom.settings.domainName}
+  DynamoDbKmsAccessPolicyArn:
+    Value: !If
+      - UseCmkEncryption
+      - !Ref DynamoDbKmsAccessPolicy
+      - ''
+  DynamoDbKmsKeyAliasArn:
+    Condition: UseCmkEncryption
+    Value: !GetAtt DynamoDbKmsKey.Arn

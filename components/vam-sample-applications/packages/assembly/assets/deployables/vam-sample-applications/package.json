@@ -1,0 +1,40 @@
+{
+  "name": "@aws-ee/vam-sample-applications",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A utility component to deploy sample applications to S3.",
+  "author": "Amazon Web Services",
+  "license": "Apache-2.0",
+  "scripts": {
+    "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
+    "lint:eslint": "eslint --ignore-path .gitignore . ",
+    "lint:prettier": "prettier --check --ignore-path .gitignore '**/*.{js,jsx}' ",
+    "format": "pnpm run format:eslint && pnpm run format:prettier",
+    "format:eslint": "eslint --fix --ignore-path .gitignore . ",
+    "format:prettier": "prettier --write --ignore-path .gitignore '**/*.{js,jsx}' "
+  },
+  "dependencies": {
+    "aws-sdk": "^2.771.0",
+    "lodash": "^4.17.20",
+    "yaml": "^1.10.0"
+  },
+  "devDependencies": {
+    "@aws-ee/base-script-utils": "workspace:*",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb": "^18.0.1",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-import-resolver-node": "^0.3.3",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jest": "^22.21.0",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-react": "^7.18.3",
+    "eslint-plugin-react-hooks": "^2.0.1",
+    "husky": "^3.1.0",
+    "jest": "^24.9.0",
+    "jest-junit": "^10.0.0",
+    "prettier": "^1.19.1",
+    "pretty-quick": "^1.11.1"
+  }
+}

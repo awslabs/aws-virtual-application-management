@@ -1,0 +1,90 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# AWS credentials profile for the AWS Account where you want to deploy the cicd-pipeline.
+# This may be same as the target account or may be different account.
+awsProfile: source
+
+# AWS region in which we want to deploy the pipeline
+awsRegion: us-east-1
+
+# The name of the code repository containing the source code of the solution
+# for which you want to deploy the CI/CD pipeline
+repoName: ----
+
+# The name of the git branch of the source code repository the code pipeline needs to build and deploy
+repoBranch: master
+
+# Email address to receive CodePipeline failure notifications and notifications for manual approval
+emailForNotifications: user@example.com
+
+#
+# NOTE: CIRCULAR DEPENDENCY between "cicd-pipeline" and "cicd-target" stacks for the following settings
+#
+# targetAccountAppDeployerRoleArn:
+# ----------------------
+# ARN of the IAM Role that is used to deploy the solution to the target account. This IAM Role is
+# created by the "cicd-target" stack.
+#
+# sourceAccountAppPipelineRole
+# ----------------------
+# ARN of the IAM Role that is used by the pipeline to execute the various deployment stages.
+# This IAM Role is created by the "cicd-pipeline" stack.
+#
+# See "https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts.html" to learn more about
+# CodePipeline concepts.
+#
+# Why is this circular dependency created?
+# --------------------------------------------
+# The "cicd-pipeline" stack requires the "targetAccountAppDeployerRoleArn" to be created by the "cicd-source" stack first.
+# This causes the circular dependency as follows:
+#
+# 1. The "cicd-pipeline" needs the "cicd-target" stack to be created to reference the ARN of the "targetAccountAppDeployerRoleArn" that
+#    gets created by "cicd-target" stack in the AWS account containing the deployed solution
+#
+# 2. The "cicd-target" stack needs the "sourceAccountAppPipelineRole" that is created in the "cicd-pipeline" stack
+#    to lock down the permissions in the "targetAccountAppDeployerRoleArn" role.
+#
+# What is the work around to move past this circular dependency deadlock?
+# -----------------------------------------------------------------------
+# 1. Deploy the "cicd-target" stack in the target AWS Account where we intent to deploy the solution with
+#    a wild-card for "sourceAccountAppPipelineRole" below.
+#
+#       sourceAccountAppPipelineRole: "*"
+#
+# 2. Once the stack is deployed take the "AppDeployerRoleArn" output from the stack and provide it in the settings
+#    file for the "cicd-pipeline" and deploy the "cicd-pipeline" stack in the source AWS Account where the
+#    CodeCommit repository relies.
+#    That stack will create the AWS CodePipeline with AWS CodeBuild projects in the source account.
+#
+# 3. Take the stack output "AppPipelineRole" from the "cicd-pipeline" stack and provide it in a settings file
+#    in the "cicd-target" stack. Once this is done, deploy "cicd-target" stack again to lock down the
+#    permissions in "AppDeployerRoleArn"
+#
+#       sourceAccountAppPipelineRole: "arn:aws:iam::<source-aws-account>:role/<role-id>"
+#
+
+# ARN of the IAM Role that is used to deploy the solution to the target account. This IAM Role is
+# created by the "cicd-target" stack.
+# -----------------------------------------------------------------------------------
+# NOTE 
+# - Leave this setting as is if you're using the automated deployment method.
+#   The automated deployment script will automatically resolve the circular dependency
+#   and update setting with the correct value.
+# - Set it to the output value of AppDeployerRoleArn from the 'cicd-target' stack.
+#   Please refer to the CICD-README.md for details on how to obtain this value.
+# -----------------------------------------------------------------------------------
+targetAccountAppDeployerRoleArn: ''
+
+# Specify a Github owner (and an OAuth Token in CloudFormation)
+githubOwner: ''

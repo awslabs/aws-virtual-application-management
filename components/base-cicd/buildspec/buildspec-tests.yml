@@ -1,0 +1,82 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 14
+
+  pre_build:
+    commands:
+      - echo "Installing PNPM"
+      - npm install -g pnpm
+      - pnpm config set store-dir .pnpm-store
+      - echo "Installing dependencies"
+      - pnpm install -r --ignore-scripts --prefer-offline --frozen-lockfile --child-concurrency $((`nproc` + 1))
+      - printf "\n\n"
+
+  build:
+    commands:
+      - echo "Running unit tests"
+      - pnpx sls solution-unit-test -s "$ENV_NAME"
+      - printf "\n\n"
+
+reports:
+  servicesContainerTests:
+    files:
+      - 'components/base/packages/services-container/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+  servicesTests:
+    files:
+      - 'components/base/packages/services/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+  settingsHelperTests:
+    files:
+      - 'components/base/packages/serverless-settings-helper/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+  backendToolsTests:
+    files:
+      - 'components/base/packages/serverless-backend-tools/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+  apiHandlerTests:
+    files:
+      - 'components/base-rest-api/packages/api-handler-factory/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+  uiToolsTests:
+    files:
+      - 'components/base-ui/packages/serverless-ui-tools/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+cache:
+  paths:
+    - node_modules/**/*
+    - components/*/packages/*/node_modules/**/*
+    - main/.generated-solution/*/node_modules/**/*
+    - main/solution/*/node_modules/**/*
+    - main/.generated-solution/cicd/*/node_modules/**/*
+    - main/integration-tests/node_modules/**/*
+    - main/packages/*/node_modules/**/*
+    - .pnpm-store/**/*

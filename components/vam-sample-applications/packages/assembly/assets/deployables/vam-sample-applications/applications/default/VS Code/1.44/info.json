@@ -1,0 +1,8 @@
+{
+  "packageType": "choco",
+  "packageInstall": {
+    "chocoPackage": "vscode"
+  },
+  "applicationName": "vscode",
+  "applicationExe": "C:\\Program Files\\Microsoft VS Code\\Code.exe"
+}

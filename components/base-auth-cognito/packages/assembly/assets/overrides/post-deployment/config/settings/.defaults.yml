@@ -1,0 +1,56 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# Indicates whether native Cognito users should be used or if the Cognito user pool will only be
+# used to federate via other identity providers
+enableNativeUserPoolUsers: true
+
+# Title of the Cognito authentication provider
+cognitoAuthNProviderTitle: Cognito
+
+# Array of identity provider ids.
+# The usual practice is to keep this same as the domain name of the IdP.
+# For example, when connecting with an IdP that has users "user1@domain1.com", "user2@domain1.com" etc then
+# the id should be set to "domain1.com"
+#
+# If you do not want to connect to SAML 2.0 Identity Provider then leave this setting commented out
+# or set it as empty array as follows.
+fedIdpIds: '[]'
+
+# Array of identity provider names. This array should be in same order as the "fedIdpIds"
+# Some name for the IdPs. (such as 'com.ee', 'EEAD' etc)
+#
+# If you do not want to connect to SAML 2.0 Identity Provider then leave this setting commented out
+# or set it as empty array as follows.
+fedIdpNames: '[]'
+
+# Array of identity provider display names. This array should be in same order as the "fedIdpIds"
+# Display name (such as 'Employee Login', 'AD Login' etc). This can be used in UI to login options.
+#
+# If you do not want to connect to SAML 2.0 Identity Provider then leave this setting commented out
+# or set it as empty array as follows.
+fedIdpDisplayNames: '[]'
+
+# Array of identity provider SAML metadata. This array should be in same order as the "fedIdpIds".
+#
+# If you do not want to connect to SAML 2.0 Identity Provider then leave this setting commented out
+# or set it as empty array as follows.
+#
+# fedIdpMetadatas: '[]'
+#
+# Get the Identity Provider SAML metadata file from IdP administrator and place it under
+# "main/config/settings/post-deployment/saml-metadata/" directory and replace "<idp-metadata-file-name>" below with the
+# name of the file.
+# For example, if you place "FOO.XML" under "main/config/settings/post-deployment/saml-metadata/" with IdP metadata then
+# set the following setting as '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/FOO.XML"]'
+fedIdpMetadatas: '[]'

@@ -1,0 +1,33 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# ================================ Workflows ===========================================
+workflowsEnabled: true
+workflowStateMachineName: ${self:custom.settings.namespace}-workflow
+workflowStateMachineArn: 'arn:aws:states:${self:custom.settings.awsRegion}:${self:custom.settings.awsAccountInfo.awsAccountId}:stateMachine:${self:custom.settings.workflowStateMachineName}'
+workflowLoopRunnerRoleName: ${self:custom.settings.namespace}-WorkflowLoopRunner
+workflowLoopRunnerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.workflowLoopRunnerRoleName}'
+# The name of the IAM role created for the Lambda workflow solution events handler
+workflowSolutionEventsHandlerRoleName: ${self:custom.settings.namespace}-WorkflowSolutionEventsHandler
+
+# The IAM role arn for the Lambda workflow solution events handler, we need to define it in the settings so it can be used in KMS key creation
+workflowSolutionEventsHandlerRoleArn: 'arn:${AWS::Partition}:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.workflowSolutionEventsHandlerRoleName}'
+
+# ================================ Workflow DB Settings ===========================================
+dbWorkflowTemplates: ${self:custom.settings.dbPrefix}-WorkflowTemplates
+dbWorkflowTemplateDrafts: ${self:custom.settings.dbPrefix}-WorkflowTemplateDrafts
+dbWorkflows: ${self:custom.settings.dbPrefix}-Workflows
+dbWorkflowDrafts: ${self:custom.settings.dbPrefix}-WorkflowDrafts
+dbWorkflowInstances: ${self:custom.settings.dbPrefix}-WorkflowInstances
+dbWorkflowEventTriggers: ${self:custom.settings.dbPrefix}-WorkflowEventTriggers
+dbStepTemplates: ${self:custom.settings.dbPrefix}-StepTemplates

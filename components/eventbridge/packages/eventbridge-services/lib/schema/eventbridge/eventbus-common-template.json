@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "definitions": {},
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date"
+    },
+    "sourceSystem": {
+      "type": "string"
+    },
+    "detailType": {
+      "type": "string"
+    },
+    "detail": {}
+  },
+  "required": ["id", "createdAt", "sourceSystem", "detailType", "detail"]
+}

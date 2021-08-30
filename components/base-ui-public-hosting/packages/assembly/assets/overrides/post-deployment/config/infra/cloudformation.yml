@@ -1,0 +1,92 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Resources:
+  # IAM Role for the postDeployment Function
+  RolePostDeploymentLambda:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      Policies:
+        # required for associating lambda@edge to cf distro
+        - PolicyName: iam-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Action:
+                # see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-permissions.html#lambda-edge-permissions-required
+                - iam:CreateServiceLinkedRole
+                - iam:GetRole
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/aws-service-role/replicator.lambda.amazonaws.com/AWSServiceRoleForLambdaReplicator'
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/aws-service-role/logger.cloudfront.amazonaws.com/AWSServiceRoleForCloudFrontLogger'
+              Condition:
+                ForAllValues:StringLike:
+                  iam:AWSServiceName:
+                    - replicator.lambda.amazonaws.com
+                    - logger.cloudfront.amazonaws.com
+        # required for associating lambda@edge to cf distro
+        - PolicyName: cloudfront-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cloudfront:GetDistributionConfig
+                - cloudfront:UpdateDistribution
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${self:custom.settings.cloudFrontId}'
+        # required for associating lambda@edge to cf distro
+        - PolicyName: lambda-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:GetFunction
+                  - lambda:publishVersion
+                  - lambda:EnableReplication
+                  - lambda:ListVersionsByFunction
+                Resource:
+                  - ${self:custom.settings.securityEdgeLambdaArn}
+                  - ${self:custom.settings.securityEdgeLambdaArn}:* # appending ':*' to allow actions on specific versions of the lambda
+                  - ${self:custom.settings.redirectsEdgeLambdaArn}
+                  - ${self:custom.settings.redirectsEdgeLambdaArn}:* # appending ':*' to allow actions on specific versions of the lambda
+        # required for updating cloudfront waf
+        - PolicyName: waf-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - waf:GetIPSet
+                - waf:UpdateIPSet
+                - waf:GetChangeToken
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:waf::${AWS::AccountId}:changetoken/*'
+                - !Sub 'arn:${AWS::Partition}:waf::${AWS::AccountId}:ipset/${self:custom.settings.cloudFrontAllowListId}'
+        # required for updating cloudfront waf
+        - PolicyName: param-store-access-get
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:*'
+        - PolicyName: param-store-access-waf
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:PutParameter
+                - ssm:GetParameter
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${self:custom.settings.cloudFrontAllowListSecretName}'

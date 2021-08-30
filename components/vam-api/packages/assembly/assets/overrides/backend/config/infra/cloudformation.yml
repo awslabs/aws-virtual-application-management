@@ -1,0 +1,734 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Resources: 
+  RoleApiHandler:
+    Properties:
+      Policies:
+        - PolicyName: db-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+                - dynamodb:GetItem
+                - dynamodb:BatchGetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt [AppstreamImagesDb, Arn]
+                - !GetAtt [DynamicCatalogsDb, Arn]
+                - !GetAtt [GroupAccessDb, Arn]
+
+        - PolicyName: step-functions-invocation
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource:
+                  - !Ref SMWorkflow
+
+        - PolicyName: appstream-basic-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - appstream:CreateUsageReportSubscription
+                  - appstream:DescribeImages
+                  - appstream:DescribeFleets
+                  - appstream:DescribeImageBuilders
+                  - appstream:DescribeImagePermissions
+                  # allow user to modify images from outside solution
+                  - appstream:UpdateImagePermissions
+                  - appstream:DeleteImagePermissions
+                Resource:
+                  - '*'
+
+        - PolicyName: appstream-admin-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - appstream:AssociateFleet
+                  - appstream:DisassociateFleet
+                  - appstream:CreateStack
+                  - appstream:CreateFleet
+                Resource:
+                  - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:*'
+              - Effect: Allow
+                Action:
+                  - appstream:StartFleet
+                  - appstream:StopFleet
+                Resource:
+                  - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:*'
+                Condition:
+                  StringEquals:
+                    aws:ResourceTag/Name: !Sub '${self:custom.settings.namespace}-image-builder'
+              - Effect: Allow
+                Action:
+                  - appstream:CreateStreamingURL
+                  - appstream:DeleteStack
+                  - appstream:DeleteImage
+                  - appstream:DeleteFleet
+                  - appstream:UpdateFleet
+                Resource:
+                  - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:*'
+                Condition:
+                  StringEquals:
+                    aws:ResourceTag/Name: !Sub '${self:custom.settings.namespace}-image-builder'
+
+        - PolicyName: allow-pass-role-for-image-builder
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource:
+                - ${self:custom.settings.imageBuilderIAMRoleArn}
+
+        - PolicyName: allow-pass-role-for-appstream-instance
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource:
+                - ${self:custom.settings.appstreamInstanceRoleArn}
+
+        - PolicyName: application-repo-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - s3:ListBucket
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource:
+                  - 'arn:aws:s3:::${self:custom.settings.applicationRepoBucketName}'
+                  - 'arn:aws:s3:::${self:custom.settings.applicationRepoBucketName}/*'
+
+        - PolicyName: dap-config-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource:
+                  - 'arn:aws:s3:::${self:custom.settings.dapConfigBucketName}'
+                  - 'arn:aws:s3:::${self:custom.settings.dapConfigBucketName}/*'
+
+        - PolicyName: ssm-get-command-invocations
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:GetCommandInvocation
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:*'
+
+        - PolicyName: installer-host-work-bucket-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - s3:PutObject
+                  - s3:ListBucket
+                  - s3:GetObject
+                  - s3:DeleteObject
+                  - s3:DeleteObjectVersion
+                Resource:
+                  - 'arn:aws:s3:::${cf:${self:custom.settings.imageBuilderStackName}.InstallerHostWorkBucket}'
+                  - 'arn:aws:s3:::${cf:${self:custom.settings.imageBuilderStackName}.InstallerHostWorkBucket}/*'
+
+        - PolicyName: api-s3-access-for-appstream-metrics
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - 'arn:aws:s3:::${self:custom.settings.metricsBucketName}'
+                  - 'arn:aws:s3:::${self:custom.settings.metricsBucketName}/*'
+
+        - PolicyName: secrets-manager-get-ad-svc-acct-value
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - ${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderADCredentialsArn}
+
+        - PolicyName: lambda-in-vpc-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:CreateNetworkInterface
+                  - ec2:DeleteNetworkInterface
+                Resource: '*'
+
+  # IAM Role for the workflowLoopRunner Function
+  RoleWorkflowLoopRunner:
+    Properties:
+      Policies:
+        - PolicyName: appstream-image-builder-creation
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action:
+                - appstream:CreateImageBuilder
+                - appstream:DescribeImageBuilders
+                - appstream:DeleteImageBuilder
+              Resource: !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:*'
+
+        - PolicyName: allow-pass-role-for-image-builder
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource: ${self:custom.settings.imageBuilderIAMRoleArn}
+
+        - PolicyName: ssm-get-command-invocations
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:GetCommandInvocation
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:*'
+
+        - PolicyName: param-store-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:PutParameter
+                - ssm:DeleteParameter
+              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+
+        - PolicyName: dns-record-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - route53:ChangeResourceRecordSets
+                Resource: 'arn:aws:route53:::hostedzone/${self:custom.settings.hostedZoneId}'
+
+        - PolicyName: lambda-in-vpc-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:CreateNetworkInterface
+                  - ec2:DeleteNetworkInterface
+                Resource: '*'
+
+        - PolicyName: installer-host-work-bucket-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - s3:PutObject
+                  - s3:ListBucket
+                  - s3:GetObject
+                Resource:
+                  - 'arn:aws:s3:::${cf:${self:custom.settings.imageBuilderStackName}.InstallerHostWorkBucket}'
+                  - 'arn:aws:s3:::${cf:${self:custom.settings.imageBuilderStackName}.InstallerHostWorkBucket}/*'
+
+  # IAM Role for the metricReportGenerator Function
+  RoleMetricReportGenerator:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: athena-access-for-appstream-metrics
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - athena:StartQueryExecution
+              Resource:
+                - '*'
+
+        - PolicyName: athena-s3-access-for-appstream-metrics
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:ListBucketMultipartUploads
+                  - s3:ListMultipartUploadParts
+                  - s3:AbortMultipartUpload
+                  - s3:CreateBucket
+                  - s3:PutObject
+                Resource:
+                  - 'arn:aws:s3:::${self:custom.settings.metricsBucketName}'
+                  - 'arn:aws:s3:::${self:custom.settings.metricsBucketName}/*'
+                  # Note, the appstream-logs bucket is not something over which we have control.
+                  # However, it always follows the format below with random characters on the end.
+                  - !Sub 'arn:aws:s3:::appstream-logs-${AWS::Region}-${AWS::AccountId}-*'
+                  - !Sub 'arn:aws:s3:::appstream-logs-${AWS::Region}-${AWS::AccountId}-*/*'
+
+        - PolicyName: athena-glue-access-for-appstream-metrics
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - glue:GetTable
+                  - glue:GetDatabase
+                  - glue:GetPartitions
+                Resource:
+                  - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog
+                  - !Sub 'arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/${self:custom.settings.appstreamUsageReportsGlueDbName}'
+                  - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.appstreamUsageReportsGlueDbName}/applications
+                  - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.appstreamUsageReportsGlueDbName}/sessions
+
+
+  # =============================================================================================
+  # Dynamo DB
+  # =============================================================================================
+
+  AppstreamImagesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbAppstreamImages}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+
+  DynamicCatalogsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbDynamicCatalogs}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+
+  GroupAccessDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbGroupAccess}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'groupId'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'groupId'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+
+
+  # VAM SPECIFIC INFRA
+
+  # =============================================================================================
+  # KMS Keys
+  # =============================================================================================
+
+  VamDataEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: S3 bucket encryption key for multiple buckets used in VAM
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: vam-data-kms-policy
+        Statement:
+          - Sid: Allow root
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Sid: Allow API  and Metrics access to create and read objects
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt [RoleApiHandler, Arn]
+                - !GetAtt [RoleMetricReportGenerator, Arn]
+                # XXX these don't really need to write
+                - !Sub '${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderIAMRoleArn}'
+                - !Sub '${cf:${self:custom.settings.imageBuilderStackName}.AppstreamInstanceRoleArn}'
+            Action:
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+              - kms:Decrypt
+            Resource: '*'
+          - Sid: Allow workflows to update objects
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt [RoleWorkflowLoopRunner, Arn]
+            Action:
+              - kms:DescribeKey
+              - kms:GetKeyPolicy
+            Resource: '*'
+          - Sid: Allow CloudTrail to write logs
+            Effect: Allow
+            Principal:
+              Service: 'cloudtrail.amazonaws.com'
+            Action:
+              - 'kms:*'
+            Resource: '*'
+
+
+  # =============================================================================================
+  # S3
+  # =============================================================================================
+
+  ApplicationRepoBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.applicationRepoBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref VamDataEncryptionKey
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: apprepo/
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  ApplicationRepoBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ApplicationRepoBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt ApplicationRepoBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt ApplicationRepoBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+          - Sid: Deny object uploads not using default encryption settings
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Join ['/', [!GetAtt ApplicationRepoBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: 'aws:kms'
+              StringNotEqualsIfExists:
+                s3:x-amz-server-side-encryption-aws-kms-key-id: !GetAtt VamDataEncryptionKey.Arn
+
+  DapConfigBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.dapConfigBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref VamDataEncryptionKey
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: dapconfig/
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  DapConfigBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DapConfigBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt DapConfigBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt DapConfigBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+          - Sid: Deny object uploads not using default encryption settings
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Join ['/', [!GetAtt DapConfigBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: 'aws:kms'
+              StringNotEqualsIfExists:
+                s3:x-amz-server-side-encryption-aws-kms-key-id: !GetAtt VamDataEncryptionKey.Arn
+          - Sid: allow image builder and appstream instance access
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub '${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderIAMRoleArn}'
+                - !Sub '${cf:${self:custom.settings.imageBuilderStackName}.AppstreamInstanceRoleArn}'
+            Action:
+              - s3:GetObject
+              - s3:ListBucket
+            Resource:
+              - !Sub '${DapConfigBucket.Arn}'
+              - !Sub '${DapConfigBucket.Arn}/*'
+
+  MetricsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.metricsBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref VamDataEncryptionKey
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: metrics/
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  MetricsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref MetricsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt MetricsBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt MetricsBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+          - Sid: Deny object uploads not using default encryption settings
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Join ['/', [!GetAtt MetricsBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: 'aws:kms'
+              StringNotEqualsIfExists:
+                s3:x-amz-server-side-encryption-aws-kms-key-id: !GetAtt VamDataEncryptionKey.Arn
+
+  CloudTrailBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref VamDataEncryptionKey
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: cloudtrail/
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  CloudTrailBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref CloudTrailBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt CloudTrailBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt CloudTrailBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+          - Sid: Deny object uploads not using default encryption settings
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Join ['/', [!GetAtt CloudTrailBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: 'aws:kms'
+              StringNotEqualsIfExists:
+                s3:x-amz-server-side-encryption-aws-kms-key-id: !GetAtt VamDataEncryptionKey.Arn
+          - Sid: AWSCloudTrailAclCheck
+            Effect: Allow
+            Principal:
+              Service: 'cloudtrail.amazonaws.com'
+            Action: s3:GetBucketAcl
+            Resource:
+              !Sub |-
+                arn:aws:s3:::${CloudTrailBucket}
+          - Sid: AWSCloudTrailWrite
+            Effect: Allow
+            Principal:
+              Service: 'cloudtrail.amazonaws.com'
+            Action: s3:PutObject
+            Resource:
+              !Sub |-
+                arn:aws:s3:::${CloudTrailBucket}/AWSLogs/${AWS::AccountId}/*
+            Condition:
+              StringEquals:
+                s3:x-amz-acl: "bucket-owner-full-control"
+
+  # =============================================================================================
+  # EventBridge
+  # =============================================================================================
+
+  # Allow workflow event trigger rules configured on the solution bus to be able to invoke the workflowSolutionEventsHandler lambda function
+  PermissionForEventBridgeToInvokeWorkflowEventsLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref WorkflowSolutionEventsHandlerLambdaFunction
+      Action: 'lambda:InvokeFunction'
+      Principal: 'events.amazonaws.com'
+      SourceArn: !Sub 'arn:aws:events:${AWS::Region}:${AWS::AccountId}:rule/${self:custom.settings.solutionEventBusName}/wetr-*'
+
+  # =============================================================================================
+  # CloudTrail
+  # =============================================================================================
+  CloudTrail:
+    DependsOn:
+      - CloudTrailBucketPolicy
+    Type: AWS::CloudTrail::Trail
+    Properties:
+      S3BucketName:
+        Ref: CloudTrailBucket
+      IncludeGlobalServiceEvents: true
+      IsLogging: true
+      IsMultiRegionTrail: true
+      KMSKeyId: !GetAtt VamDataEncryptionKey.Arn
+
+# =============================================================================================
+# Outputs
+# =============================================================================================
+Outputs:
+  ApplicationRepoBucketDomain:
+    Value: !GetAtt ApplicationRepoBucket.DomainName
+  ApplicationRepoBucketRegionalDomain:
+    Value: !GetAtt ApplicationRepoBucket.RegionalDomainName
+  MetricReportGeneratorRoleArn:
+    Value: !GetAtt RoleMetricReportGenerator.Arn
+  CloudTrailBucketArn:
+    Value: !GetAtt CloudTrailBucket.Arn

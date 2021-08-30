@@ -1,0 +1,49 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# custom domain route 53 setup modes
+# Mode None
+#  No custom domains are used. This is the default.
+#  Leave customDomainMode set to 'none'.
+# Mode Parent
+#  Suitable for grouping the recordsets per project, team, organization.
+#  All recordsets are created in a given parentHostedZoneId which must be specified and present in same aws account where deployment is taking place.
+#  DNS resolution must be manually delegated already to parentHostedZone.
+#  Set customDomainMode to 'parent-zone'
+# Mode Per-Stage
+#  Suitable for grouping the recordsets per (project) stage.
+#  A per-stage hosted zone is created for given baseDomainName (required). All recordsets relevant to this deployed stage are created in this newly created hosted zone.
+#  The per-stage hosted zone DNS delegation is automated from the parentHostedZone (customDomainMode: stage-zone-delegate) or not (customDomainMode: stage-zone-no-delegate).
+#  Not automating DNS delegation may be needed when parent DNS zone is in a separate aws account, or not even in Route 53.
+#  In this case delegation must be set up manually.
+
+customDomainMode: none                       # no custom domains are to be used (default if not specified)
+#customDomainMode: parent-zone                # use the parent zone for all recordsets
+#customDomainMode: stage-zone-no-delegate     # create a hosted zone for this stage, do not attempt to delegate from parent
+#customDomainMode: stage-zone-delegate        # create a hosted zone for this stage, do set up delegation from parent
+
+# parent hosted zone to use; Must be present, properly DNS delegated and in the same aws account where deployment is taking place.
+# If custom domain is to be used, but no such parent hosted zone is available, set 'customDomainMode' to 'stage-zone-no-delegate' and 'parentHostedZoneId' to empty string.
+parentHostedZoneId: ''     # if given, existing delegation must be already set up
+# If custom domain is to be used, fill this in; otherwise leave empty string.
+parentDomainName: '' # must match or be a subdomain of above 'parentHostedZoneId' - if given.
+
+
+# configuring the domainName; required for custom domains!
+#suggested building blocks:
+# - ${self:custom.settings.envName} (stage)
+# - ${self:custom.settings.awsRegionShortName}
+# - ${self:custom.settings.solutionName}
+# - ${self:custom.settings.namespace} - usually set to ${self:custom.settings.envName}-${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}
+domainNamePrefix: '${self:custom.settings.envName}-${self:custom.settings.awsRegionShortName}'
+baseDomainName: '${self:custom.settings.domainNamePrefix}.${self:custom.settings.parentDomainName}'

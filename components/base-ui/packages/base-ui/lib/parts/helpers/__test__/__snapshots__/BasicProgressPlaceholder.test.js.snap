@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BasicProgressPlaceholder renders correctly 1`] = `
+<div>
+  <div
+    className="ui segment p3 mb2"
+  >
+    <div
+      className="ui fluid placeholder"
+    >
+      <div
+        className="header"
+      >
+        <div
+          className="line full"
+        />
+      </div>
+      <div
+        className="paragraph"
+      >
+        <div
+          className="line short"
+        />
+      </div>
+    </div>
+    <div
+      className="ui divider mt3"
+    />
+    <div
+      className="ui fluid placeholder"
+    >
+      <div
+        className="line full"
+      />
+    </div>
+  </div>
+</div>
+`;

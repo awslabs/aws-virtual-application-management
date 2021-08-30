@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowTemplateStepConfigOverrideEditor WorkflowTemplateStepConfigOverrideEditor should renders correctly 1`] = `
+<div
+  className="test-className"
+>
+  <div
+    className="ui divider mt1 mb2"
+  />
+  <h2
+    className="ui grey center aligned header mt1 mb3"
+  >
+    Change Configuration Override
+  </h2>
+  <form
+    className="ui fluid form"
+    onSubmit={[Function]}
+  >
+    <div
+      className="mt3"
+    >
+      <div
+        className="ui padded segment"
+      />
+      <div
+        className="mt3 clearfix"
+      >
+        <button
+          className="ui blue icon right floated left labeled button ml2"
+          onClick={[Function]}
+          type="submit"
+        >
+          <i
+            aria-hidden="true"
+            className="save icon"
+            onClick={[Function]}
+          />
+          Save
+        </button>
+        <button
+          className="ui left floated button"
+          onClick={[Function]}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;

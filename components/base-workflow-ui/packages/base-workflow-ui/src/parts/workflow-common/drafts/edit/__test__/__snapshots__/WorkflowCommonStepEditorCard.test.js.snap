@@ -1,0 +1,60 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowCommonStepEditorCard renders correctly 1`] = `
+<div
+  className="ui small clearing segment p0 pl1"
+>
+  <div
+    className="accordion ui overflow-hidden pr1"
+  >
+    <div
+      className="title"
+      onClick={[Function]}
+    >
+      <div
+        className="flex"
+      >
+        <div
+          className="ml1 mr1 mt1 cursor-grab"
+        >
+          <i
+            aria-hidden="true"
+            className="grey align justify icon"
+            onClick={[Function]}
+          />
+        </div>
+        <i
+          aria-hidden="true"
+          className="dropdown icon mt75"
+          onClick={[Function]}
+        />
+        <div
+          className="ellipsis flex-auto mt1"
+        >
+          <div
+            className="ellipsis"
+          />
+          <div
+            className="ellipsis pr1 breakout fs-9 color-grey"
+          >
+             v
+          </div>
+        </div>
+        <div
+          className="pl1 pr1 pt1"
+          onClick={[Function]}
+        >
+          <i
+            aria-hidden="true"
+            className="trash alternate outline icon cursor-pointer"
+            onClick={[Function]}
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      className="content p2 pt3 mb1 cursor-default"
+    />
+  </div>
+</div>
+`;

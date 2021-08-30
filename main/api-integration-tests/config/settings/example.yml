@@ -1,0 +1,45 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+isBuildServer: false
+
+# Target AWS region. This must match the stage used in main/config/settings/$(STAGE).yml.
+awsRegion: us-east-1
+
+# AWS profile used for deployment from the configuration in main/config/settings/$(STAGE).yml.
+awsProfile:
+
+# The solutionName from main/config/settings/$(STAGE).yml.
+solutionName: vam
+
+# This should match the value of $(STAGE). 
+envName: example
+
+# Defines the email address of the default admin account that will be used for API integration tests. This
+# is needed for authorizing API calls and creating test users for additional testing. The user will be created
+# the first time the API integration tests are run and its password will be stored (encrypted) in Parameter Store.
+# IMPORTANT: This must be a valid email address so that emails sent to the address (if any) don't cause
+#            damage to the sender's email reputation. Unless email content needs to be verified as part of
+#            integration tests, it is recommended that one of Amazon SES's test addresses be used with an email
+#            tag (see https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-simulator.html).
+apiIntegrationTestAdminEmail: success+api-integration-test-default-admin@simulator.amazonses.com
+
+# Set this to true if debugging locally.
+# Running tests locally is far slower than running remotely. It is recommended to debug tests in small
+# batches. Be aware that the 60s serverless timeout can produce false negatives in test results for longer
+# running operations.
+isLocal: false
+
+# Set this to the local API endpoint when isLocal is 'true'. This option has no effect when isLocal is
+# false.
+localApiEndpoint:  http://localhost:4000

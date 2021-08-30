@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InputEntriesRenderer renders correctly 1`] = `
+<div
+  className="mb4"
+>
+  <h3
+    className="ui header field mt0 mb1"
+  >
+    <label
+      className="color-grey"
+    />
+  </h3>
+  <div
+    0={1}
+    1={2}
+    2={3}
+    className="ui fluid input field"
+    data-testid=""
+  >
+    <input
+      autoFocus={false}
+      disabled={false}
+      onChange={[Function]}
+      type="text"
+    />
+  </div>
+</div>
+`;

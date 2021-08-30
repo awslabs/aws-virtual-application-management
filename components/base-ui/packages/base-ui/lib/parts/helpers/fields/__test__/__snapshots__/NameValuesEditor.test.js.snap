@@ -1,0 +1,68 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NameValuesEditor renders correctly 1`] = `
+<table
+  className="ui celled table"
+>
+  <thead
+    className=""
+  >
+    <tr
+      className=""
+    >
+      <th
+        className=""
+      >
+        Name
+      </th>
+      <th
+        className=""
+      >
+        Value
+      </th>
+      <th
+        className="two wide"
+      >
+        Action
+      </th>
+    </tr>
+  </thead>
+  <tbody
+    className=""
+  >
+    <tr
+      className=""
+    >
+      <td
+        className=""
+        colSpan={3}
+      >
+        No name/value pairs. Click + to add one.
+      </td>
+    </tr>
+  </tbody>
+  <tfoot
+    className="full-width"
+  >
+    <tr
+      className=""
+    >
+      <th
+        className=""
+        colSpan="3"
+      >
+        <button
+          className="ui blue tiny icon button ml1"
+          onClick={[Function]}
+        >
+          <i
+            aria-hidden="true"
+            className="plus icon"
+            onClick={[Function]}
+          />
+        </button>
+      </th>
+    </tr>
+  </tfoot>
+</table>
+`;

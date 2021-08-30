@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DropDown renders correctly 1`] = `
+<div
+  className="mb4"
+>
+  <h3
+    className="ui header field mt0 mb1"
+  >
+    <label
+      className="color-grey"
+    />
+  </h3>
+  <div
+    aria-disabled={false}
+    aria-expanded={false}
+    aria-multiselectable={false}
+    className="ui dropdown field"
+    onBlur={[Function]}
+    onChange={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onMouseDown={[Function]}
+    role="listbox"
+    tabIndex={0}
+  >
+    <div
+      aria-atomic={true}
+      aria-live="polite"
+      className="text"
+      role="alert"
+    />
+    <i
+      aria-hidden="true"
+      className="dropdown icon"
+      onClick={[Function]}
+    />
+    <div
+      className="menu transition"
+    />
+  </div>
+</div>
+`;

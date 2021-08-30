@@ -1,0 +1,8 @@
+{
+  "packageType": "choco",
+  "packageInstall": {
+    "chocoPackage": "notepad3"
+  },
+  "applicationName": "notepad3",
+  "applicationExe": "C:\\Program Files\\Notepad3\\Notepad3.exe"
+}

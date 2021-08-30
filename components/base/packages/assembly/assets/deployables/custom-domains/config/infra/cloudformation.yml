@@ -1,0 +1,142 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Conditions:
+  AutomatDelegationDNS: !Equals ['${self:custom.settings.customDomainMode}', 'stage-zone-delegate']
+  CreateStageZone: !Or
+    - !Equals ['${self:custom.settings.customDomainMode}', 'stage-zone-no-delegate']
+    - Condition: AutomatDelegationDNS
+  UseCustomDomain: !Or
+    - !Equals ['${self:custom.settings.customDomainMode}', 'parent-zone']
+    - Condition: CreateStageZone
+
+Resources:
+  # =============================================================================================
+  # Route 53
+  # =============================================================================================
+
+  StageHostedZone:
+    Type: AWS::Route53::HostedZone
+    Condition: CreateStageZone
+    Properties:
+      Name: ${self:custom.settings.baseDomainName}
+
+  DomainDelegationRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: AutomatDelegationDNS
+    Properties:
+      HostedZoneId: ${self:custom.settings.parentHostedZoneId}
+      RecordSets:
+        - Name: ${self:custom.settings.baseDomainName}
+          Type: NS
+          TTL: "172800"
+          ResourceRecords: !GetAtt StageHostedZone.NameServers
+
+  # IAM Policy for AWS CloudWatch Log access by the Lambda functions
+  CwlLambdaPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource:
+            - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${self:custom.settings.envName}-*"
+            - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${self:custom.settings.envName}-*:log-stream:*"
+
+  RoleAcmCertificateCustomResourceHandler:
+    Type: 'AWS::IAM::Role'
+    #Condition: UseCustomDomain
+    # The above should not be uncommented. This lambda should be always be available to allow
+    # transition between using and not using custom domains, back and forth.
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref CwlLambdaPolicy
+      Policies:
+        - PolicyName: cloudformation-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cloudFormation:DescribeStacks
+              Resource: '*'
+        - PolicyName: acm-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - acm:DeleteCertificate
+                - acm:DescribeCertificate
+                - acm:RequestCertificate
+                - acm:AddTagsToCertificate
+                - acm:ListTagsForCertificate
+                - acm:RemoveTagsFromCertificate
+              Resource: '*'
+        - PolicyName: route53-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - route53:ChangeResourceRecordSets
+                - route53:ListResourceRecordSets
+              #Resource: !If
+              #  - CreateStageZone
+              #  - !Join ['/', ['arn:aws:route53:::hostedzone', !Ref StageHostedZone]]
+              #  - arn:aws:route53:::hostedzone/${self:custom.settings.parentHostedZoneId}
+              # This cannot be as above (explicit zone), but rather all zones (*)
+              # in case an update results in a change zone. The updated lambda needs access
+              # to modify records in the old zone, which is no longer known.
+              Resource: arn:aws:route53:::hostedzone/*
+        - PolicyName: route53-change-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - route53:GetChange
+              Resource: '*'
+
+Outputs:
+  AcmCertificateCustomResourceLambdaArn:
+    Description: The lambda base for ACM Certificate CF custom resource
+    Value: !GetAtt AcmCertCustResHandlerLambdaFunction.Arn
+
+  HostedZoneId:
+    Description: Id of the hosted zone where the custom domain recordsets are placed
+    Condition: UseCustomDomain
+    Value: !If
+      - CreateStageZone
+      - !Ref StageHostedZone
+      - ${self:custom.settings.parentHostedZoneId}
+
+  HostedZoneDomainName:
+    Description: Domain name of the hosted zone where the custom domain recordsets are placed
+    Condition: UseCustomDomain
+    Value: !If
+      - CreateStageZone
+      - ${self:custom.settings.baseDomainName}
+      - ${self:custom.settings.parentDomainName}
+
+  BaseDomainName:
+    Description: A suitable suffix for all custom domain names
+    Condition: UseCustomDomain
+    Value: ${self:custom.settings.baseDomainName}

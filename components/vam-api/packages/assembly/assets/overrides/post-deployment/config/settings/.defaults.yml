@@ -1,0 +1,28 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# ================================ Appstream Usage Reports ===========================================
+
+# Role for Glue to access Appstream Usage Reports in S3
+appstreamUsageReportGlueRole: ${self:custom.settings.namespace}-AppstreamUsageReportGlueRole
+
+# IAM Policy that allows Glue to crawl the AppStream usage reports buckets
+appstreamGlueS3CrawlPolicyName: ${self:custom.settings.namespace}-AppstreamAllowGlueToCrawlS3
+
+# Glue DB name for AppStream Usage Reports
+appstreamUsageReportsGlueDbName: ${self:custom.settings.namespace}-appstream-usage
+
+# Glue classifiers and crawlers
+appstreamUsageApplicationsCsvClassifier: ${self:custom.settings.namespace}-appstream-usage-csv-classifier
+appstreamUsageSessionsCrawlerName: ${self:custom.settings.namespace}-appstream-usage-sessions-crawler
+appstreamUsageApplicationsCrawlerName: ${self:custom.settings.namespace}-appstream-usage-applications-crawler

@@ -1,0 +1,76 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowCommonDraftCard renders correctly 1`] = `
+Array [
+  <div
+    className="ui top left attached label"
+    onClick={[Function]}
+  >
+    Template 
+     Draft
+  </div>,
+  <div
+    className=""
+  >
+    <div
+      className="flex"
+    >
+      <h3
+        className="ui grey header mt0 flex-auto ellipsis"
+      >
+        <div
+          className="sub header fs-9 color-grey"
+        >
+          <div>
+            <span
+              className="ellipsis breakout"
+            />
+          </div>
+          <div>
+            created 
+            <time
+              dateTime="1966-02-01T00:00:00.000Z"
+              title="Feb 1, 1966 UTC"
+            >
+              55 years ago
+            </time>
+             
+            <span
+              className="ml1"
+            >
+              by 
+              test-name
+            </span>
+          </div>
+        </div>
+      </h3>
+      <div>
+        <div
+          className="ui mini basic buttons"
+        >
+          <button
+            className="ui icon button"
+            onClick={[Function]}
+          >
+            <i
+              aria-hidden="true"
+              className="edit icon"
+              onClick={[Function]}
+            />
+          </button>
+          <button
+            className="ui icon button"
+            onClick={[Function]}
+          >
+            <i
+              aria-hidden="true"
+              className="trash icon"
+              onClick={[Function]}
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;

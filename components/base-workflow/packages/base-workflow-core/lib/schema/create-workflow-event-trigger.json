@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9-_ ]+$"
+    },
+    "workflowId": {
+      "type": "string",
+      "maxLength": 1024
+    },
+    "workflowVer": {
+      "type": "number"
+    },
+    "eventPattern": {
+      "type": "string",
+      "maxLength": 2048
+    }
+  },
+  "required": ["workflowId", "workflowVer", "eventPattern"]
+}

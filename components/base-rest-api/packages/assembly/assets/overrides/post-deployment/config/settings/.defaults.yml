@@ -1,0 +1,37 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# ================================ Settings required by base-rest-api ===========================================
+
+# Options used when issuing JWT token such as which algorithm to use for hashing and how long to keep the tokens alive etc
+jwtOptions: '{"algorithm":"HS256","expiresIn":"2 days"}'
+
+# Name of the parameter in parameter store containing secret key for JWT. This key is used for signing and validating JWT tokens
+# issued by authentication providers
+paramStoreJwtSecret: '/${self:custom.settings.paramStoreRoot}/jwt/secret'
+
+# DynamoDB table name for supported authentication provider types
+dbAuthenticationProviderTypes: ${self:custom.settings.dbPrefix}-AuthenticationProviderTypes
+
+# DynamoDB table name for authentication provider configurations
+dbAuthenticationProviderConfigs: ${self:custom.settings.dbPrefix}-AuthenticationProviderConfigs
+
+# DynamoDB table name for users
+dbUsers: ${self:custom.settings.dbPrefix}-Users
+
+# DynamoDB table name for UserRoles
+dbUserRoles: ${self:custom.settings.dbPrefix}-UserRoles
+
+# This setting allows the post-deployment steps to also maintain the user roles updated with the capabilities defined in code.
+# If you do not want the capabilities to be updated on each deployment, set the following setting to false.
+autoSyncUserRoleCapabilities: true

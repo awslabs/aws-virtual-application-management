@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ErrorPointer renders correctly 1`] = `
+<div
+  className="ui pointing basic label"
+>
+  error
+</div>
+`;

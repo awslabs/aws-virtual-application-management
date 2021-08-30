@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowDraftPublisher WorkflowDraftMetaEditor should renders correctly 1`] = `
+Array [
+  <div
+    className="dimmable"
+  >
+    <div
+      className="ui inverted dimmer"
+      onClick={[Function]}
+    >
+      <div
+        className="content"
+      >
+        <div
+          className="ui inverted text loader"
+        >
+          Processing
+        </div>
+      </div>
+    </div>
+    <h3
+      className="ui grey header mt0 mb3"
+    >
+      Review & Publish
+    </h3>
+  </div>,
+  <div>
+    <button
+      className="ui teal right floated button ml2"
+      onClick={[Function]}
+    >
+      Publish
+    </button>
+    <button
+      className="ui icon right floated left labeled button ml3"
+      onClick={[Function]}
+    >
+      <i
+        aria-hidden="true"
+        className="left arrow icon"
+        onClick={[Function]}
+      />
+      previous
+    </button>
+    <button
+      className="ui left floated button"
+      onClick={[Function]}
+    >
+      Cancel
+    </button>
+  </div>,
+]
+`;

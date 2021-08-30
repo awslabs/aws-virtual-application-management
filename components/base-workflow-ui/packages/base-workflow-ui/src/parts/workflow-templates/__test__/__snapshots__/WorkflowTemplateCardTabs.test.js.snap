@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowTemplateCardTabs WorkflowTemplateCardTabs should renders correctly 1`] = `
+<div
+  className="test-className"
+>
+  <div
+    className="ui pointing secondary menu"
+  >
+    <a
+      className="item"
+      onClick={[Function]}
+    >
+      Description
+    </a>
+    <a
+      className="item"
+      onClick={[Function]}
+    >
+      Steps
+    </a>
+    <a
+      className="item"
+      onClick={[Function]}
+    >
+      Properties
+    </a>
+  </div>
+</div>
+`;

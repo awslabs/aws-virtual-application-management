@@ -1,0 +1,81 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+apiHandler:
+  environment:
+    APP_AD_DOMAIN: ${self:custom.settings.adDomain}
+    APP_AD_DOMAIN_NAME: ${self:custom.settings.adDomainName}
+    APP_OU: ${self:custom.settings.ou}
+    APP_APPLICATION_REPO_BUCKET_NAME: ${self:custom.settings.applicationRepoBucketName}
+    APP_ACTIVE_DIRECTORY_VPC_SUBNET: ${self:custom.settings.activeDirectoryVPCSubnet}
+    APP_IMAGE_BUILDER_IAM_ROLE_ARN: ${self:custom.settings.imageBuilderIAMRoleArn}
+    APP_DAP_CONFIG_BUCKET_NAME: ${self:custom.settings.dapConfigBucketName}
+    APP_AD_JOINED: ${self:custom.settings.adJoined}
+    APP_GSUITE_DOMAINS: ${self:custom.settings.gsuiteDomains}
+    APP_EMBED_HOSTS: ${self:custom.settings.embedHosts}
+    APP_INSTALLER_HOST_WORK_BUCKET_NAME: ${cf:${self:custom.settings.imageBuilderStackName}.InstallerHostWorkBucket}
+    APP_IMAGE_BUILDER_AD_CREDENTIALS_ARN: ${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderADCredentialsArn}
+    APP_APPSTREAM_INSTANCE_ROLE_ARN: ${cf:${self:custom.settings.imageBuilderStackName}.AppstreamInstanceRoleArn}
+    APP_APPSTREAM_IMAGE_ARN: ${self:custom.settings.appstreamImageArn}
+    APP_SOLUTION_EVENT_BUS_NAME: ${self:custom.settings.solutionEventBusName}
+    APP_WORKFLOW_SOLUTION_EVENTS_HANDLER_ARN: !GetAtt WorkflowSolutionEventsHandlerLambdaFunction.Arn
+    APP_LTI_CONSUMER_KEY_PRIMARY: ${self:custom.settings.ltiConsumerKeyPrimary}
+    APP_LTI_CONSUMER_KEY_SECONDARY: $self:custom.settings.ltiConsumerKeySecondary}
+    APP_LTI_CONSUMER_SECRET_PRIMARY: ${cf:${self:custom.settings.imageBuilderStackName}.LTIConsumerSecretPrimary}
+    APP_LTI_CONSUMER_SECRET_SECONDARY: ${cf:${self:custom.settings.imageBuilderStackName}.LTIConsumerSecretSecondary}
+    APP_METRICS_BUCKET: ${self:custom.settings.metricsBucketName}
+    APP_IMAGE_BUILDER_AD_PRIMARY: ${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderADPrimary}
+    APP_IMAGE_BUILDER_AD_SECONDARY: ${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderADSecondary}
+  vpc:
+    subnetIds: !Split [",", "${cf:${self:custom.settings.imageBuilderStackName}.ActiveDirectoryVPCPrivateSubnets}"]
+    securityGroupIds:
+      - ${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderVPCSecurityGroup}
+  timeout: 30
+
+workflowLoopRunner:
+  environment:
+    APP_AD_DOMAIN: ${self:custom.settings.adDomain}
+    APP_AD_DOMAIN_NAME: ${self:custom.settings.adDomainName}
+    APP_OU: ${self:custom.settings.ou}
+    APP_ACTIVE_DIRECTORY_VPC_SUBNET: ${self:custom.settings.activeDirectoryVPCSubnet}
+    APP_IMAGE_BUILDER_IAM_ROLE_ARN: ${self:custom.settings.imageBuilderIAMRoleArn}
+    APP_APPSTREAM_IMAGE_ARN: ${self:custom.settings.appstreamImageArn}
+    APP_IMAGE_BUILDER_SECURITY_GROUP_ID: ${self:custom.settings.imageBuilderSecurityGroupId}
+    APP_INSTALLER_HOST_WORK_BUCKET_NAME: ${cf:${self:custom.settings.imageBuilderStackName}.InstallerHostWorkBucket}
+    APP_IMAGE_BUILDER_AD_CREDENTIALS_ARN: ${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderADCredentialsArn}
+    APP_APPLICATION_REPO_BUCKET_NAME: ${self:custom.settings.applicationRepoBucketName}
+    APP_GPO_TEMPLATE_BUCKET: ${cf:${self:custom.settings.imageBuilderStackName}.GPOTemplateBucket}
+    APP_DAP_CONFIG_BUCKET_NAME: ${self:custom.settings.dapConfigBucketName}
+    APP_DNS_IP_ADDRESSES: ${self:custom.settings.dnsIpAddresses}
+    APP_DIRECTORY_ID: ${self:custom.settings.directoryId}
+    APP_APPSTREAM_SERVICE_ACCOUNT_SECRET_ARN: ${self:custom.settings.appStreamServiceAccountSecretArn}
+    APP_IMAGE_BUILDER_SERVICE_ACCOUNT_SECRET_ARN: ${self:custom.settings.imageBuilderServiceAccountSecretArn}
+    APP_INSTALLER_INSTANCE_SECURITY_GROUP: ${self:custom.settings.installerInstanceSecurityGroup}
+    APP_NAMESPACE: ${self:custom.settings.namespace}
+    APP_INSTALLER_HOST_PROFILE: ${cf:${self:custom.settings.imageBuilderStackName}.InstallerHostProfile}
+    APP_JOIN_AD_DOCUMENT: ${cf:${self:custom.settings.imageBuilderStackName}.JoinADDocument}
+      
+# metricReportGenerator:
+#   handler: src/lambdas/metric-report-generator/handler.handler
+#   role: RoleMetricReportGenerator
+#   tags: ${self:custom.tags}
+#   description: Handles the generation of metric reports, triggered on a schedule from CloudWatch.
+#   environment:
+#     APP_METRICS_BUCKET: ${self:custom.settings.metricsBucketName}
+#     APP_APPSTREAM_USAGE_REPORTS_GLUE_DB_NAME: ${self:custom.settings.appstreamUsageReportsGlueDbName}
+#   events:
+#     - schedule:
+#         # Note, the Glue Crawler is configured to run at 23:00 UTC (see enable-appstream-usage-reports.js)
+#         # Setting this to run at 01:00 UTC to allow the glue crawler 2 hours to complete before running the Athena queries
+#         rate: cron(0 1 * * ? *)
+#         description: 'Invokes the lambda function that uses Athena to query the Appstream Usage Reports and generate the metrics'

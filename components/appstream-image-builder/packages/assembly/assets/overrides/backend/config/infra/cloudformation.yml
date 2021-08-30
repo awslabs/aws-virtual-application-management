@@ -1,0 +1,121 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Resources:
+  RoleWorkflowLoopRunner:
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'ec2.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: ssm-public-param-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}::parameter${self:custom.settings.windowsSsmParam}'
+        - PolicyName: create-ssm-associations
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:CreateAssociation
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:document/${cf:${self:custom.settings.imageBuilderStackName}.JoinADDocument}'
+        - PolicyName: list-ssm-associations
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:ListAssociations
+              Resource: '*' # Catch-22: cannot list the JoinADDocument until an instance is created, so * is needed
+        - PolicyName: launch-only-amazon-amis
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action:
+                - ec2:RunInstances
+              Resource:
+                - !Sub 'arn:aws:ec2:${AWS::Region}::image/ami-*'
+              Condition:
+                StringEquals:
+                  ec2:Owner: amazon
+            - Effect: Allow
+              Action:
+                - ec2:RunInstances
+              Resource:
+                - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
+                - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/*'
+                - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:volume/*'
+                - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:network-interface/*'
+                - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:key-pair/*'
+                - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:security-group/*'
+        - PolicyName: tag-ec2-instances
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ec2:CreateTags
+              Resource: '*'
+              Condition:
+                StringEquals:
+                  ec2:CreateAction: RunInstances
+        - PolicyName: manage-ec2-instances
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ec2:DescribeSubnets
+                - ec2:DescribeInstanceStatus
+                - ec2:DescribeInstances
+              Resource: '*' # none of these allow resource constraints
+        - PolicyName: terminate-ec2-instances
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ec2:StopInstances
+              Resource: '*'
+              Condition:
+                StringEquals:
+                  aws:ResourceTag/Name: !Sub '${self:custom.settings.namespace}-installer-instance'
+        - PolicyName: pass-installer-host-role
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${cf:${self:custom.settings.imageBuilderStackName}.InstallerHostRole}'
+        - PolicyName: ssm-send-command
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action:
+                - ssm:SendCommand
+              Resource:
+                - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
+              Condition:
+                StringEquals:
+                  ssm:ResourceTag/Name: !Sub '${self:custom.settings.namespace}-installer-instance'
+            - Effect: Allow
+              Action:
+                - ssm:SendCommand
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}::document/AWS-RunPowerShellScript'
+                - 'arn:aws:s3:::${cf:${self:custom.settings.imageBuilderStackName}.InstallerHostWorkBucket}/ssm'

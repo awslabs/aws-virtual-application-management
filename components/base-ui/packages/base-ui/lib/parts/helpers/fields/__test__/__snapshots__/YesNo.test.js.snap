@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`YesNo renders correctly 1`] = `
+<div
+  className="mb4"
+>
+  <div
+    className="flex flex-wrap mb1"
+  >
+    <h3
+      className="ui header field mt1 mb0 mr2"
+    >
+      <label
+        className="color-grey"
+      />
+    </h3>
+    <div>
+      <div
+        className="ui small buttons"
+      >
+        <button
+          className="ui button"
+          onClick={[Function]}
+        >
+          Yes
+        </button>
+        <div
+          className="or"
+        />
+        <button
+          className="ui button"
+          onClick={[Function]}
+        >
+          No
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

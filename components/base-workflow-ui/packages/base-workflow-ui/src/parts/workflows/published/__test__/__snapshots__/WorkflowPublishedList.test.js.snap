@@ -1,0 +1,51 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowPublishedList WorkflowPublishedList should renders correctly 1`] = `
+<div
+  className="mb4"
+>
+  <div
+    className="mb3 flex"
+  >
+    <h3
+      className="ui header color-grey mt1 mb0 flex-auto"
+    >
+      <i
+        aria-hidden="true"
+        className="fork icon align-top"
+        onClick={[Function]}
+      />
+      <div
+        className="content left-align"
+      >
+        Workflows
+      </div>
+    </h3>
+  </div>
+  <table
+    className="ui selectable padded table"
+  >
+    <thead
+      className=""
+    >
+      <tr
+        className=""
+      >
+        <th
+          className="single line"
+        >
+          Workflow
+        </th>
+        <th
+          className=""
+        >
+          Updated
+        </th>
+      </tr>
+    </thead>
+    <tbody
+      className=""
+    />
+  </table>
+</div>
+`;

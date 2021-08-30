@@ -1,0 +1,783 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Deploy VAM
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Required Parameters
+        Parameters:
+          - SolutionName
+          - EnvName
+          - ArtifactBucket
+          - ArtifactKey
+          - DeploymentRegion
+          - DemoDeployment
+          - DeploySampleApplications
+          - AdminUserEmail
+          - AdminUserFirstName
+          - AdminUserLastName
+          - SendEmailNotifications
+          - AdJoined
+      - Label:
+          default: Optional Parameters
+        Parameters:
+          - GSuiteDomains
+          - EmbedHosts
+          - VpcId
+          - SubnetIds
+          - AppstreamDirectoryConfig
+          - AdDomain
+          - AdDomainName
+          - Ou
+          - DnsIpAddresses
+          - DirectoryId
+          - AppStreamServiceAccountSecretArn
+          - ImageBuilderServiceAccountSecretArn
+      - Label:
+          default: Federated Login Parameters (optional)
+        Parameters:
+          - FederationIdpName
+          - FederationIdpMetadata
+
+Parameters:
+  # Required Parameters
+  SolutionName:
+    Type: String
+    Description: The name of the solution
+    Default: vam
+    MinLength: 2
+    MaxLength: 10
+    AllowedPattern: '[a-z][a-z0-9]*'
+    ConstraintDescription: SolutionName must only contain lowercase letters and be between 2 and 10 characters in length.
+  EnvName:
+    Type: String
+    Description: The environment type (e.g. prod, staging, demo, dev).
+    Default: demo
+    MinLength: 2
+    MaxLength: 10
+    AllowedPattern: '[a-z][a-z0-9]*'
+    ConstraintDescription: SolutionName must only contain lowercase letters and be between 2 and 10 characters in length.
+  ArtifactBucket:
+    Type: String
+    Description: >-
+      The S3 bucket where the source zip is located. Just enter the bucket name, for example
+      'my-bucket'.
+    MinLength: 3
+    MaxLength: 63
+    AllowedPattern: '^[a-z0-9.-]+$'
+    ConstraintDescription: ArtifactBucket must only contain lowercase letters, numbers, period, hyphen and be between 3 and 63 characters in length.
+  ArtifactKey:
+    Type: String
+    Description: The key for the source zip object in the S3 Bucket. For example 'vam.zip'.
+    MinLength: 1
+    ConstraintDescription: ArtifactKey must be at least one character in length.
+  DeploymentRegion:
+    Type: String
+    Description: The region where to deploy the solution.
+    AllowedValues:
+      - us-east-1
+      - us-west-2
+      - ap-southeast-2
+  DemoDeployment:
+    Type: String
+    Description: Demo deployments include a step to remove the deployment after testing.
+    AllowedValues:
+      - Yes
+      - No
+  DeploySampleApplications:
+    Type: String
+    Description: Whether or not to deploy the included sample applications with the solution.
+    AllowedValues:
+      - Yes
+      - No
+  AdminUserEmail:
+    Type: String
+    Description: >-
+      Admin user's email address. Ensure this is a valid email address that is controlled by the deployer, as temporary login credentials will be sent to this address.
+    MinLength: 5
+    AllowedPattern: '^\S+@\S+\.\S+$'
+    ConstraintDescription: AdminUserEmail must not contain spaces, must contain @ and a domain with at least one period (eg test.com).
+  AdminUserFirstName:
+    Type: String
+    Description: >-
+      Admin user's first name.
+    MinLength: 1
+  AdminUserLastName:
+    Type: String
+    Description: >-
+      Admin user's last name.
+    MinLength: 1
+  SendEmailNotifications:
+    Type: String
+    Description: Whether or not to send an email with the deployment result.
+    AllowedValues:
+      - Yes
+      - No
+  AdJoined:
+    Type: String
+    Description: Whether or not to join AppStream Fleet instances to Active Directory. This is a requirement for Dynamic Catalogs. WARNING! This option will significantly alter the functionality of the solution. SAML authentication must be used if this option is chosen.
+    Default: No
+    AllowedValues:
+      - Yes
+      - No
+
+  # Optional Parameters
+  AppstreamDirectoryConfig:
+    Type: String
+    Description: Whether or not to create an AppStream Directory Config. WARNING! AppStream will not allow you to create two directory configs with the same domain. Must provide an Active Directory if you select false.
+    Default: Yes
+    AllowedValues:
+      - Yes
+      - No
+  GSuiteDomains:
+    Type: String
+    Description: >-
+      GSuite Domains that will be used with GDrive as a storage mechanism for the instances.
+      Use commas to separate the values e.g. myuniversity.edu,myfaculty.edu
+  EmbedHosts:
+    Type: String
+    Description: >-
+      A list of external domains that embedded AppStream is enabled for. Use commas to separate the values e.g canvas.myuniversity.edu,moodle.myuniversity.edu
+  VpcId:
+    Type: String
+    Description: >-
+      The VPC Id to use for the Installer host and AWS Directory Service. If you do not specify
+      a VPC one will be created during deployment.
+  SubnetIds:
+    Type: CommaDelimitedList
+    Description: >-
+      The subnets to use for the Installer host and AWS Directory Service. Specify the subnets
+      separated by commas. If you do not specify any, two subnets will be created during
+      deployment. Note the Installer host will join the first subnet listed.
+  AdDomain:
+    Type: String
+    AllowedPattern: ^(?![0-9]{1,15}$)[a-zA-Z0-9-]{0,15}$
+    ConstraintDescription: >-
+      The provided parameter for the NetBios name contains disallowed characters (additional information 
+      can be found here: https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/naming-conventions-for-computer-domain-site-ou#computer-names).
+    Description: >-
+      The NetBios name of the Active Directory domain to join. For example 'test-domain'.
+  AdDomainName:
+    Type: String
+    Description: >-
+      The Active Directory domain name to join. For example 'ad.test-domain.com'.
+  Ou:
+    Type: String
+    Description: >-
+      The OU that the installer host, image builders and AppStream fleets (by default) will join.
+      For example 'OU=Appstream,DC=ad,DC=test-domain,DC=com'. This OU should have an appropriate
+      Group Policy Object configured (see the documentation).
+  DnsIpAddresses:
+    Type: String
+    Description: >-
+      The DNS IP addresses for the domain. The VPC specified will be updated to use these IP addresses.
+  DirectoryId:
+    Type: String
+    Description: >-
+      The DirectoryId for the AWS Managed Microsoft AD, or AD Connector.
+  AppStreamServiceAccountSecretArn:
+    Type: String
+    Description: >-
+      The ARN for a Secret Manager secret containing credentials for the AppStream service
+      account. The secret must contain the parameters 'username' and 'password'.
+  ImageBuilderServiceAccountSecretArn:
+    Type: String
+    Description: >-
+      The ARN for a Secret Manager secret containing credentials for the account that
+      Image Builders should use to configure applications. The secret must contain the
+      parameters 'username' and 'password'.
+
+  # Federated Login Parameters (optional)
+  FederationIdpName:
+    Type: String
+    Description: >-
+      The name of the SAML identity provider. For example, 'ID Provider'.
+    MaxLength: 32
+    AllowedPattern: '^$|[^_\p{Z}][\p{L}\p{M}\p{S}\p{N}\p{P}][^_\p{Z}]+'
+    ConstraintDescription: FederationIdpName should be at least three and less than 32 characters and contain a capital not as the first letter.
+  FederationIdpMetadata:
+    Type: String
+    Description: >-
+      The identity provider SAML metadata. Provide either an S3 URI or a publicly accessible http url for the provider
+      SAML metadata. For example, 's3://domain1-saml-metadata/metadata.xml' or 
+      'https://domain2.com/FederationMetadata/2007-06/FederationMetadata.xml'.
+    AllowedPattern: '^$|^(s3:\/\/|http:\/\/|https:\/\/).+'
+    ConstraintDescription: FederationIdpMetadata should start with s3:// or https://.
+
+Conditions:
+  HasAdminEmail: !Not
+    - !Equals [!Ref AdminUserEmail, '']
+  SubscribeNotificationEmail: !And
+    - !Equals [!Ref SendEmailNotifications, Yes]
+    - !Condition HasAdminEmail
+  IsDemoDeployment: !Equals [!Ref DemoDeployment, Yes]
+
+Resources:
+  # KMS key to be used for encrypting/decrypting the artifacts
+  EncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: Code & Deployment Artifact Key
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: !Ref AWS::StackName
+        Statement:
+          - Sid: Allows administration of the key by the account root user
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - kms:Create*
+              - kms:Describe*
+              - kms:Enable*
+              - kms:List*
+              - kms:Put*
+              - kms:Update*
+              - kms:Revoke*
+              - kms:Disable*
+              - kms:Get*
+              - kms:Delete*
+              - kms:TagResource
+              - kms:UntagResource
+              - kms:ScheduleKeyDeletion
+              - kms:CancelKeyDeletion
+            Resource: '*'
+          - Sid: Allow use of the key in the source account for upload and CodeBuild in pipeline account to download the code
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt AppDeployerRole.Arn # Allows CodeBuild (the deploy stage in pipeline) to decrypt code when downloading
+                - !GetAtt AppPipelineRole.Arn # Allows CodePipeline to encrypt code when uploading
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: '*'
+          - Sid: Allow EventBridge to use the key
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action:
+              - kms:GenerateDataKey*
+              - kms:Decrypt
+            Resource: '*'
+
+  EncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub 'alias/${SolutionName}-${EnvName}-key'
+      TargetKeyId: !Ref EncryptionKey
+
+  # SNS Topic to receive various notifications from the pipeline
+  PipelineNotificationsTopic:
+    Type: AWS::SNS::Topic
+    Condition: SubscribeNotificationEmail
+    Properties:
+      Subscription:
+        - Endpoint: !Ref AdminUserEmail
+          Protocol: email
+      # NOTE: Can't use '!GetAtt EncryptionKey.Arn' due to
+      # circular dependency EncryptionKey -> AppPipelineRole -> PipelineNotificationsTopic
+      KmsMasterKeyId: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${SolutionName}-${EnvName}-key
+
+  # SNS Topic Policy to allow CloudWatch Event Service to send notifications to the topic
+  PipelineNotificationsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Condition: SubscribeNotificationEmail
+    Properties:
+      PolicyDocument:
+        Id: !Ref AWS::StackName
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: events.amazonaws.com
+          Resource:
+            - !Ref PipelineNotificationsTopic
+          Action:
+            - sns:Publish
+      Topics:
+        - !Ref PipelineNotificationsTopic
+
+  # The artifacts S3 bucket to hold pipeline artifacts
+  AppArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              # NOTE: Can't use '!GetAtt EncryptionKey.Arn' due to
+              # circular dependency EncryptionKey -> AppPipelineRole -> AppArtifactBucket
+              KMSMasterKeyID: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${SolutionName}-${EnvName}-key
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 365 # Delete old artifacts from S3 after 1 year to save costs
+            Status: Enabled
+
+  AppArtifactBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AppArtifactBucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt AppArtifactBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt AppArtifactBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+  # The AWS IAM role to be assumed by the AWS CodePipeline.
+  # The role specified in each stage is assumed for that specific stage in the pipeline.
+  # This role is assumed by the CodePipeline service itself.
+  AppPipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: PipelineOperationalPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: '*'
+              - Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:GetObjectVersion
+                  - s3:ListBucket
+                  - s3:GetBucketPolicy
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:s3:::${AppArtifactBucket}
+                  - !Sub arn:aws:s3:::${AppArtifactBucket}/*
+              - Action:
+                  - s3:ListBucket
+                  - s3:GetObjectVersion
+                  - s3:GetObject
+                  - s3:GetBucketVersioning
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:s3:::${ArtifactBucket}
+                  - !Sub arn:aws:s3:::${ArtifactBucket}/*
+              - Action:
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                Effect: Allow
+                Resource:
+                  - !GetAtt TargetEnvDeployProject.Arn
+                  - !If
+                    - IsDemoDeployment
+                    - !GetAtt TargetEnvDeleteProject.Arn
+                    - !Ref AWS::NoValue
+              - !If
+                - SubscribeNotificationEmail
+                - Action:
+                    - sns:Publish
+                  Effect: Allow
+                  Resource:
+                    - !Ref PipelineNotificationsTopic
+                - !Ref AWS::NoValue
+
+  AppDeployerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        # The deployer role needs permissions to deploy CFN stacks and all actions those stacks are performing
+        # The permissions required by stacks are very fluid and dependent on which resources are declared in those
+        # stacks
+        - arn:aws:iam::aws:policy/PowerUserAccess
+      Policies:
+        - PolicyName: CodeBuildDeployerPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - iam:AttachRolePolicy
+                  - iam:CreateRole
+                  - iam:DeleteRole
+                  - iam:DeleteRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:GetRole
+                  - iam:GetRolePolicy
+                  - iam:PassRole
+                  - iam:PutRolePolicy
+                  - iam:UpdateAssumeRolePolicy
+                  - iam:CreatePolicy
+                  - iam:ListPolicyVersions
+                  - iam:CreatePolicyVersion
+                  - iam:DeletePolicyVersion
+                  - iam:SetDefaultPolicyVersion
+                  - iam:*TagRole*
+                  - iam:GetInstanceProfile
+                  - iam:CreateInstanceProfile
+                  - iam:AddRoleToInstanceProfile
+                  - iam:RemoveRoleFromInstanceProfile
+                  # deletion of environment after testing
+                  - iam:GetPolicy
+                  - iam:DeleteInstanceProfile
+                  - iam:DeletePolicy
+                Resource: '*'
+                Effect: Allow
+        - PolicyName: DenyAssumeRole # Deny Assume Role privilege to prevent Role permissions self-escalation
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - sts:AssumeRole
+                Resource: '*'
+                Effect: Deny
+        - PolicyName: DenySelfEscalation # deny modifying own restrictions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - iam:AttachRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:DeletePolicyVersion
+                  - iam:DetachRolePolicy
+                Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${AWS::StackName}-AppDeployerRole*'
+                Effect: Deny
+
+  AppPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Sub '${SolutionName}-${EnvName}-Pipeline'
+      RoleArn: !GetAtt AppPipelineRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref AppArtifactBucket
+        EncryptionKey:
+          Id: !GetAtt EncryptionKey.Arn
+          Type: KMS
+      Stages:
+        # Pull code from Source location and upload to artifacts S3 bucket
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              RunOrder: 1
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: S3
+                Version: '1'
+              Configuration:
+                S3Bucket: !Ref ArtifactBucket
+                S3ObjectKey: !Ref ArtifactKey
+                PollForSourceChanges: 'true'
+              OutputArtifacts:
+                - Name: SourceArtifact
+
+        # Deploy to target environment
+        - Name: !Sub 'Build-and-Deploy-to-Target-Env-${SolutionName}-${EnvName}'
+          Actions:
+            - Name: Build-and-Deploy
+              RunOrder: 1
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref TargetEnvDeployProject
+              InputArtifacts:
+                - Name: SourceArtifact
+
+        # Add manual approval stage only if IsDemoDeployment condition is true
+        - !If
+          - IsDemoDeployment
+          - Name: !Sub 'Advance-To-Delete-Target-Env-${SolutionName}-${EnvName}'
+            Actions:
+              - Name: Delete-Target-Env
+                RunOrder: 1
+                ActionTypeId:
+                  Category: Approval
+                  Owner: AWS
+                  Provider: Manual
+                  Version: '1'
+                Configuration:
+                  NotificationArn: !If
+                    - SubscribeNotificationEmail
+                    - !Ref PipelineNotificationsTopic
+                    - !Ref AWS::NoValue
+          - !Ref AWS::NoValue
+
+        # Add stage to delete the env if IsDemoDeployment condition is true
+        - !If
+          - IsDemoDeployment
+          - Name: !Sub 'Delete-Target-Env-${SolutionName}-${EnvName}'
+            Actions:
+              - Name: Delete-Env
+                RunOrder: 1
+                ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: '1'
+                Configuration:
+                  ProjectName: !Ref TargetEnvDeleteProject
+                InputArtifacts:
+                  - Name: SourceArtifact
+          - !Ref AWS::NoValue
+
+  # A CodeBuild project to deploy solution to the main target environment
+  TargetEnvDeployProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: components/vam-silky-smooth-deployments/packages/deployment-pipeline/config/buildspec/buildspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/standard:5.0
+        EnvironmentVariables:
+          - Name: SOLUTION_NAME
+            Value: !Ref SolutionName
+          - Name: ENV_NAME
+            Value: !Ref EnvName
+          - Name: ADMIN_USER_EMAIL
+            Value: !Ref AdminUserEmail
+          - Name: ADMIN_USER_FIRST_NAME
+            Value: !Ref AdminUserFirstName
+          - Name: ADMIN_USER_LAST_NAME
+            Value: !Ref AdminUserLastName
+          - Name: AD_JOINED
+            Value: !Ref AdJoined
+          - Name: GSUITE_DOMAINS
+            Value: !Ref GSuiteDomains
+          - Name: EMBED_HOSTS
+            Value: !Ref EmbedHosts
+          - Name: VPC_ID
+            Value: !Ref VpcId
+          - Name: SUBNET_IDS
+            Value: !Join [',', !Ref SubnetIds]
+          - Name: DEPLOY_SAMPLE_APPLICATIONS
+            Value: !Ref DeploySampleApplications
+          - Name: DEPLOY_REGION
+            Value: !Ref DeploymentRegion
+          - Name: FED_IDP_NAMES
+            Value: !Ref FederationIdpName
+          - Name: FED_IDP_DISPLAY_NAMES
+            Value: !Ref FederationIdpName
+          - Name: FED_IDP_METADATAS
+            Value: !Ref FederationIdpMetadata
+          - Name: AD_DOMAIN
+            Value: !Ref AdDomain
+          - Name: AD_DOMAIN_NAME
+            Value: !Ref AdDomainName
+          - Name: DEPLOY_APPSTREAM_DIRECTORY_CONFIG
+            Value: !Ref AppstreamDirectoryConfig
+          - Name: OU
+            Value: !Ref Ou
+          - Name: DNS_IP_ADDRESSES
+            Value: !Ref DnsIpAddresses
+          - Name: DIRECTORY_ID
+            Value: !Ref DirectoryId
+          - Name: APPSTREAM_SERVICE_ACCOUNT_SECRET_ARN
+            Value: !Ref AppStreamServiceAccountSecretArn
+          - Name: IMAGE_BUILDER_SERVICE_ACCOUNT_SECRET_ARN
+            Value: !Ref ImageBuilderServiceAccountSecretArn
+          - !If
+            - SubscribeNotificationEmail
+            - Name: NOTIFICATION_TOPIC_ARN
+              Value: !Ref PipelineNotificationsTopic
+            - !Ref AWS::NoValue
+      ServiceRole: !GetAtt AppDeployerRole.Arn
+      TimeoutInMinutes: 120
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+
+  # A CodeBuild project to delete solution to the main target environment
+  TargetEnvDeleteProject:
+    Type: AWS::CodeBuild::Project
+    Condition: IsDemoDeployment
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: components/vam-silky-smooth-deployments/packages/deployment-pipeline/config/buildspec/buildspec-uninstall.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/standard:5.0
+        EnvironmentVariables:
+          - Name: SOLUTION_NAME
+            Value: !Ref SolutionName
+          - Name: ENV_NAME
+            Value: !Ref EnvName
+          - Name: ADMIN_USER_EMAIL
+            Value: !Ref AdminUserEmail
+          - Name: ADMIN_USER_FIRST_NAME
+            Value: !Ref AdminUserFirstName
+          - Name: ADMIN_USER_LAST_NAME
+            Value: !Ref AdminUserLastName
+          - Name: AD_JOINED
+            Value: !Ref AdJoined
+          - Name: GSUITE_DOMAINS
+            Value: !Ref GSuiteDomains
+          - Name: EMBED_HOSTS
+            Value: !Ref EmbedHosts
+          - Name: VPC_ID
+            Value: !Ref VpcId
+          - Name: SUBNET_IDS
+            Value: !Join [',', !Ref SubnetIds]
+          - Name: DEPLOY_SAMPLE_APPLICATIONS
+            Value: !Ref DeploySampleApplications
+          - Name: DEPLOY_REGION
+            Value: !Ref DeploymentRegion
+          - Name: FED_IDP_NAMES
+            Value: !Ref FederationIdpName
+          - Name: FED_IDP_DISPLAY_NAMES
+            Value: !Ref FederationIdpName
+          - Name: FED_IDP_METADATAS
+            Value: !Ref FederationIdpMetadata
+          - Name: AD_DOMAIN
+            Value: !Ref AdDomain
+          - Name: AD_DOMAIN_NAME
+            Value: !Ref AdDomainName
+          - Name: DEPLOY_APPSTREAM_DIRECTORY_CONFIG
+            Value: !Ref AppstreamDirectoryConfig
+          - Name: OU
+            Value: !Ref Ou
+          - Name: DNS_IP_ADDRESSES
+            Value: !Ref DnsIpAddresses
+          - Name: DIRECTORY_ID
+            Value: !Ref DirectoryId
+          - Name: APPSTREAM_SERVICE_ACCOUNT_SECRET_ARN
+            Value: !Ref AppStreamServiceAccountSecretArn
+          - Name: IMAGE_BUILDER_SERVICE_ACCOUNT_SECRET_ARN
+            Value: !Ref ImageBuilderServiceAccountSecretArn
+      ServiceRole: !GetAtt AppDeployerRole.Arn
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+
+  # CloudWatch event rule to notify SNS topic whenever there is a failure in AWS CodePipeline
+  PipelineFailuresRule:
+    Type: AWS::Events::Rule
+    Condition: SubscribeNotificationEmail
+    Properties:
+      Description: !Sub CloudWatch event rule to notify SNS topic in case of AWS CodePipeline failures for [${SolutionName}] and env [${EnvName}]
+      EventPattern:
+        source:
+          - aws.codepipeline
+        detail-type:
+          - CodePipeline Pipeline Execution State Change
+        detail:
+          state:
+            - FAILED
+          pipeline:
+            - !Ref AppPipeline
+      State: ENABLED
+      Targets:
+        - Id: PipelineNotificationsTopic
+          Arn: !Ref PipelineNotificationsTopic
+          InputTransformer:
+            InputPathsMap:
+              pipeline: '$.detail.pipeline'
+            InputTemplate: '{"The Pipeline has failed.":<pipeline>}'
+
+  # CloudWatch event rule to notify SNS topic whenever there is a success in AWS CodePipeline
+  PipelineSuccessRule:
+    Type: AWS::Events::Rule
+    Condition: SubscribeNotificationEmail
+    Properties:
+      Description: !Sub CloudWatch event rule to notify SNS topic in case of AWS CodePipeline successes for [${SolutionName}] and env [${EnvName}]
+      EventPattern:
+        source:
+          - aws.codepipeline
+        detail-type:
+          - CodePipeline Pipeline Execution State Change
+        detail:
+          state:
+            - SUCCEEDED
+          pipeline:
+            - !Ref AppPipeline
+      State: ENABLED
+      Targets:
+        - Id: PipelineNotificationsTopic
+          Arn: !Ref PipelineNotificationsTopic
+          InputTransformer:
+            InputPathsMap:
+              pipeline: '$.detail.pipeline'
+            InputTemplate: '{"The Pipeline has succeeded.":<pipeline>}'
+
+Outputs:
+  AppArtifactBucketName: { Value: !Ref AppArtifactBucket }
+  AppArtifactBucketArn: { Value: !GetAtt AppArtifactBucket.Arn }
+  EncryptionKeyArn: { Value: !GetAtt EncryptionKey.Arn }
+  AppPipelineName: { Value: !Ref AppPipeline }
+  AppPipelineArn: { Value: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}' }
+  PipelineNotificationsTopic:
+    Value: !Ref PipelineNotificationsTopic
+    Condition: SubscribeNotificationEmail

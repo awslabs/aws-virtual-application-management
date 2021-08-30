@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 3,
+      "pattern": "^[A-Za-z][A-Za-z0-9-_]+$"
+    },
+    "instanceType": {
+      "type": "string"
+    },
+    "imageBuilderID": {
+      "type": "string"
+    },
+    "dapEnabled": {
+      "type": "boolean"
+    },
+    "snapshotImage": {
+      "type": "boolean"
+    },
+    "deleteImageBuilder": {
+      "type": "boolean"
+    },
+    "applications": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string",
+          "minLength": 1
+        }
+      ],
+      "minItems": 1
+    }
+  },
+  "required": ["id", "applications"]
+}

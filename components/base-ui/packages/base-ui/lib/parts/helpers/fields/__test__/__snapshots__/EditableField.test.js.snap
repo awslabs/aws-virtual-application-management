@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EditableField renders correctly 1`] = `
+<form
+  className="ui fluid form"
+  onSubmit={[Function]}
+>
+  <div
+    className="ui inverted dimmer"
+    onClick={[Function]}
+  >
+    <div
+      className="content"
+    >
+      <div
+        className="ui inverted text loader"
+      >
+        Processing
+      </div>
+    </div>
+  </div>
+</form>
+`;

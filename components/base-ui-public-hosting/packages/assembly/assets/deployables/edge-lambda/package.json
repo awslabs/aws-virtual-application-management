@@ -1,0 +1,16 @@
+{
+  "name": "@aws-ee/edge-lambda",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Package for Lambda@Edge that intercepts CloudFront response and adds various security headers in the response",
+  "author": "Amazon Web Services",
+  "license": "SEE LICENSE IN LICENSE",
+  "devDependencies": {
+    "@aws-ee/base-cfn-lint-helper": "workspace:^0.0.1",
+    "@aws-ee/base-script-utils": "workspace:*",
+    "@aws-ee/base-serverless-settings-helper": "workspace:*",
+    "@aws-ee/base-assembly-tasks": "workspace:*",
+    "serverless": "^1.63.0",
+    "serverless-deployment-bucket": "^1.4.1"
+  }
+}

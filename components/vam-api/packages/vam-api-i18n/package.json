@@ -1,0 +1,49 @@
+{
+  "name": "@aws-ee/vam-api-i18n",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Internationalization for the vam-rest-api.",
+  "author": "aws-ee",
+  "license": "SEE LICENSE IN LICENSE",
+  "main": "dist/index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.12.10",
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.10",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-import-resolver-node": "^0.3.3",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jest": "^22.21.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "husky": "^3.1.0",
+    "jest": "^24.9.0",
+    "jest-junit": "^10.0.0",
+    "prettier": "^1.19.1",
+    "pretty-quick": "^1.11.1",
+    "regenerator-runtime": "^0.13.7",
+    "source-map-support": "^0.5.16"
+  },
+  "scripts": {
+    "test": "NODE_ENV=test jest --config jest.config.js --coverage --passWithNoTests",
+    "test:watch": "NODE_ENV=test jest --config jest.config.js --watchAll",
+    "babel": "babel lib/ --out-dir dist/ --source-maps --copy-files",
+    "babel:watch": "babel lib/ --out-dir dist/ --source-maps --copy-files --watch",
+    "build": "pnpm run babel",
+    "build:watch": "pnpm run babel:watch",
+    "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
+    "lint:eslint": "eslint --ignore-path .gitignore . ",
+    "lint:prettier": "prettier --check --ignore-path .gitignore '**/*.{js,jsx}' ",
+    "format": "pnpm run format:eslint && pnpm run format:prettier",
+    "format:eslint": "eslint --fix --ignore-path .gitignore . ",
+    "format:prettier": "prettier --write --ignore-path .gitignore '**/*.{js,jsx}' ",
+    "prepare": "pnpm run build"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged --pattern '**/*.*(js|jsx)'"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowDraftsList WorkflowDraftsList should renders correctly 1`] = `
+<div
+  className="mb4"
+>
+  <div
+    className="mb3 flex"
+  >
+    <h3
+      className="ui header color-grey mt1 mb0 flex-auto"
+    >
+      <i
+        aria-hidden="true"
+        className="edit outline icon align-top"
+        onClick={[Function]}
+      />
+      <div
+        className="content left-align"
+      >
+        Workflow Drafts
+      </div>
+    </h3>
+    <div>
+      <button
+        className="ui blue basic button"
+        onClick={[Function]}
+      >
+        Create Draft
+      </button>
+    </div>
+  </div>
+  <div />
+</div>
+`;

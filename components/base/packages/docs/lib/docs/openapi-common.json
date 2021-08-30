@@ -1,0 +1,51 @@
+{
+  "definition": {
+    "openapi": "3.0.3",
+    "info": {
+      "title": "API",
+      "version": "0.0.1"
+    },
+    "components": {
+      "parameters": {
+        "maxResults": {
+          "name": "maxResults",
+          "in": "query",
+          "description": "Maximum number of results to return",
+          "schema": { "type": "number" }
+        },
+        "nextToken": {
+          "name": "nextToken",
+          "in": "query",
+          "description": "Pagination token",
+          "schema": { "type": "string" }
+        }
+      },
+      "responses": {
+        "Success": {
+          "description": "Operation completed successfully"
+        },
+        "AlreadyExists": {
+          "description": "Already exists"
+        },
+        "Forbidden": {
+          "description": "Forbidden"
+        },
+        "Internal": {
+          "description": "Internal error"
+        },
+        "NotFound": {
+          "description": "Not found"
+        },
+        "InvalidInput": {
+          "description": "Input data is invalid"
+        },
+        "Outdated": {
+          "description": "Outdated updated attempt"
+        },
+        "Unauthorized": {
+          "description": "Unauthorized"
+        }
+      }
+    }
+  }
+}

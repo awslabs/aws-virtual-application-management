@@ -1,0 +1,81 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Resources:
+  AppDeployerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: ${self:custom.settings.sourceAccountAppPipelineRole}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        # The deployer role needs permissions to deploy CFN stacks and all actions those stacks are performing
+        # The permissions required by stacks are very fluid and dependent on which resources are declared in those
+        # stacks
+        - arn:aws:iam::aws:policy/PowerUserAccess
+      Policies:
+        - PolicyName: CodeBuildDeployerPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - iam:AttachRolePolicy
+                  - iam:CreateRole
+                  - iam:DeleteRole
+                  - iam:DeleteRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:GetRole
+                  - iam:GetRolePolicy
+                  - iam:PassRole
+                  - iam:PutRolePolicy
+                  - iam:UpdateAssumeRolePolicy
+                  - iam:CreatePolicy
+                  - iam:ListPolicyVersions
+                  - iam:CreatePolicyVersion
+                  - iam:DeletePolicyVersion
+                  - iam:SetDefaultPolicyVersion
+                  - iam:*TagRole*
+                  - iam:GetInstanceProfile
+                  - iam:CreateInstanceProfile
+                  - iam:AddRoleToInstanceProfile
+                  - iam:RemoveRoleFromInstanceProfile
+                Resource: '*'
+                Effect: Allow
+        - PolicyName: DenyAssumeRole # Deny Assume Role privilege to prevent Role permissions self-escalation
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - sts:AssumeRole
+                Resource: '*'
+                Effect: Deny
+        - PolicyName: DenySelfEscalation # deny modifying own restrictions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - iam:AttachRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:DeletePolicyVersion
+                  - iam:DetachRolePolicy
+                Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-${self:service}-AppDeployerRole*'
+                Effect: Deny
+
+Outputs:
+  AppDeployerRoleArn:
+    Value: !GetAtt AppDeployerRole.Arn

@@ -1,0 +1,800 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Parameters:
+  GitHubOAuthToken:
+    Description: OAuth token used by AWS CodePipeline to connect to GitHub
+    Type: String
+    Default: 'to-be-specified'
+    NoEcho: true
+
+Conditions:
+  UseCodeCommit: !Equals ['${self:custom.settings.githubOwner}', '']
+  CreateStagingEnv: !Equals ['${self:custom.settings.createStagingEnv}', true]
+  AddManualApproval: !Equals ['${self:custom.settings.requireManualApproval}', true]
+  RunTestsAgainstTargetEnv: !Equals ['${self:custom.settings.runTestsAgainstTargetEnv}', true]
+  SubscribeNotificationEmail: !Not
+    - !Equals ['${self:custom.settings.emailForNotifications}', '']
+  UseVpc: !Equals ['${self:custom.settings.useVpc}', true]
+
+Resources:
+  # The artifacts S3 bucket to hold pipeline artifacts
+  AppArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.sourceCicdAppArtifactBucketName}
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 365 # Delete old artifacts from S3 after 1 year to save costs
+            Status: Enabled
+
+  DeploymentBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: ${self:custom.settings.deploymentBucketName}
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:*
+            Effect: Allow
+            Resource:
+              - arn:aws:s3:::${self:provider.deploymentBucket}
+              - arn:aws:s3:::${self:provider.deploymentBucket}/*
+            Principal:
+              AWS:
+                - !Sub arn:aws:iam::${AWS::AccountId}:root
+
+  # KMS key to be used for encrypting/decrypting the pipeline artifacts
+  # We cannot use default S3 encryption (SSE-S3) as the default S3 keys are account specific
+  ArtifactBucketKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: Code & Deployment Artifact Key
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: !Ref AWS::StackName
+        Statement:
+          - Sid: Allows adminstration of the key to the account root user
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - kms:Create*
+              - kms:Describe*
+              - kms:Enable*
+              - kms:List*
+              - kms:Put*
+              - kms:Update*
+              - kms:Revoke*
+              - kms:Disable*
+              - kms:Get*
+              - kms:Delete*
+              - kms:TagResource
+              - kms:UntagResource
+              - kms:ScheduleKeyDeletion
+              - kms:CancelKeyDeletion
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: '*'
+
+          - Sid: Allow use of the key in the source account for download & decrypt and CodeBuild in pipeline account to download the artifacts
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt AppPipelineRole.Arn # Allows CodePipeline to encrypt code when uploading
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: '*'
+
+  # The AWS IAM role to be assumed by the AWS CodePipeline.
+  # The role specified in each stage is assumed for that specific stage in the pipeline.
+  # This role is assumed by the CodePipeline service itself.
+  AppPipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+                - codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AssumeRoles
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - sts:AssumeRole
+                Effect: Allow
+                Resource:
+                  - ${self:custom.settings.targetAccountAppDeployerRoleArn}
+
+        - PolicyName: PipelineOperationalPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - codecommit:GetBranch
+                  - codecommit:GetCommit
+                  - codecommit:GetRepository
+                  - codecommit:GitPull
+                Effect: Allow
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.repoName}'
+                  - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:ee-component-*'
+
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: '*'
+
+              - Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:GetObjectVersion
+                  - s3:ListBucket
+                  - s3:GetBucketPolicy
+                  - s3:HeadObject
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:s3:::${AppArtifactBucket}
+                  - !Sub arn:aws:s3:::${AppArtifactBucket}/*
+                  - !Sub arn:aws:s3:::${self:provider.deploymentBucket}
+                  - !Sub arn:aws:s3:::${self:provider.deploymentBucket}/*
+
+              - Action:
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                  - codebuild:CreateReport
+                  - codebuild:UpdateReport
+                  - codebuild:CreateReportGroup
+                  - codebuild:BatchPutTestCases
+                Effect: Allow
+                Resource:
+                  - '*'
+
+              - Action:
+                  - sns:Publish
+                Effect: Allow
+                Resource: !Ref PipelineNotificationsTopic
+
+        - !If
+          - UseVpc
+          - PolicyName: PipelineVpcPermissions
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Action:
+                    - ec2:DescribeSecurityGroups
+                    - ec2:DescribeDhcpOptions
+                    - ec2:DescribeNetworkInterfaces
+                    - ec2:DescribeSubnets
+                    - ec2:DescribeVpcs
+                    - ec2:CreateNetworkInterface
+                    - ec2:DeleteNetworkInterface 
+                  Effect: Allow
+                  Resource:
+                    - '*' # These actions don't support resource level access https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazonec2.html
+                - Action:
+                    - ec2:CreateNetworkInterfacePermission
+                  Effect: Allow
+                  Resource:
+                    - '*'
+                  Condition:
+                    StringEquals:
+                      'ec2:Vpc': !Sub 'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:vpc/${self:custom.settings.codeBuildVpcConfig.vpcId}'
+          - !Ref AWS::NoValue
+
+  AppPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Sub
+        - '${Namespace}-${RepoBranch}'
+        - Namespace: '${self:custom.settings.globalNamespace}'
+          RepoBranch: !Join ['-', !Split ['/', '${self:custom.settings.repoBranch}']]
+      RoleArn: !GetAtt AppPipelineRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref AppArtifactBucket
+        EncryptionKey:
+          Id: !GetAtt ArtifactBucketKey.Arn
+          Type: KMS
+      Stages:
+        # Provides the needed configuration for the next stage in the pipeline (Build) to pull code from
+        # AWS CodeCommit, upload it to the artifacts S3 bucket and encrypt the artifact using the configured KMS key.
+        - !If
+          - UseCodeCommit
+          - Name: Source
+            Actions:
+              - Name: CodeCommitSource
+                RunOrder: 1
+                ActionTypeId:
+                  Category: Source
+                  Owner: AWS
+                  Provider: CodeCommit
+                  Version: '1'
+                Configuration:
+                  RepositoryName: ${self:custom.settings.repoName}
+                  BranchName: ${self:custom.settings.repoBranch}
+                  PollForSourceChanges: 'false'
+                  OutputArtifactFormat: CODEBUILD_CLONE_REF
+                OutputArtifacts:
+                  - Name: SourceCodeCommitArtifact
+          - Name: Source
+            Actions:
+              - Name: GitHubSource
+                ActionTypeId:
+                  Category: Source
+                  Owner: ThirdParty
+                  Provider: GitHub
+                  Version: '1'
+                Configuration:
+                  OAuthToken: !Ref GitHubOAuthToken
+                  Owner: ${self:custom.settings.githubOwner}
+                  Repo: ${self:custom.settings.repoName}
+                  Branch: ${self:custom.settings.repoBranch}
+                  PollForSourceChanges: true
+                OutputArtifacts:
+                  - Name: SourceGitHubArtifact
+
+        - Name: Artifact
+          Actions:
+            - Name: Submodules
+              RunOrder: 1
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref TargetEnvSubmodulesProject
+              InputArtifacts:
+                - !If
+                  - UseCodeCommit
+                  - Name: SourceCodeCommitArtifact
+                  - Name: SourceGitHubArtifact
+              OutputArtifacts:
+                - Name: SourceSubmoduleArtifact
+
+            - Name: Assemble
+              RunOrder: 2
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref TargetEnvAssembleProject
+              InputArtifacts:
+                - Name: SourceSubmoduleArtifact
+              OutputArtifacts:
+                - Name: SourceArtifact
+
+        - Name: Lint-And-Unit-Test
+          Actions:
+            - Name: Lint
+              RunOrder: 1
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref TargetEnvLintProject
+              InputArtifacts:
+                - Name: SourceArtifact
+
+            - Name: Unit-Test
+              RunOrder: 1
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref TargetEnvTestsProject
+              InputArtifacts:
+                - Name: SourceArtifact
+
+        # Add stage to deploy to staging env if CreateStagingEnv condition is true
+        - !If
+          - CreateStagingEnv
+          - Name: Deploy-To-Staging
+            Actions:
+              - Name: Deploy-To-Staging-Env
+                RunOrder: 1
+                ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: '1'
+                Configuration:
+                  ProjectName: !Ref StgEnvDeployProject
+                InputArtifacts:
+                  - Name: SourceArtifact
+          - !Ref AWS::NoValue
+        # Add stage to run integration tests against the staging env if CreateStagingEnv condition is true
+        - !If
+          - CreateStagingEnv
+          - Name: Test-Staging-Env
+            Actions:
+              - Name: Test-Staging-Env
+                RunOrder: 1
+                ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: '1'
+                Configuration:
+                  ProjectName: !Ref TestStgEnvProject
+                InputArtifacts:
+                  - Name: SourceArtifact
+          - !Ref AWS::NoValue
+        # Add manual approval stage only if AddManualApproval condition is true
+        - !If
+          - AddManualApproval
+          - Name: Push-To-Target-Env
+            Actions:
+              - Name: Deploy-To-Target-Env
+                RunOrder: 1
+                ActionTypeId:
+                  Category: Approval
+                  Owner: AWS
+                  Provider: Manual
+                  Version: '1'
+                Configuration:
+                  NotificationArn: !Ref PipelineNotificationsTopic
+          - !Ref AWS::NoValue
+
+        # Deploy to target environment after manual approval
+        - Name: Deploy-To-Target
+          Actions:
+            - Name: Deploy
+              RunOrder: 1
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref TargetEnvDeployProject
+              InputArtifacts:
+                - Name: SourceArtifact
+
+        # Add a stage for integration testing against target env if the RunTestsAgainstTargetEnv condition is true
+        - !If
+          - RunTestsAgainstTargetEnv
+          - Name: Test-Target-Env
+            Actions:
+              - Name: Test-Target-Env
+                RunOrder: 1
+                ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: '1'
+                Configuration:
+                  ProjectName: !Ref TestTargetEnvProject
+                InputArtifacts:
+                  - Name: SourceArtifact
+          - !Ref AWS::NoValue
+
+  TargetEnvSubmodulesProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+        ArtifactIdentifier: SourceSubmodulesArtifact
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: |
+          version: 0.2
+
+          env:
+            git-credential-helper: yes
+
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 14
+
+            build:
+              commands:
+                - echo "Initializing submodules"
+                - git submodule update --init --recursive --jobs=$((`nproc` / 2))
+
+          artifacts:
+            files:
+              - '**/*'
+            name: SourceSubmodulesArtifact
+            discard-paths: no
+
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/standard:5.0
+        EnvironmentVariables:
+          - Name: ENV_NAME
+            Value: ${self:custom.settings.envName}
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:custom.settings.deploymentBucketName}
+      ServiceRole: !GetAtt AppPipelineRole.Arn
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+      VpcConfig:
+        !If 
+          - UseVpc 
+          - 
+            VpcId: ${self:custom.settings.codeBuildVpcConfig.vpcId}
+            Subnets: ${self:custom.settings.codeBuildVpcConfig.subnets}
+            SecurityGroupIds: ${self:custom.settings.codeBuildVpcConfig.securityGroupIds}
+          - !Ref AWS::NoValue
+
+  TargetEnvAssembleProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+        ArtifactIdentifier: SourceArtifact
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: components/base-cicd/buildspec/buildspec-assemble.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/standard:5.0
+        EnvironmentVariables:
+          - Name: ENV_NAME
+            Value: ${self:custom.settings.envName}
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:custom.settings.deploymentBucketName}
+      ServiceRole: !GetAtt AppPipelineRole.Arn
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+      VpcConfig:
+        !If 
+          - UseVpc 
+          - 
+            VpcId: ${self:custom.settings.codeBuildVpcConfig.vpcId}
+            Subnets: ${self:custom.settings.codeBuildVpcConfig.subnets}
+            SecurityGroupIds: ${self:custom.settings.codeBuildVpcConfig.securityGroupIds}
+          - !Ref AWS::NoValue
+
+  TargetEnvTestsProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+        ArtifactIdentifier: SourceArtifact
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: components/base-cicd/buildspec/buildspec-tests.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/standard:5.0
+        EnvironmentVariables:
+          - Name: ENV_NAME
+            Value: ${self:custom.settings.envName}
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:custom.settings.deploymentBucketName}
+      ServiceRole: !GetAtt AppPipelineRole.Arn
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+      VpcConfig:
+        !If 
+          - UseVpc 
+          - 
+            VpcId: ${self:custom.settings.codeBuildVpcConfig.vpcId}
+            Subnets: ${self:custom.settings.codeBuildVpcConfig.subnets}
+            SecurityGroupIds: ${self:custom.settings.codeBuildVpcConfig.securityGroupIds}
+          - !Ref AWS::NoValue
+
+  TargetEnvLintProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+        ArtifactIdentifier: SourceArtifact
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: components/base-cicd/buildspec/buildspec-lint.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/standard:5.0
+        EnvironmentVariables:
+          - Name: ENV_NAME
+            Value: ${self:custom.settings.envName}
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:custom.settings.deploymentBucketName}
+      ServiceRole: !GetAtt AppPipelineRole.Arn
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+      VpcConfig:
+        !If 
+          - UseVpc 
+          - 
+            VpcId: ${self:custom.settings.codeBuildVpcConfig.vpcId}
+            Subnets: ${self:custom.settings.codeBuildVpcConfig.subnets}
+            SecurityGroupIds: ${self:custom.settings.codeBuildVpcConfig.securityGroupIds}
+          - !Ref AWS::NoValue
+
+  # A CodeBuild project to deploy solution to the staging environment before deploying it to target env
+  # Create this CodeBuild project only if the condition CreateStagingEnv is set to true
+  StgEnvDeployProject:
+    Condition: CreateStagingEnv
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: components/base-cicd/buildspec/buildspec-deploy.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/standard:5.0
+        EnvironmentVariables:
+          - Name: ENV_NAME
+            Value: ${self:custom.settings.stgEnvName}
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:custom.settings.deploymentBucketName}
+          - Name: TARGET_ACCOUNT_APP_DEPLOYER_ROLE_ARN
+            Value: ${self:custom.settings.targetAccountAppDeployerRoleArn}
+      ServiceRole: !GetAtt AppPipelineRole.Arn
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+      VpcConfig:
+        !If 
+          - UseVpc 
+          - 
+            VpcId: ${self:custom.settings.codeBuildVpcConfig.vpcId}
+            Subnets: ${self:custom.settings.codeBuildVpcConfig.subnets}
+            SecurityGroupIds: ${self:custom.settings.codeBuildVpcConfig.securityGroupIds}
+          - !Ref AWS::NoValue
+
+  # A CodeBuild project to test staging environment solution
+  TestStgEnvProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: components/base-cicd/buildspec/buildspec-int-tests.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/standard:5.0
+        EnvironmentVariables:
+          - Name: ENV_NAME
+            Value: ${self:custom.settings.stgEnvName}
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:custom.settings.deploymentBucketName}
+          - Name: TARGET_ACCOUNT_APP_DEPLOYER_ROLE_ARN
+            Value: ${self:custom.settings.targetAccountAppDeployerRoleArn}
+      ServiceRole: !GetAtt AppPipelineRole.Arn
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+      VpcConfig:
+        !If 
+          - UseVpc 
+          - 
+            VpcId: ${self:custom.settings.codeBuildVpcConfig.vpcId}
+            Subnets: ${self:custom.settings.codeBuildVpcConfig.subnets}
+            SecurityGroupIds: ${self:custom.settings.codeBuildVpcConfig.securityGroupIds}
+          - !Ref AWS::NoValue
+
+  # A CodeBuild project to test target environment solution
+  TestTargetEnvProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: components/base-cicd/buildspec/buildspec-int-tests.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/standard:5.0
+        EnvironmentVariables:
+          - Name: ENV_NAME
+            Value: ${self:custom.settings.envName}
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:custom.settings.deploymentBucketName}
+          - Name: TARGET_ACCOUNT_APP_DEPLOYER_ROLE_ARN
+            Value: ${self:custom.settings.targetAccountAppDeployerRoleArn}
+      ServiceRole: !GetAtt AppPipelineRole.Arn
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+      VpcConfig:
+        !If 
+          - UseVpc 
+          - 
+            VpcId: ${self:custom.settings.codeBuildVpcConfig.vpcId}
+            Subnets: ${self:custom.settings.codeBuildVpcConfig.subnets}
+            SecurityGroupIds: ${self:custom.settings.codeBuildVpcConfig.securityGroupIds}
+          - !Ref AWS::NoValue
+
+
+  TargetEnvDeployProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+        ArtifactIdentifier: SourceArtifact
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: components/base-cicd/buildspec/buildspec-deploy.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/standard:5.0
+        EnvironmentVariables:
+          - Name: ENV_NAME
+            Value: ${self:custom.settings.envName}
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:custom.settings.deploymentBucketName}
+          - Name: TARGET_ACCOUNT_APP_DEPLOYER_ROLE_ARN
+            Value: ${self:custom.settings.targetAccountAppDeployerRoleArn}
+      ServiceRole: !GetAtt AppPipelineRole.Arn
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+      VpcConfig:
+        !If 
+          - UseVpc 
+          - 
+            VpcId: ${self:custom.settings.codeBuildVpcConfig.vpcId}
+            Subnets: ${self:custom.settings.codeBuildVpcConfig.subnets}
+            SecurityGroupIds: ${self:custom.settings.codeBuildVpcConfig.securityGroupIds}
+          - !Ref AWS::NoValue
+
+  # IAM role to be assumed by CloudWatch events service to trigger the CodePipeline
+  CodePipelineTriggerRuleRole:
+    Condition: UseCodeCommit
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: PipelineOperationalPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: codepipeline:StartPipelineExecution
+                Resource: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}'
+
+  CodeCommitTriggerPipelineEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: ${self:custom.settings.namespace}-codecommit-trigger-codepipeline
+      Description: !Sub
+        - 'Amazon EventBridge event rule to trigger the CodePipeline for [${self:custom.settings.solutionName}] and env [${self:custom.settings.envName}]: ${PipelineName}'
+        - PipelineName: !Ref AppPipeline
+      EventPattern:
+        source: [aws.codecommit]
+        detail-type: [CodeCommit Repository State Change]
+        resources:
+          - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.repoName}'
+        detail:
+          event: [referenceCreated, referenceUpdated]
+          referenceType: [branch]
+          referenceName:
+            - ${self:custom.settings.repoBranch}
+      State: ENABLED
+      Targets:
+        - Id: BuildPipeline
+          Arn: !Sub 'arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}'
+          RoleArn: !GetAtt CodePipelineTriggerRuleRole.Arn
+
+  # SNS Topic to receive various notifications from the pipeline
+  PipelineNotificationsTopic:
+    Type: AWS::SNS::Topic
+    Properties: !If
+      - SubscribeNotificationEmail
+      - Subscription:
+          - Endpoint: ${self:custom.settings.emailForNotifications}
+            Protocol: email
+      - !Ref AWS::NoValue
+
+  # SNS Topic Policy to allow CloudWatch Event Service to send notifications to the topic
+  PipelineNotificationsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: !Ref AWS::StackName
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: events.amazonaws.com
+          Resource:
+            - !Ref PipelineNotificationsTopic
+          Action:
+            - sns:Publish
+      Topics:
+        - !Ref PipelineNotificationsTopic
+
+Outputs:
+  AppPipelineRoleArn:
+    Description: The ARN of the IAM role used by the pipeline to deploy the solution to the target account
+    Value: !GetAtt AppPipelineRole.Arn

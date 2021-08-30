@@ -1,0 +1,231 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Resources:
+  # =============================================================================================
+  # S3 Buckets
+  # =============================================================================================
+
+  # S3 Bucket for S3 access logs and CloudTrail
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.loggingBucketName}
+      AccessControl: LogDeliveryWrite
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      # Note that we don't enable S3 access logging on the logging bucket itself, as this would
+      # create an infinite loop of logs. For further infoformation, see this support article:
+      # https://aws.amazon.com/premiumsupport/knowledge-center/s3-server-access-logs-same-bucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: CloudTrail Expiration Rule
+            Prefix: ${self:custom.settings.cloudTrailLogsBucketPrefix}
+            Status: Enabled
+            ExpirationInDays: 2
+            NoncurrentVersionExpirationInDays: 2
+
+  LoggingBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LoggingBucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt LoggingBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt LoggingBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+          - Sid: AWS CloudTrail Acl Check
+            Effect: 'Allow'
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: !GetAtt LoggingBucket.Arn
+          - Sid: AWS CloudTrail Write
+            Effect: 'Allow'
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: s3:PutObject
+            Resource: arn:aws:s3:::${self:custom.settings.loggingBucketName}/${self:custom.settings.cloudTrailLogsBucketPrefix}/*
+            Condition:
+              StringEquals:
+                s3:x-amz-acl: 'bucket-owner-full-control'
+          - Sid: Deny object uploads not using default encryption settings
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Join ['/', [!GetAtt LoggingBucket.Arn, '*']]
+            Condition:
+              # The Null-condition allows uploads without encryption information in the request
+              # (i.e., requests with default S3 bucket encryption) and the
+              # StringNotEquals-condition denies uploads with invalid encryption information.
+              # Note that using StringNotEqualsIfExists doesn’t work for uploads without encryption information.
+              # The condition evaluates to true and denies the upload because of the Deny-effect.
+              'Null':
+                s3:x-amz-server-side-encryption: false
+              StringNotEqualsIfExists:
+                s3:x-amz-server-side-encryption:
+                  - 'AES256'
+                  - 'aws:kms'
+
+  # S3 Bucket for the solution static website
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.websiteBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: ${self:custom.settings.websiteBucketName}-bucket/
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+          - Sid: Deny object uploads not using default encryption settings
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+            Condition:
+              # The Null-condition allows uploads without encryption information in the request
+              # (i.e., requests with default S3 bucket encryption) and the
+              # StringNotEquals-condition denies uploads with invalid encryption information.
+              # Note that using StringNotEqualsIfExists doesn’t work for uploads without encryption information.
+              # The condition evaluates to true and denies the upload because of the Deny-effect.
+              'Null':
+                s3:x-amz-server-side-encryption: false
+              StringNotEqualsIfExists:
+                s3:x-amz-server-side-encryption: 'AES256'
+
+  # S3 Bucket for the documentation website
+  DocsSiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.docsSiteBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: ${self:custom.settings.docsSiteBucketName}-bucket/
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+
+  DocsSiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DocsSiteBucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt DocsSiteBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt DocsSiteBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+          - Sid: Deny object uploads not using default encryption settings
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Join ['/', [!GetAtt DocsSiteBucket.Arn, '*']]
+            Condition:
+              # The Null-condition allows uploads without encryption information in the request
+              # (i.e., requests with default S3 bucket encryption) and the
+              # StringNotEquals-condition denies uploads with invalid encryption information.
+              # Note that using StringNotEqualsIfExists doesn’t work for uploads without encryption information.
+              # The condition evaluates to true and denies the upload because of the Deny-effect.
+              'Null':
+                s3:x-amz-server-side-encryption: false
+              StringNotEqualsIfExists:
+                s3:x-amz-server-side-encryption: 'AES256'
+
+
+Outputs:
+  WebsiteBucket:
+    Description: The bucket name of the static website
+    Value: !Ref WebsiteBucket
+
+  DocsSiteBucket:
+    Description: The bucket name of the documentation website
+    Value: !Ref DocsSiteBucket
+
+  LoggingBucket:
+    Description: The bucket name for S3 access logging and CloudTrail
+    Value: !Ref LoggingBucket

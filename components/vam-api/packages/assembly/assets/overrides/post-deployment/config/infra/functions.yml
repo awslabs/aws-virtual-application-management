@@ -1,0 +1,26 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+postDeployment:
+  environment:
+    APP_APPSTREAM_USAGE_REPORTS_GLUE_DB_NAME: ${self:custom.settings.appstreamUsageReportsGlueDbName}
+    APP_APPSTREAM_USAGE_APPLICATIONS_CSV_CLASSIFIER: ${self:custom.settings.appstreamUsageApplicationsCsvClassifier}
+    APP_APPSTREAM_USAGE_SESSIONS_CRAWLER_NAME: ${self:custom.settings.appstreamUsageSessionsCrawlerName}
+    APP_APPSTREAM_USAGE_APPLICATIONS_CRAWLER_NAME: ${self:custom.settings.appstreamUsageApplicationsCrawlerName}
+    APP_APPSTREAM_USAGE_REPORT_GLUE_ROLE: ${self:custom.settings.appstreamUsageReportGlueRole}
+    APP_APPSTREAM_GLUE_S3_CRAWL_POLICY_NAME: ${self:custom.settings.appstreamGlueS3CrawlPolicyName}
+  vpc:
+    subnetIds: !Split [",", "${cf:${self:custom.settings.imageBuilderStackName}.ActiveDirectoryVPCPrivateSubnets}"]
+    securityGroupIds:
+      - ${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderVPCSecurityGroup}
+      

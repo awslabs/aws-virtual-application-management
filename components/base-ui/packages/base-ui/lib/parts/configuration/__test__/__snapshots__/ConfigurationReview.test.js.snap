@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConfigurationEditor renders correctly 1`] = `
+<div
+  className="mt3 clearfix"
+>
+  <button
+    className="ui icon right floated left labeled button"
+    onClick={[Function]}
+  >
+    Previous
+    <i
+      aria-hidden="true"
+      className="left arrow icon"
+      onClick={[Function]}
+    />
+  </button>
+  <button
+    className="ui left floated button"
+    onClick={[Function]}
+  >
+    Cancel
+  </button>
+</div>
+`;

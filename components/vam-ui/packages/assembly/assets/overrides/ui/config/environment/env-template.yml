@@ -1,0 +1,30 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+REACT_APP_AD_JOINED: ${self:custom.settings.adJoined}
+
+# specify defaults here -- they can be overridden, but also relied on as defaults.
+REACT_APP_VERSION: Not for any critical, production, or otherwise important code, data, or other Content.
+
+REACT_APP_VERSION_DISCLAIMER_HEADER: Not for any critical, production, or otherwise important code, data, or other Content.
+
+REACT_APP_VERSION_DISCLAIMER_CONTENT: >-
+  This sample code is provided to you as AWS Content under the AWS Customer Agreement,
+  or the relevant written agreement between you and AWS (whichever applies). You should not
+  use this sample code in your production accounts, or on production, or other critical data.
+  You are responsible for testing, securing, and optimizing the sample code as appropriate for
+  production grade use based on your specific quality control practices and standards. AWS may
+  reuse these assets in future engagements, but we will not share your confidential data nor
+  your intellectual property with other customers. Prototyping engagements are offered on a
+  no-fee basis. However, you may incur AWS charges for creating or using AWS chargeable resources,
+  such as running Amazon EC2 instances or using Amazon S3 storage.

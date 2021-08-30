@@ -1,0 +1,83 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowTemplateCard WorkflowTemplateCard should renders correctly 1`] = `
+Array [
+  <div
+    className="ui top left attached label"
+    onClick={[Function]}
+  >
+    Template
+  </div>,
+  <div
+    className="flex mb1"
+  >
+    <h3
+      className="ui grey header mt0 flex-auto ellipsis"
+    >
+      test-title
+      <div
+        className="sub header fs-9"
+      >
+        created 
+        <time
+          dateTime="1966-02-01T00:00:00.000Z"
+          title="Feb 1, 1966 UTC"
+        >
+          55 years ago
+        </time>
+         
+        
+      </div>
+    </h3>
+    <div
+      className="ml1"
+    >
+      <span
+        className="ellipsis pr1 fs-9 breakout color-grey"
+      >
+        test-id
+      </span>
+       
+      <span
+        className="bold color-grey pr2"
+      >
+        v
+        1
+      </span>
+    </div>
+  </div>,
+  <div
+    className="mt0"
+  >
+    <div
+      className="ui pointing secondary menu"
+    >
+      <a
+        className="active item"
+        onClick={[Function]}
+      >
+        Description
+      </a>
+      <a
+        className="item"
+        onClick={[Function]}
+      >
+        Steps
+      </a>
+      <a
+        className="item"
+        onClick={[Function]}
+      >
+        Properties
+      </a>
+    </div>
+    <div
+      className="ui basic segment active tab"
+    >
+      <div
+        className="animated"
+      />
+    </div>
+  </div>,
+]
+`;

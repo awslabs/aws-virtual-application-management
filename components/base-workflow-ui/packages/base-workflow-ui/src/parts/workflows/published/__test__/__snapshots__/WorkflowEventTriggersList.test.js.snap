@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowEventTriggersList WorkflowEventTriggersList should renders correctly 1`] = `
+Array [
+  <div
+    className="clearfix mb2"
+  >
+    <button
+      className="ui blue basic right floated button"
+      onClick={[Function]}
+    >
+      Create Event Trigger
+    </button>
+  </div>,
+  <div
+    className="ui placeholder segment"
+  >
+    <div
+      className="ui icon header color-grey"
+    >
+      <i
+        aria-hidden="true"
+        className="chain icon"
+        onClick={[Function]}
+      />
+      No event triggers
+      <div
+        className="sub header"
+      >
+        Event triggers allow you to configure the workflow to be triggered based on different criteria, try it out!
+      </div>
+    </div>
+  </div>,
+]
+`;

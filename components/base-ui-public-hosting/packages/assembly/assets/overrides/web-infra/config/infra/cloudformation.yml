@@ -1,0 +1,253 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Conditions:
+  IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
+  UseCustomDomain: !Not
+    - !Equals ['${self:custom.settings.hostedZoneId}', '']
+  UseCloudFrontWaf: !Equals ['${self:custom.settings.useCloudFrontWaf}', true]
+
+Resources:
+  # =============================================================================================
+  # Bucket policies additions
+  # =============================================================================================
+  WebsiteBucketPolicy:
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Sid: Allow CloudFront Origin Access Identity
+            Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Principal:
+              AWS: !Join ['', ['arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ', !Ref 'CloudFrontOAI']]
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref 'WebsiteBucket', '/*']]
+  DocsSiteBucketPolicy:
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Sid: Allow CloudFront Origin Access Identity
+            Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Principal:
+              AWS: !Join ['', ['arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ', !Ref 'CloudFrontOAI']]
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref 'DocsSiteBucket', '/*']]
+
+  # =============================================================================================
+  # Custom Domains
+  # =============================================================================================
+
+  CertificateRaw:
+    # Expects DomainName, Region [optional], Tags [optional]
+    # Request/Delete ACM certificate (on delete waits for the certificate to not be in use)
+    # Does not trigger/manage any domain name validation
+    # Default property is the CertificateArn
+    Type: Custom::CertificateRaw
+    Condition: UseCustomDomain
+    Properties:
+      ServiceToken: ${self:custom.settings.acmCertificateCustomResourceLambdaArn}
+      DomainName: ${self:custom.settings.domainName}
+      Region: us-east-1
+      Tags: ${self:provider.stackTags}
+
+  CertificateDomainNameValidation:
+    # Expects CertificateArn, DomainName, HostedZoneId
+    # Manages lifecycle of domain validation records for a domain; fetches validation info from given CertificateArn
+    # Default property is the domain name followed by certificate arn, followed by hosted zone id, comma separated
+    Type: Custom::DnsValidation
+    Condition: UseCustomDomain
+    Properties:
+      ServiceToken: ${self:custom.settings.acmCertificateCustomResourceLambdaArn}
+      CertificateArn: !Ref CertificateRaw
+      DomainName: ${self:custom.settings.domainName}
+      HostedZoneId: ${self:custom.settings.hostedZoneId}
+
+  Certificate:
+    # Expects CertificateArn, Validations
+    # On create/update waits for certificate being issued, no-op on delete.
+    # Default property is Certificate Arn
+    Type: Custom::Certificate
+    Condition: UseCustomDomain
+    Properties:
+      ServiceToken: ${self:custom.settings.acmCertificateCustomResourceLambdaArn}
+      CertificateArn: !Ref CertificateRaw
+      Validations:
+        - !Ref CertificateDomainNameValidation
+
+  DomainRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: UseCustomDomain
+    Properties:
+      HostedZoneId: ${self:custom.settings.hostedZoneId}
+      RecordSets:
+        - Name: ${self:custom.settings.domainName}
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2 # This is a required hard-coded string that is to be used for AWS
+            DNSName: !GetAtt WebsiteCloudFront.DomainName
+
+  # =============================================================================================
+  # WAF for CloudFront
+  # =============================================================================================
+  WebsiteWebAcl:
+    Condition: UseCloudFrontWaf
+    Type: AWS::WAF::WebACL
+    Properties:
+      Name: 'WebACL to allow IP addresses (${self:custom.settings.namespace})'
+      DefaultAction:
+        Type: 'BLOCK'
+      # Using self:custom.settings.namespace leads to "specified name is not permitted" error
+      MetricName: '${self:custom.settings.wafNamespace}WebsiteWebACL'
+      Rules:
+        - Action:
+            Type: 'ALLOW'
+          Priority: 1
+          RuleId: !Ref WebsiteIPSetRule
+
+  WebsiteIPAllowList:
+    Condition: UseCloudFrontWaf
+    Type: AWS::WAF::IPSet
+    Properties:
+      Name: 'IPSet for allowed IP addresses (${self:custom.settings.namespace})'
+      IPSetDescriptors: []
+
+  WebsiteIPSetRule:
+    Condition: UseCloudFrontWaf
+    Type: AWS::WAF::Rule
+    Properties:
+      # Using self:custom.settings.namespace leads to "specified name is not permitted" error
+      Name: '${self:custom.settings.wafNamespace}WebsiteIPSetRule'
+      MetricName: '${self:custom.settings.wafNamespace}WebsiteIPSetRule'
+      Predicates:
+        - DataId: !Ref WebsiteIPAllowList
+          Negated: false
+          Type: 'IPMatch'
+
+  # =============================================================================================
+  # CloudFront
+  # =============================================================================================
+  WebsiteCloudFront:
+    Type: AWS::CloudFront::Distribution
+    DependsOn:
+      - WebsiteBucket
+      - DocsSiteBucket
+    Properties:
+      DistributionConfig:
+        WebACLId: !If
+          - UseCloudFrontWaf
+          - !Ref WebsiteWebAcl
+          - !Ref AWS::NoValue
+        Comment: 'CloudFront Distribution pointing to ${self:custom.settings.websiteBucketName}'
+        Origins:
+          - DomainName: !GetAtt WebsiteBucket.RegionalDomainName
+            Id: WebsiteBucketOrigin
+            S3OriginConfig:
+              OriginAccessIdentity: !Join ['', ['origin-access-identity/cloudfront/', !Ref 'CloudFrontOAI']]
+          - DomainName: !GetAtt DocsSiteBucket.RegionalDomainName
+            Id: DocsSiteBucketOrigin
+            S3OriginConfig:
+              OriginAccessIdentity: !Join ['', ['origin-access-identity/cloudfront/', !Ref 'CloudFrontOAI']]
+        Enabled: true
+        HttpVersion: 'http2'
+        Aliases: !If
+          - UseCustomDomain
+          - ['${self:custom.settings.domainName}']
+          - !Ref AWS::NoValue
+        ViewerCertificate: !If
+          - UseCustomDomain
+          - AcmCertificateArn: !Ref Certificate
+            MinimumProtocolVersion: TLSv1.2_2018
+            SslSupportMethod: sni-only
+          - !Ref AWS::NoValue
+        DefaultRootObject: index.html
+        CustomErrorResponses:
+          - ErrorCachingMinTTL: 300
+            ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCachingMinTTL: 300
+            ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        DefaultCacheBehavior:
+          # By default, route to WebsiteBucket
+          DefaultTTL: 0
+          MinTTL: 0
+          MaxTTL: 0
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: true
+          TargetOriginId: WebsiteBucketOrigin
+          ForwardedValues:
+            QueryString: true
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        CacheBehaviors:
+          # Route to DocsSiteBucket on docs/* requests only
+          - PathPattern: 'docs/*'
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            Compress: true
+            TargetOriginId: DocsSiteBucketOrigin
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: none
+            ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_100
+        Logging:
+          Bucket: ${self:custom.settings.loggingBucketName}.s3.amazonaws.com
+          Prefix: cloudfront/
+
+  CloudFrontOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: 'OAI for ${self:custom.settings.websiteBucketName} and ${self:custom.settings.docsSiteBucketName}'
+
+Outputs:
+  WebsiteUrl:
+    Description: URL for the main website hosted on S3 via CloudFront
+    Value: !If
+      - UseCustomDomain
+      - https://${self:custom.settings.domainName}
+      - !Join ['', ['https://', !GetAtt WebsiteCloudFront.DomainName]]
+
+  DocsSiteUrl:
+    Description: URL for the documentation website hosted on S3 via CloudFront
+    Value: !If
+      - UseCustomDomain
+      - https://${self:custom.settings.domainName}/docs
+      - !Join ['', ['https://', !GetAtt WebsiteCloudFront.DomainName, '/docs']]
+
+  CloudFrontId:
+    Description: Id of the CloudFront distribution
+    Value: !Ref WebsiteCloudFront
+
+  WebsiteAllowListId:
+    Description: ID of the WAF allow list
+    Value: !If
+      - UseCloudFrontWaf
+      - !Ref WebsiteIPAllowList
+      - ''

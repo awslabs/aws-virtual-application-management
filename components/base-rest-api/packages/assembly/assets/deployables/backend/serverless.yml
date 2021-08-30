@@ -1,0 +1,118 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# For full config options, see docs.serverless.com
+# Note that most settings in here come from config/settings/*.yaml
+service: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend
+
+package:
+  individually: true
+  excludeDevDependencies: true
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ${self:custom.settings.awsRegion}
+  profile: ${self:custom.settings.awsProfile}
+  stackName: ${self:custom.settings.envName}-${self:service}
+  deploymentBucket:
+    name: ${self:custom.settings.deploymentBucketName}
+    serverSideEncryption: AES256
+  stackTags: ${self:custom.tags}
+  versionFunctions: false # see https://medium.com/@mayconbordin/lessons-learned-building-a-large-serverless-project-on-aws-74d40f5b0b46
+  # All references beginning with ${self:*, ${opt:*, ${file:*, ${deep:*, and ${cf:* will be resolved by Serverless
+  # All other ${* references will be resolved by CloudFormation
+  # See https://forum.serverless.com/t/getting-handle-accountid-in-serverless-config/946/11 and
+  # See https://github.com/serverless/serverless/issues/5011
+  variableSyntax: '\$\{((((self|opt|deep|cf):)|file)((?!\$\{).)+?)}'
+  environment:
+    APP_ENV_TYPE: ${self:custom.settings.envType}
+    APP_ENV_NAME: ${self:custom.settings.envName}
+    APP_AWS_REGION: ${self:custom.settings.awsRegion}
+    APP_SOLUTION_NAME: ${self:custom.settings.solutionName}
+    APP_DB_PREFIX: ${self:custom.settings.dbPrefix}
+    APP_IS_VERBOSE: ${self:custom.settings.isVerbose}
+    APP_NAMESPACE: ${self:custom.settings.namespace}
+    APP_GLOBAL_NAMESPACE: ${self:custom.settings.globalNamespace}
+
+custom:
+  settings: ${file(./config/settings/.settings.js):merged}
+  tags:
+    Name: ${self:custom.settings.envName}-${self:service}
+  deploymentBucket:
+    policy: ${self:custom.settings.deploymentBucketPolicy}
+    blockPublicAccess: true
+  serverless-offline:
+    port: 4000
+  webpack:
+    webpackConfig: ./config/build/webpack.config.js
+    packager: pnpm
+    keepOutputDirectory: true
+    excludeFiles: src/**/*.test.js
+  backendTools:
+    environmentOverrides: # when running locally
+      provider:
+        APP_AWS_REGION: ${self:custom.settings.awsRegion} # this is needed for local development
+        APP_AWS_PROFILE: ${self:custom.settings.awsProfile} # this is needed for local development
+        APP_USE_AWS_PROFILE: ${self:custom.settings.useAwsProfile}
+        IS_OFFLINE: true
+        APP_LOCAL_ROLE_AUTO_ADJUST_TRUST: ${self:custom.settings.localRoleAutoAdjustTrust} # Auto adjust trust policy of the lambda execution role to allow assumeRole from local machine
+      lambdas:
+        authenticationLayerHandler:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('AuthenticationLayerHandlerRoleArn')} # When running locally, run under this role
+        apiHandler:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('ApiHandlerRoleArn')} # When running locally, run under this role
+            APP_API_URL: ${cfnOutput('ServiceEndpoint')}
+  fragments:
+    - condition: ${and('${self:custom.settings.vpcId}','${self:custom.settings.usePrivateApi}')}
+      description: Enabling private deployment
+      fragment:
+        provider:
+          endpointType: PRIVATE
+          vpcEndpointIds:
+            - ${self:custom.settings.vpcApiGatewayEndpoint}
+          vpc:
+            securityGroupIds:
+              - ${self:custom.settings.vpcDefaultSecurityGroupId}
+            subnetIds: !Split [",", "${self:custom.settings.privateSubnetIds}"]
+          resourcePolicy:
+            - Sid: allow_execute
+              Effect: Allow
+              Action: execute-api:Invoke
+              Resource: 'execute-api:/*'
+              Principal: '*'
+            - Sid: only_from_vpce
+              Effect: Deny
+              Action: execute-api:Invoke
+              Resource: 'execute-api:/*'
+              Principal: '*'
+              Condition:
+                StringNotEquals:
+                  aws:SourceVpce: ${self:custom.settings.vpcApiGatewayEndpoint}
+
+
+functions: ${file(./config/infra/functions.yml)}
+
+resources:
+  - Description: "${self:custom.settings.solutionName}: ${self:custom.settings.version}  ${self:custom.settings.envName}: Backend"
+  - ${file(./config/infra/cloudformation.yml)}
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+  - serverless-deployment-bucket
+  - '@aws-ee/base-serverless-config-helper'
+  - '@aws-ee/base-serverless-backend-tools'
+  - '@aws-ee/base-cfn-lint-helper'

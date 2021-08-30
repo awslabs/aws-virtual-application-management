@@ -1,0 +1,24 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# Use custom domain names
+#customDomainMode: none                       # no custom domains are to be used (default if not specified)
+customDomainMode: parent-zone                # use the parent zone for all recordsets (default if not specified)
+#customDomainMode: stage-zone-no-delegate     # create a hosted zone for this stage, do not attempt to delegate from parent
+#customDomainMode: stage-zone-delegate        # create a hosted zone for this stage, do set up delegation from parent
+
+# parent hosted zone to use; Must be present, properly DNS delegated and in the same aws account where deployment is taking place.
+# If custom domain is to be used, but no such parent hosted zone is available, set 'customDomainMode' to 'stage-zone-no-delegate' and 'parentHostedZoneId' to empty string.
+parentHostedZoneId: Z0073776213XIOQOSI631     # existing delegation for helloworld.envision.wwps.aws.dev
+# If custom domain is to be used, fill this in; otherwise leave empty string.
+parentDomainName: '${self:custom.settings.solutionName}.envision.wwps.aws.dev' # must match or be a subdomain of above 'parentHostedZoneId' - if given.

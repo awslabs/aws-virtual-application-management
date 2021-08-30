@@ -1,0 +1,25 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# ================================= LTI ============================================
+
+# The name of the IAM role created for the Lambda API handler
+ltiHandlerRoleName: ${self:custom.settings.namespace}-LtiHandler
+
+# The IAM role arn for the Lambda API handler, we need to define it in the settings because it is being passed to lambdas as an env var
+ltiHandlerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.ltiHandlerRoleName}'
+
+ltiHandlerTimeout: 6
+
+ltiConsumerSecretPrimary: ${cf:${self:custom.settings.imageBuilderStackName}.LTIConsumerSecretPrimary}
+ltiConsumerSecretSecondary: ${cf:${self:custom.settings.imageBuilderStackName}.LTIConsumerSecretSecondary}

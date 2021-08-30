@@ -1,0 +1,113 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# When this flag is set to true, the settings merge logic will override the awsRegion for this stack and
+# force it to us-east-1. This is necessary for Lambda@Edge because edge functions can only be deployed from
+# CloudFormation stacks in us-east-1 (see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html).
+# The function is automatically replicated to Cloudfront edge locations in all regions.
+# Also the ${cf:...} should not be used; instead see in the .settings.js file how to bring in CF outputs.
+globalDeployment: true
+
+# fix the awsRegionShortName to reflect the original region, which may be different than us-east-1
+# this will force the stack name to reflect the original region
+awsRegionShortName: ${self:custom.settings.regionShortNamesMap.${self:custom.settings.additionalAwsRegion}}
+
+# Force the deployment bucket to be in us-east-1, same as the lambda deployed
+awsCentralRegionShortName: ${self:custom.settings.regionShortNamesMap.${self:custom.settings.awsRegion}}
+centralNamespace: ${self:custom.settings.envName}-${self:custom.settings.awsCentralRegionShortName}-${self:custom.settings.solutionName}
+globalCentralNamespace: ${self:custom.settings.awsAccountInfo.awsAccountId}-${self:custom.settings.centralNamespace}
+deploymentBucketName: ${self:custom.settings.globalCentralNamespace}-artifacts
+
+# The stack name of the 'backend' serverless service
+backendStackName: ${self:custom.settings.namespace}-backend
+
+# The Gateway API endpoint
+# customServiceEndpoint injected by .settings.js
+# serviceEndpoint injected by .settings.js
+apiUrl: ${self:custom.settings.customServiceEndpoint, self:custom.settings.serviceEndpoint}
+
+# The lambda@edge that is deployed by this component intercepts Amazon CloudFront origin-response and adds various security
+# related headers including "content-security-policy" header. The "connect-src" in that header lists the hosts the
+# browser should allow communication to for AJAX requests. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/connect-src
+#
+# The lambda allows the backend api calls. Specify any additional endpoints that should be allowed.
+#
+# otherConnectSrc: '*.amazonaws.com' // Uncomment to allow calls to all AWS Services (i.e., "*.amazonaws.com") from browser
+otherConnectSrc: ''
+
+# Allow embedding images from the following locations.
+# Remember that edge-lambdas are deployed in us-east-1 but solutions are not always. So it's important to override the edge-lambda deployable units' .settings.js to provide linkage to the solution cfn stack **in the right region**.
+# e.g.
+# module.exports.merged = require('@aws-ee/base-serverless-settings-helper').mergeSettings(
+#   __dirname,
+#   [
+#     '../../../../config/settings/${stage}.yml',
+#     <snip>
+#   ],
+#   {
+#     crossRegionCloudFormation: {
+#       backendStackName: [
+#         {
+#           settingName: 'serviceEndpoint',
+#           outputKey: 'ServiceEndpoint',
+#         },
+#         <snip>
+#         {
+#           settingName: 'applicationRepoDomain',
+#           outputKey: 'ApplicationRepoBucketDomain',
+#         },
+#         {
+#           settingName: 'applicationRepoRegionalDomain',
+#           outputKey: 'ApplicationRepoBucketRegionalDomain',
+#         },
+#       ],
+#     ...
+#   }
+# );
+otherImgSrc: ''
+
+# Allow embedding this application in frames matching the following patterns
+otherFrameSrc: ''
+
+# If a component contributes an override to any of the other* values, then it overrides the previous value unless the
+# component uses a custom mergeFn when merging settings in the assembly part.
+# e.g.
+# mergeFn: (targetCfn, srcCfn) => {
+#   const existingOtherConnectSrc = _.get(targetCfn, 'otherConnectSrc');
+#   const newOtherConnectSrc = _.get(srcCfn, 'otherConnectSrc');
+#   const result = cfnMerge(targetCfn, srcCfn);
+#
+#   if (_.isEmpty(existingOtherConnectSrc)) {
+#     result.otherConnectSrc = newOtherConnectSrc;
+#   } else {
+#     result.otherConnectSrc = `${existingOtherConnectSrc} ${newOtherConnectSrc}`;
+#   }
+#
+#   return result;
+# }
+
+# Allow javascripts from the following location
+otherScriptSrc: ''
+
+# Whether to provision WAF resources to allow for IP allow listing of access to the CloudFront website
+useCloudFrontWaf: true
+
+# This prefix is used for naming various WAF resources
+wafNamespace: ${self:custom.settings.envName}${self:custom.settings.awsRegionShortName}${self:custom.settings.solutionName}
+
+crossRegionCloudFormation:
+  backendStackName:
+    - settingName: serviceEndpoint
+      outputKey: ServiceEndpoint
+    - settingName: customServiceEndpoint
+      outputKey: CustomServiceEndpoint

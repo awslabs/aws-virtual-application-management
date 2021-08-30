@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowInstancesList WorkflowInstancesList should renders correctly 1`] = `
+<div
+  className="clearfix mb2"
+>
+  <button
+    className="ui blue basic right floated button"
+    onClick={[Function]}
+  >
+    Trigger
+  </button>
+</div>
+`;

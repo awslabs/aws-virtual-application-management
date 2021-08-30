@@ -1,0 +1,53 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+# The Gateway API endpoint
+apiUrl: ${cf:${self:custom.settings.backendStackName}.CustomServiceEndpoint, cf:${self:custom.settings.backendStackName}.ServiceEndpoint}
+
+# URL of the website
+websiteUrl: ${cf:${self:custom.settings.webInfraStackName}.WebsiteUrl, cf:${self:custom.settings.backendStackName}.WebsiteUrl}
+
+# URL of the documentation site
+docsUrl: ${cf:${self:custom.settings.webInfraStackName}.DocsSiteUrl, cf:${self:custom.settings.backendStackName}.DocsSiteUrl}
+
+# The stack name of the 'backend' serverless service
+backendStackName: ${self:custom.settings.namespace}-backend
+
+# The stack name of the 'cloudfront' serverless service
+webInfraStackName: ${self:custom.settings.namespace}-webinfra
+
+# The S3 bucket name used to host the static website
+websiteBucketName: ${cf:${self:custom.settings.webInfraStackName}.WebsiteBucket}
+
+# The id of the CloudFront distribution for the static website, if any.
+# This is needed for --invalidate-cache in serverless-ui-tools.
+websiteCloudFrontId: ${cf:${self:custom.settings.webInfraStackName}.CloudFrontId, ''}
+
+# A prefix in the url where the website resides
+websiteRootPath: ${cf:${self:custom.settings.backendStackName}.WebsiteRootPath, ''}
+
+# Branding
+brandPageTitle: 'Hello World'
+brandMainTitle: '${self:custom.settings.brandPageTitle} (${self:custom.settings.envName}/${self:custom.settings.awsRegion}/${self:custom.settings.awsAccountInfo.awsAccountId})'
+brandLoginTitle: ${self:custom.settings.brandPageTitle}
+brandLoginSubtitle: '${self:custom.settings.envName}/${self:custom.settings.awsRegion}/${self:custom.settings.awsAccountInfo.awsAccountId}'
+
+# After how many minutes should the auto logout dialog be displayed? once displayed the user has 1 minute to dismiss
+# the dialog, otherwise they will be automatically logged out
+autoLogoutTimeoutInMinutes: 30
+
+# Optional text providing additional context (for example, legal disclaimer) about a release.
+# If both of these settings are provided, a help button will be rendered in the UI's top menu
+# bar, which upon click displays a modal with this header and content.
+versionDisclaimerHeader: 'Not for any critical, production, or otherwise important code, data, or other Content.'
+versionDisclaimerContent: 'This sample code is provided to you as AWS Content under the AWS Customer Agreement, or the relevant written agreement between you and AWS (whichever applies). You should not use this sample code in your production accounts, or on production, or other critical data. You are responsible for testing, securing, and optimizing the sample code as appropriate for production grade use based on your specific quality control practices and standards. AWS may reuse these assets in future engagements, but we will not share your confidential data nor your intellectual property with other customers. Prototyping engagements are offered on a no-fee basis. However, you may incur AWS charges for creating or using AWS chargeable resources, such as running Amazon EC2 instances or using Amazon S3 storage.'

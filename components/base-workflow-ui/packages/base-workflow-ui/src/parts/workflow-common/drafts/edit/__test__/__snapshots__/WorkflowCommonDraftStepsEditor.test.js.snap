@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowCommonDraftStepsEditor renders correctly 1`] = `
+<div
+  className="dimmable"
+>
+  <div
+    className="ui inverted dimmer"
+    onClick={[Function]}
+  >
+    <div
+      className="content"
+    >
+      <div
+        className="ui inverted text loader"
+      >
+        Processing
+      </div>
+    </div>
+  </div>
+  <h3
+    className="ui grey header mt0"
+  >
+    Steps
+  </h3>
+  <div
+    className="ui warning message"
+  >
+    <b
+      className="mr1"
+    >
+      Warning
+    </b>
+     The workflow template used by this workflow does 
+    <b>
+      not
+    </b>
+     allow for steps to be deleted, added or rearranged
+  </div>
+  <div
+    className="mb3"
+  />
+  <div
+    aria-disabled={true}
+    aria-expanded={false}
+    className="ui disabled button fluid labeled search dropdown icon mb3"
+    color="blue"
+    onBlur={[Function]}
+    onChange={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onMouseDown={[Function]}
+    role="combobox"
+  >
+    <input
+      aria-autocomplete="list"
+      autoComplete="off"
+      className="search"
+      onChange={[Function]}
+      style={
+        Object {
+          "width": undefined,
+        }
+      }
+      tabIndex={-1}
+      type="text"
+      value=""
+    />
+    <div
+      aria-atomic={true}
+      aria-live="polite"
+      className="text"
+      role="alert"
+    >
+      Add Step
+    </div>
+    <i
+      aria-hidden="true"
+      className="plus icon"
+      onClick={[Function]}
+    />
+    <div
+      className="menu transition"
+      role="listbox"
+    >
+      <div
+        className="message"
+      >
+        No results found.
+      </div>
+    </div>
+  </div>
+</div>
+`;

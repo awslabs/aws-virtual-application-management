@@ -1,0 +1,45 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 14
+
+  pre_build:
+    commands:
+      - echo "Installing PNPM"
+      - npm install -g pnpm
+      - pnpm config set store-dir .pnpm-store
+      - echo "Installing dependencies"
+      - pnpm install -r --ignore-scripts --prefer-offline --frozen-lockfile --child-concurrency $((`nproc` + 1))
+      - printf "\n\n"
+
+  build:
+    commands:
+      - echo "Running static code analysis"
+      - pnpx sls solution-lint -s "$ENV_NAME"
+      - printf "\n\n"
+
+cache:
+  paths:
+    - node_modules/**/*
+    - components/*/packages/*/node_modules/**/*
+    - main/.generated-solution/*/node_modules/**/*
+    - main/solution/*/node_modules/**/*
+    - main/.generated-solution/cicd/*/node_modules/**/*
+    - main/integration-tests/node_modules/**/*
+    - main/packages/*/node_modules/**/*
+    - .pnpm-store/**/*

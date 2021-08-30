@@ -1,0 +1,64 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Resources:
+  CwlLambdaPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: 'Allow'
+          Action:
+            - 'logs:CreateLogStream'
+            - 'logs:PutLogEvents'
+          Resource:
+            - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${self:custom.settings.envName}-*'
+            - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${self:custom.settings.envName}-*:log-stream:*'
+
+  RoleLtiHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: ${self:custom.settings.ltiHandlerRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref CwlLambdaPolicy
+      Policies:
+        - PolicyName: param-store-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+
+        - PolicyName: secret-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - ${cf:${self:custom.settings.imageBuilderStackName}.LTIConsumerSecretPrimary}
+                - ${cf:${self:custom.settings.imageBuilderStackName}.LTIConsumerSecretSecondary}
+
+
+Outputs:
+  LtiHandlerRoleArn:
+    Value: !GetAtt RoleLtiHandler.Arn

@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Component renders correctly 1`] = `
+Array [
+  <div
+    className="field mb2"
+  >
+    <p>
+      explain
+    </p>
+  </div>,
+  <div
+    className="ui brown message field"
+  >
+    <b
+      className="mr1"
+    >
+      Warning
+    </b>
+    warn
+  </div>,
+]
+`;

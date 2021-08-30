@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkflowPublishedTemplatesList renders correctly 1`] = `
+<div
+  className="mb4"
+>
+  <div
+    className="mb3 flex"
+  >
+    <h3
+      className="ui header color-grey mt1 mb0 flex-auto"
+    >
+      <i
+        aria-hidden="true"
+        className="list alternate outline icon align-top"
+        onClick={[Function]}
+      />
+      <div
+        className="content left-align"
+      >
+        Published Workflow Templates
+      </div>
+    </h3>
+  </div>
+  <div
+    className="p0"
+  >
+    <div
+      className="ui negative message clearfix"
+    >
+      <div
+        className="header"
+      >
+        A problem was encountered
+      </div>
+      <p>
+        Hmm... something went wrong
+      </p>
+    </div>
+  </div>
+</div>
+`;

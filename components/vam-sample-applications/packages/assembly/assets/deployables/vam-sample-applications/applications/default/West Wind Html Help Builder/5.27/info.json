@@ -1,0 +1,8 @@
+{
+  "packageType": "choco",
+  "packageInstall": {
+    "chocoPackage": "westwindhtmlhelpbuilder"
+  },
+  "applicationName": "westwindhtmlhelpbuilder",
+  "applicationExe": "C:\\Program Files (x86)\\West Wind Html Help Builder\\wwhelp.exe"
+}

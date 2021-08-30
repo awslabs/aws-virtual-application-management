@@ -1,0 +1,140 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CreateWorkflowDraft CreateWorkflowDraft should renders correctly 1`] = `
+<div
+  className="ui clearing segment p3"
+>
+  <form
+    className="ui fluid form"
+    onSubmit={[Function]}
+  >
+    <div
+      className="ui inverted dimmer"
+      onClick={[Function]}
+    >
+      <div
+        className="content"
+      >
+        <div
+          className="ui inverted text loader"
+        >
+          Processing
+        </div>
+      </div>
+    </div>
+    <div
+      className="mb4"
+    >
+      <h3
+        className="ui header field mt0 mb1"
+      >
+        <label
+          className="color-grey"
+          htmlFor="draftFor--1"
+        >
+          Draft For
+        </label>
+      </h3>
+      <div
+        aria-disabled={false}
+        aria-expanded={false}
+        aria-multiselectable={false}
+        className="ui fluid selection dropdown field"
+        id="draftFor--1"
+        onBlur={[Function]}
+        onChange={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onMouseDown={[Function]}
+        role="listbox"
+        tabIndex={0}
+      >
+        <div
+          aria-atomic={true}
+          aria-live="polite"
+          className="default text"
+          role="alert"
+        >
+          Select one
+        </div>
+        <i
+          aria-hidden="true"
+          className="dropdown icon"
+          onClick={[Function]}
+        />
+        <div
+          className="menu transition"
+        >
+          <div
+            aria-checked={false}
+            aria-selected={true}
+            className="selected item"
+            onClick={[Function]}
+            role="option"
+            style={
+              Object {
+                "pointerEvents": "all",
+              }
+            }
+          >
+            <div
+              className="text"
+            >
+              <div
+                className="ui teal mini horizontal label"
+                onClick={[Function]}
+              >
+                Existing
+              </div>
+               
+              An existing workflow
+            </div>
+          </div>
+          <div
+            aria-checked={false}
+            aria-selected={false}
+            className="item"
+            onClick={[Function]}
+            role="option"
+            style={
+              Object {
+                "pointerEvents": "all",
+              }
+            }
+          >
+            <div
+              className="text"
+            >
+              <div
+                className="ui blue mini horizontal label"
+                onClick={[Function]}
+              >
+                New
+              </div>
+               
+              An new workflow
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="mt3"
+    >
+      <button
+        className="ui blue icon right floated button ml2"
+        onClick={[Function]}
+        type="submit"
+      >
+        Create Draft
+      </button>
+      <button
+        className="ui right floated button"
+        onClick={[Function]}
+      >
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>
+`;

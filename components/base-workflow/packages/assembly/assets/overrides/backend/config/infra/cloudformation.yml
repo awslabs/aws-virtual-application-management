@@ -1,0 +1,484 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Conditions:
+  UseVpc: !Not
+    - !Equals ['${self:custom.settings.vpcId}', '']
+
+Resources:
+  StepTemplatesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbStepTemplates}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'ver'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'ver'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+
+  # IAM Policy for AWS Lambda to attach to VPC
+  VpcLambdaPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Action:
+            - ec2:CreateNetworkInterface
+            - ec2:DescribeNetworkInterfaces
+            - ec2:DeleteNetworkInterface
+            - ec2:AssignPrivateIpAddresses
+            - ec2:UnassignPrivateIpAddresses
+          Resource: !Sub 'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:/vpc/${self:custom.settings.vpcId}'
+
+  # IAM Role for the workflowLoopRunner Function
+  RoleWorkflowLoopRunner:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: ${self:custom.settings.workflowLoopRunnerRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !If
+          - UseCmkEncryption
+          - !Ref DynamoDbKmsAccessPolicy
+          - !Ref AWS::NoValue
+        - !If
+          - UseVpc
+          - !Ref VpcLambdaPolicy
+          - !Ref AWS::NoValue
+      Policies:
+        - PolicyName: db-access
+          PolicyDocument:
+            Statement:
+              Sid: 'dbaccessWorkflow'
+              Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+                - dynamodb:GetItem
+                - dynamodb:BatchGetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt [StepTemplatesDb, Arn]
+                - !GetAtt [WorkflowTemplatesDb, Arn]
+                - !GetAtt [WorkflowTemplateDraftsDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowsDb, Arn]
+                - !GetAtt [WorkflowDraftsDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowInstancesDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowEventTriggersDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowEventTriggersDb, Arn], '/index/*']]
+                - !GetAtt [StepTemplatesDb, Arn]
+                - !GetAtt [WorkflowTemplatesDb, Arn]
+                - !GetAtt [WorkflowTemplateDraftsDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowsDb, Arn]
+                - !GetAtt [WorkflowDraftsDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowInstancesDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowEventTriggersDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowEventTriggersDb, Arn], '/index/*']]
+        - PolicyName: step-functions-invocation
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource: '*'
+
+  # IAM Role for Step Functions to invoke lambda
+  RoleStepFunctionsWorkflow:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: !Sub 'states.${AWS::Region}.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !If
+          - UseVpc
+          - !Ref VpcLambdaPolicy
+          - !Ref AWS::NoValue
+      Policies:
+        - PolicyName: lambda
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: 'lambda:InvokeFunction'
+                Resource:
+                  - !GetAtt 'WorkflowLoopRunnerLambdaFunction.Arn'
+
+  # IAM Role for the workflowSolutionEventsHandler Function
+  RoleWorkflowSolutionEventsHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: ${self:custom.settings.workflowSolutionEventsHandlerRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !If
+          - UseCmkEncryption
+          - !Ref DynamoDbKmsAccessPolicy
+          - !Ref AWS::NoValue
+        - !If
+          - UseVpc
+          - !Ref VpcLambdaPolicy
+          - !Ref AWS::NoValue
+      Policies:
+        - PolicyName: step-functions-invocation
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource:
+                  - !Ref SMWorkflow
+        - PolicyName: db-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt [StepTemplatesDb, Arn]
+                - !GetAtt [WorkflowTemplatesDb, Arn]
+                - !GetAtt [WorkflowTemplateDraftsDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowsDb, Arn]
+                - !GetAtt [WorkflowDraftsDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowInstancesDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowEventTriggersDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowEventTriggersDb, Arn], '/index/*']]
+
+  # =============================================================================================
+  # Step Functions
+  # =============================================================================================
+  # Workflow State Machine
+  SMWorkflow:
+    Type: 'AWS::StepFunctions::StateMachine'
+    Properties:
+      StateMachineName: ${self:custom.settings.workflowStateMachineName}
+      DefinitionString: !Sub |
+        {
+          "Comment": "Workflow State Machine",
+          "StartAt": "WorkflowLoopRunner",
+          "Version": "1.0",
+          "States": {
+            "WorkflowLoopRunner": {
+              "Type": "Task",
+              "Resource": "${WorkflowLoopRunnerLambdaFunction.Arn}",
+              "ResultPath": "$.loop",
+              "Next": "MakeAChoice",
+              "Catch": [{
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.error",
+                "Next": "Failed"
+              }]
+            },
+            "MakeAChoice": {
+              "Type": "Choice",
+              "Choices": [{
+                "Variable": "$.loop.shouldWait",
+                "NumericEquals": 1,
+                "Next": "LetsWait"
+              }, {
+                "Variable": "$.loop.shouldLoop",
+                "NumericEquals": 1,
+                "Next": "WorkflowLoopRunner"
+              }, {
+                "Variable": "$.loop.shouldPass",
+                "NumericEquals": 1,
+                "Next": "Passed"
+              }, {
+                "Variable": "$.loop.shouldFail",
+                "NumericEquals": 1,
+                "Next": "Failed"
+              }],
+              "Default": "Failed"
+            },
+            "LetsWait": {
+              "Type": "Wait",
+              "SecondsPath": "$.loop.wait",
+              "Next": "WorkflowLoopRunner"
+            },
+            "Passed": {
+              "Type": "Pass",
+              "End": true
+            },
+            "Failed": {
+              "Type": "Fail"
+            }
+          }
+        }
+      RoleArn: !GetAtt 'RoleStepFunctionsWorkflow.Arn'
+
+  WorkflowTemplatesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowTemplates}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'ver'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'ver'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+
+  WorkflowsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflows}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'ver'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'ver'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+
+  WorkflowTemplateDraftsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowTemplateDrafts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'uid'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      GlobalSecondaryIndexes:
+        - IndexName: ByUID
+          KeySchema:
+            - AttributeName: 'uid'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+
+  WorkflowDraftsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowDrafts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'uid'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      GlobalSecondaryIndexes:
+        - IndexName: ByUID
+          KeySchema:
+            - AttributeName: 'uid'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+
+  WorkflowInstancesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowInstances}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'createdAt'
+          AttributeType: 'S'
+        - AttributeName: 'wf'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      GlobalSecondaryIndexes:
+        - IndexName: 'WorkflowIndex'
+          KeySchema:
+            - AttributeName: 'wf'
+              KeyType: 'HASH'
+            - AttributeName: 'createdAt'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: 'ALL'
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+
+  WorkflowEventTriggersDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowEventTriggers}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'wf' # workflow id
+          AttributeType: 'S'
+        - AttributeName: 'createdAt'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      GlobalSecondaryIndexes:
+        - IndexName: 'WorkflowIndex'
+          KeySchema:
+            - AttributeName: 'wf'
+              KeyType: 'HASH'
+            - AttributeName: 'createdAt'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: 'ALL'
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+
+  PermissionForEventBridgeToInvokeWorkflowEventsLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref WorkflowSolutionEventsHandlerLambdaFunction
+      Action: 'lambda:InvokeFunction'
+      Principal: 'events.amazonaws.com'
+      SourceArn: !Sub 'arn:aws:events:${AWS::Region}:${AWS::AccountId}:rule/${self:custom.settings.solutionEventBusName}/wetr-*'
+
+  # IAM Role for the apiHandler Function
+  RoleApiHandler:
+    Properties:
+      Policies:
+        - PolicyName: db-access
+          PolicyDocument:
+            Statement:
+              Sid: dbaccess
+              Resource:
+                - !GetAtt [StepTemplatesDb, Arn]
+                - !GetAtt [WorkflowTemplatesDb, Arn]
+                - !GetAtt [WorkflowTemplateDraftsDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowsDb, Arn]
+                - !GetAtt [WorkflowDraftsDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowInstancesDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowEventTriggersDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowEventTriggersDb, Arn], '/index/*']]
+        - PolicyName: step-functions-invocation
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource: '*'
+
+Outputs:
+  WorkflowLoopRunnerRoleArn:
+    Value: !GetAtt RoleWorkflowLoopRunner.Arn
+  WorkflowSolutionEventsHandlerArn:
+    Value: !GetAtt WorkflowSolutionEventsHandlerLambdaFunction.Arn

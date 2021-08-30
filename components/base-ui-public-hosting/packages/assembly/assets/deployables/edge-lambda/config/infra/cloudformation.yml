@@ -1,0 +1,178 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+# 
+# http://aws.amazon.com/apache2.0
+# 
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+Resources:
+  # =============================================================================================
+  # IAM Role for CloudFront Interceptor Lambdas (Lambda@Edge)
+  # =============================================================================================
+  RoleCloudFrontInterceptor:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - edgelambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+      Policies:
+        - PolicyName: logs-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: 'arn:aws:logs:*:*:*'
+
+  # =============================================================================================
+  # CloudFront Interceptor Lambdas (Lambda@Edge)
+  # =============================================================================================
+
+  # Lambda@Edge that intercepts CloudFront responses and adds various security headers
+  SecurityEdgeLambda:
+    Type: 'AWS::Lambda::Function'
+    # Avoid to try to delete the Edge Lambda because it raises errors until all associations with Cloudfront are removed.
+    # Even then, replicas are being automatically deleted only 1 hour after the removal of all associations.
+    # After that, the Edge lambda can be deleted manually at https://console.aws.amazon.com/lambda/home
+    DeletionPolicy: Retain
+    Properties:
+      Description: Lambda@Edge function to set security headers in CloudFront responses
+      Runtime: nodejs12.x
+      Handler: index.handler
+      Role: !GetAtt RoleCloudFrontInterceptor.Arn
+      # Declaring Lambda Function Code inline because the code requires API Gateway URL for the backend APIs (to set "connect-src" part of the "content-security-policy" header)
+      # Lambda@Edge currently does not support passing environment variables (See https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html)
+      # To get around this limitation, we are accessing API URL inline in the code below using "${self:custom.settings.apiUrl}"
+      Code:
+        ZipFile: |
+          "use strict";
+          const url = require("url");
+
+          const handler = async event => {
+            //Get contents of cloudfront response
+            const response = event.Records[0].cf.response;
+            const headers = response.headers;
+
+            //Set new headers
+            headers["strict-transport-security"] = [
+              {
+                key: "Strict-Transport-Security",
+                value: "max-age=63072000; includeSubdomains"
+              }
+            ];
+
+            const q = url.parse('${self:custom.settings.apiUrl}');
+            // q.host includes port number
+            const backendApi = `${q.protocol}//${q.host}`;
+            const otherConnectSrc = '${self:custom.settings.otherConnectSrc}';
+            const connectSrc = `${backendApi} ${otherConnectSrc}`;
+            const otherImgSrc = '${self:custom.settings.otherImgSrc}';
+            const otherFrameSrc = '${self:custom.settings.otherFrameSrc}';
+            const otherScriptSrc = `${self:custom.settings.otherScriptSrc}`;
+            const cspRules = [
+              `default-src 'self'`,
+              `connect-src ${connectSrc}`,
+              `img-src 'self' ${otherImgSrc} data:`,
+              `script-src 'self' ${otherScriptSrc} blob:`,
+              `style-src 'self' 'unsafe-inline'`,
+              `frame-src 'self' ${otherFrameSrc}`,
+              `font-src 'self' data:`
+            ];
+            headers["content-security-policy"] = [
+              {
+                key: "Content-Security-Policy",
+                value: cspRules.join('; ')
+              }
+            ];
+
+            headers["x-content-type-options"] = [
+              { key: "X-Content-Type-Options", value: "nosniff" }
+            ];
+            headers["x-frame-options"] = [{ key: "X-Frame-Options", value: "SAMEORIGIN" }];
+            headers["x-xss-protection"] = [
+              { key: "X-XSS-Protection", value: "1; mode=block" }
+            ];
+            headers["referrer-policy"] = [
+              { key: "Referrer-Policy", value: "same-origin" }
+            ];
+            //Return modified response
+            return response;
+          };
+
+          module.exports.handler = handler;
+
+  # Lambda@Edge that implements standard web server redirects that simplify directory handling when hosting a static site on S3.
+  # Inspired by https://aws.amazon.com/blogs/compute/implementing-default-directory-indexes-in-amazon-s3-backed-amazon-cloudfront-origins-using-lambdaedge/
+  RedirectsEdgeLambda:
+    Type: 'AWS::Lambda::Function'
+    # Avoid to try to delete the Edge Lambda because it raises errors until all associations with Cloudfront are removed.
+    # Even then, replicas are being automatically deleted only 1 hour after the removal of all associations.
+    # After that, the Edge lambda can be deleted manually at https://console.aws.amazon.com/lambda/home
+    DeletionPolicy: Retain
+    Properties:
+      Description: Lambda@Edge function that implements standard web server redirects that simplify directory handling when hosting a static site on S3
+      Runtime: nodejs12.x
+      Handler: index.handler
+      Role: !GetAtt RoleCloudFrontInterceptor.Arn
+      Code:
+        # Adapted from: https://github.com/digital-sailors/standard-redirects-for-cloudfront
+        ZipFile: |
+          exports.handler = (event, context, callback) => {
+            const request = event.Records[0].cf.request;
+
+            let prefixPath; // needed for 2nd condition
+
+            if (request.uri.match('.+/$')) {
+              request.uri += 'index.html';
+              callback(null, request);
+            } else if (prefixPath = request.uri.match('(.+)/index.html')) {
+              const response = {
+                status: '301',
+                statusDescription: 'Found',
+                headers: {
+                  location: [{
+                    key: 'Location', value: prefixPath[1] + '/',
+                  }],
+                }
+              };
+              callback(null, response);
+            } else if (request.uri.match('/[^/.]+$')) {
+              const response = {
+                status: '301',
+                statusDescription: 'Found',
+                headers: {
+                  location: [{
+                    key: 'Location', value: request.uri + '/',
+                  }],
+                }
+              };
+              callback(null, response);
+            } else {
+              callback(null, request);
+            }
+          }
+
+Outputs:
+  SecurityEdgeLambdaArn:
+    Description: The ARN of the Security Lambda@Edge function
+    Value: !GetAtt [SecurityEdgeLambda, Arn]
+  RedirectsEdgeLambdaArn:
+    Description: The ARN of the Web Server Redirects Lambda@Edge function
+    Value: !GetAtt [RedirectsEdgeLambda, Arn]
