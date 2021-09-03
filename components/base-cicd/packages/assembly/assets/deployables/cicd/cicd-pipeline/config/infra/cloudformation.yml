@@ -46,6 +46,7 @@ Resources:
             Status: Enabled
 
   DeploymentBucketPolicy:
+    Condition: UseCodeCommit
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: ${self:custom.settings.deploymentBucketName}
@@ -270,25 +271,8 @@ Resources:
 
         - Name: Artifact
           Actions:
-            - Name: Submodules
-              RunOrder: 1
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: '1'
-              Configuration:
-                ProjectName: !Ref TargetEnvSubmodulesProject
-              InputArtifacts:
-                - !If
-                  - UseCodeCommit
-                  - Name: SourceCodeCommitArtifact
-                  - Name: SourceGitHubArtifact
-              OutputArtifacts:
-                - Name: SourceSubmoduleArtifact
-
             - Name: Assemble
-              RunOrder: 2
+              RunOrder: 1
               ActionTypeId:
                 Category: Build
                 Owner: AWS
@@ -297,7 +281,10 @@ Resources:
               Configuration:
                 ProjectName: !Ref TargetEnvAssembleProject
               InputArtifacts:
-                - Name: SourceSubmoduleArtifact
+                - !If
+                  - UseCodeCommit
+                  - Name: CodeCommitSource
+                  - Name: SourceGitHubArtifact
               OutputArtifacts:
                 - Name: SourceArtifact
 
@@ -408,62 +395,6 @@ Resources:
                   ProjectName: !Ref TestTargetEnvProject
                 InputArtifacts:
                   - Name: SourceArtifact
-          - !Ref AWS::NoValue
-
-  TargetEnvSubmodulesProject:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Artifacts:
-        Type: CODEPIPELINE
-        ArtifactIdentifier: SourceSubmodulesArtifact
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: |
-          version: 0.2
-
-          env:
-            git-credential-helper: yes
-
-          phases:
-            install:
-              runtime-versions:
-                nodejs: 14
-
-            build:
-              commands:
-                - echo "Initializing submodules"
-                - git submodule update --init --recursive --jobs=$((`nproc` / 2))
-
-          artifacts:
-            files:
-              - '**/*'
-            name: SourceSubmodulesArtifact
-            discard-paths: no
-
-      Environment:
-        ComputeType: BUILD_GENERAL1_LARGE
-        Type: LINUX_CONTAINER
-        Image: aws/codebuild/standard:5.0
-        EnvironmentVariables:
-          - Name: ENV_NAME
-            Value: ${self:custom.settings.envName}
-          - Name: DEPLOYMENT_BUCKET
-            Value: ${self:custom.settings.deploymentBucketName}
-      ServiceRole: !GetAtt AppPipelineRole.Arn
-      Cache:
-        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
-        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
-        Type: LOCAL
-        Modes:
-          - LOCAL_SOURCE_CACHE
-          - LOCAL_CUSTOM_CACHE
-      VpcConfig:
-        !If 
-          - UseVpc 
-          - 
-            VpcId: ${self:custom.settings.codeBuildVpcConfig.vpcId}
-            Subnets: ${self:custom.settings.codeBuildVpcConfig.subnets}
-            SecurityGroupIds: ${self:custom.settings.codeBuildVpcConfig.securityGroupIds}
           - !Ref AWS::NoValue
 
   TargetEnvAssembleProject:
@@ -724,7 +655,6 @@ Resources:
 
   # IAM role to be assumed by CloudWatch events service to trigger the CodePipeline
   CodePipelineTriggerRuleRole:
-    Condition: UseCodeCommit
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -744,6 +674,7 @@ Resources:
                 Resource: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}'
 
   CodeCommitTriggerPipelineEventRule:
+    Condition: UseCodeCommit
     Type: AWS::Events::Rule
     Properties:
       Name: ${self:custom.settings.namespace}-codecommit-trigger-codepipeline

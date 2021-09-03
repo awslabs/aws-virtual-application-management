@@ -11,7 +11,7 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-sourceCicdAppArtifactBucketName: ${self:custom.settings.globalNamespace}-cicd-appartifacts
+sourceCicdAppArtifactBucketName: ${self:custom.settings.globalNamespace}-cicd-pipeline-appartifacts
 
 # Flag indicating whether to create a staging environment.
 # If this flag is set to true the pipeline will first deploy the solution to a staging environment before deploying the

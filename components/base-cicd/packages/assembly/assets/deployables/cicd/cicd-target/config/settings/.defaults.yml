@@ -52,5 +52,5 @@ runTestsAgainstTargetEnv: true
 # This setting is ignored when createStagingEnv is not true.
 stgEnvName: ${self:custom.settings.envName}stg
 
-cicdAppArtifactBucketName: ${self:custom.settings.globalNamespace}-cicd-appartifacts
-sourceCicdAppArtifactBucketName: ${self:custom.settings.sourceAccountId}-${self:custom.settings.namespace}-cicd-appartifacts
+cicdAppArtifactBucketName: ${self:custom.settings.globalNamespace}-cicd-target-appartifacts
+sourceCicdAppArtifactBucketName: ${self:custom.settings.sourceAccountId}-${self:custom.settings.namespace}-cicd-pipeline-appartifacts
