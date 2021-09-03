@@ -157,24 +157,6 @@ Resources:
               OutputArtifacts:
                 - Name: LicenseS3Artifact
               InputArtifacts: []
-        - Name: Artifact
-          Actions:
-            - Name: Submodules
-              RunOrder: 1
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: '1'
-              Configuration:
-                ProjectName: !Ref TargetEnvSubmodulesProject
-              InputArtifacts:
-                - !If
-                  - UseCodeCommit
-                  - Name: SourceCodeCommitArtifact
-                  - Name: SourceGitHubArtifact
-              OutputArtifacts:
-                - Name: SourceSubmoduleArtifact
         - Name: 'Generate-Deployment-Package'
           Actions:
             - Name: 'Generate-Package'
@@ -186,9 +168,15 @@ Resources:
                 Version: '1'
               Configuration:
                 ProjectName: !Ref 'DeployPackageGenProject'
-                PrimarySource: 'SourceSubmoduleArtifact'
+                PrimarySource: !If
+                  - UseCodeCommit
+                  - 'SourceCodecommitArtifact'
+                  - 'SourceGitHubArtifact'
               InputArtifacts:
-                - Name: 'SourceSubmoduleArtifact'
+                - !If 
+                  - UseCodeCommit
+                  - Name: SourceCodeCommitArtifact
+                  - Name: SourceGitHubArtifact
                 - Name: 'EEProdScriptsArtifact'
                 - Name: 'LicenseS3Artifact'
               OutputArtifacts:
