@@ -655,7 +655,6 @@ Resources:
 
   # IAM role to be assumed by CloudWatch events service to trigger the CodePipeline
   CodePipelineTriggerRuleRole:
-    Condition: UseCodeCommit
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
