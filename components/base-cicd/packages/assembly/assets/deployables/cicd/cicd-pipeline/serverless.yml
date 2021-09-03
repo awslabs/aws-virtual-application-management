@@ -23,6 +23,7 @@ provider:
   deploymentBucket:
     name: ${self:custom.settings.deploymentBucketName}
     serverSideEncryption: AES256
+    blockPublicAccess: true
   stackTags: ${self:custom.tags}
   # All references beginning with ${self:*, ${opt:*, ${file:*, ${deep:*, and ${cf:* will be resolved by Serverless
   # All other ${* references will be resolved by CloudFormation
