@@ -26,7 +26,7 @@ module.exports = {
       'user_guide/application_repo': {},
       'user_guide/introduction': {},
       // eslint-disable-next-line prettier/prettier
-      Sidebar: {
+      'Sidebar': {
         vals: {
           'User View': {
             vals: {
