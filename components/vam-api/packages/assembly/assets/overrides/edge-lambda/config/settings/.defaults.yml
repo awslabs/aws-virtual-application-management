@@ -18,3 +18,15 @@ installerHostWorkDomain: ${cf:${self:custom.settings.imageBuilderStackName}.Inst
 installerHostWorkRegionalDomain: ${cf:${self:custom.settings.imageBuilderStackName}.InstallerHostWorkBucketRegionalDomain}
 
 otherImgSrc: '${self:custom.settings.applicationRepoDomain} ${self:custom.settings.applicationRepoRegionalDomain} ${self:custom.settings.installerHostWorkDomain} ${self:custom.settings.installerHostWorkRegionalDomain}'
+
+crossRegionCloudFormation:
+  backendStackName:
+    - settingName: applicationRepoDomain
+      outputKey: ApplicationRepoBucketDomain
+    - settingName: applicationRepoRegionalDomain
+      outputKey: ApplicationRepoBucketRegionalDomain
+  imageBuilderStackName:
+    - settingName: installerHostWorkDomain
+      outputKey: InstallerHostWorkBucketDomain
+    - settingName: installerHostWorkRegionalDomain
+      outputKey: InstallerHostWorkBucketRegionalDomain
