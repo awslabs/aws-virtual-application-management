@@ -283,7 +283,7 @@ Resources:
               InputArtifacts:
                 - !If
                   - UseCodeCommit
-                  - Name: CodeCommitSource
+                  - Name: SourceCodeCommitArtifact
                   - Name: SourceGitHubArtifact
               OutputArtifacts:
                 - Name: SourceArtifact
