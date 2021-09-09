@@ -199,6 +199,22 @@ Resources:
               Forward: none
           ViewerProtocolPolicy: redirect-to-https
         CacheBehaviors:
+          # Route to DocsSiteBucket for docs requests only
+          - PathPattern: 'docs'
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            Compress: true
+            TargetOriginId: DocsSiteBucketOrigin
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: none
+            ViewerProtocolPolicy: redirect-to-https
           # Route to DocsSiteBucket on docs/* requests only
           - PathPattern: 'docs/*'
             DefaultTTL: 0
