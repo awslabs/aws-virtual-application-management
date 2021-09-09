@@ -44,6 +44,8 @@ class CreateCloudFrontInterceptor extends Service {
       { lambdaArn: this.settings.get('securityEdgeLambdaArn'), behavior: 'default', eventType: 'origin-response' },
       { lambdaArn: this.settings.get('securityEdgeLambdaArn'), behavior: 'docs/*', eventType: 'origin-response' },
       { lambdaArn: this.settings.get('redirectsEdgeLambdaArn'), behavior: 'docs/*', eventType: 'origin-request' },
+      { lambdaArn: this.settings.get('securityEdgeLambdaArn'), behavior: 'docs', eventType: 'origin-response' },
+      { lambdaArn: this.settings.get('redirectsEdgeLambdaArn'), behavior: 'docs', eventType: 'origin-request' },
     ];
 
     let didPublishLambdaVersion;
