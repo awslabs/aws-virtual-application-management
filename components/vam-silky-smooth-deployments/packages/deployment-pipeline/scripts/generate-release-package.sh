@@ -2,7 +2,7 @@
 
 set -ue
 
-if [ $# != 3 ]; then
+if [ $# != 2 ]; then
   echo Syntax:
   echo $0 source-location customer-name
   exit 1
