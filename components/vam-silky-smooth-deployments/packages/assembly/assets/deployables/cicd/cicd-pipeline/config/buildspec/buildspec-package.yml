@@ -18,10 +18,10 @@ env:
 
 phases:
   build:
-    commands: 'components/vam-silky-smooth-deployments/packages/deployment-pipeline/scripts/generate-release-package.sh $CODEBUILD_SRC_DIR $CODEBUILD_SRC_DIR_LicenseS3Artifact Customer'
+    commands: 'components/vam-silky-smooth-deployments/packages/deployment-pipeline/scripts/generate-release-package.sh $CODEBUILD_SRC_DIR VAM'
   
 artifacts:
   files:
-    - 'Customer.zip'
+    - 'VAM.zip'
   discard-paths: yes
 

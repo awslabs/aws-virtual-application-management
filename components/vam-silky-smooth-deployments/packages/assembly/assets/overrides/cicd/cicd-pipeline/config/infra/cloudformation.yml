@@ -12,7 +12,7 @@
 # permissions and limitations under the License.
 
 Conditions:
-  DeployPackagingPipeline: !Not [!Equals ['${self:custom.settings.packagingScriptRepo}', '']]
+  DeployPackagingPipeline: !Equals ['${self:custom.settings.dropCustomerName}', 'true']
 
 Resources:
   AppArtifactBucketPolicy:
@@ -31,70 +31,6 @@ Resources:
             Principal:
               AWS:
                 - !Sub arn:aws:iam::${AWS::AccountId}:root
-
-  LicenseBucketPolicy:
-    Condition: DeployPackagingPipeline
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: '${self:custom.settings.licenseBucketName}'
-      PolicyDocument:
-        Statement:
-          - Action:
-            - S3:*
-            Effect: Allow
-            Resource:
-              - 'arn:aws:s3:::${self:custom.settings.licenseBucketName}'
-              - 'arn:aws:s3:::${self:custom.settings.licenseBucketName}/*'            
-            Principal:
-              AWS:
-                - !Sub arn:aws:iam::${AWS::AccountId}:role/${AppPipelineRole}
-  
-  # IAM Policies to allow AppPipelineRole to package vam-silky-smooth-deployment
-  PackagingPipelineRepoAccessPolicy:
-    Condition: DeployPackagingPipeline
-    Type: 'AWS::IAM::ManagedPolicy'
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Action:
-            - 'codecommit:GetBranch'
-            - 'codecommit:GetCommit'
-            - 'codecommit:GetRepository'
-            - 'codecommit:GitPull'
-            Effect: 'Allow'
-            Resource:
-              - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.packagingScriptRepo}'
-
-  PackagingPipelineLicenseBucketAccessPolicy:
-    Condition: DeployPackagingPipeline
-    Type: 'AWS::IAM::ManagedPolicy'
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Action:
-            - 's3:GetObject'
-            - 's3:GetObjectVersion'
-            - 's3:ListBucket'
-            - 's3:GetBucketPolicy'
-            - 's3:HeadObject'
-            Effect: 'Allow'
-            Resource:
-              - 'arn:aws:s3:::${self:custom.settings.licenseBucketName}'
-              - 'arn:aws:s3:::${self:custom.settings.licenseBucketName}/*'
-
-  AppPipelineRole:
-    Properties:
-      ManagedPolicyArns:
-        - !If 
-          - DeployPackagingPipeline
-          - !Ref PackagingPipelineRepoAccessPolicy
-          - !Ref AWS::NoValue
-        - !If 
-          - DeployPackagingPipeline
-          - !Ref PackagingPipelineLicenseBucketAccessPolicy
-          - !Ref AWS::NoValue
   
   PackagePipeline:
     Condition:
@@ -113,50 +49,40 @@ Resources:
           Id: !GetAtt ArtifactBucketKey.Arn
           Type: KMS
       Stages:
-        - Name: 'Download-Source'
-          Actions:
-            - Name: 'CodeCommitSource'
-              RunOrder: 1
-              ActionTypeId:
-                Category: Source
-                Owner: AWS
-                Provider: CodeCommit
-                Version: '1'
-              Configuration:
-                RepositoryName: '${self:custom.settings.repoName}'
-                BranchName: '${self:custom.settings.repoBranch}'
-                PollForSourceChanges: 'false'
-                OutputArtifactFormat: 'CODEBUILD_CLONE_REF'
-              OutputArtifacts:
-                - Name: 'SourceCodeCommitArtifact'
-            - Name: 'CodeCommitScriptSource'
-              RunOrder: 2
-              ActionTypeId:
-                Category: Source
-                Owner: AWS
-                Provider: CodeCommit
-                Version: '1'
-              Configuration:
-                RepositoryName: '${self:custom.settings.packagingScriptRepo}'
-                BranchName: '${self:custom.settings.packagingScriptBranch}'
-                PollForSourceChanges: false
-                OutputArtifactFormat: CODEBUILD_CLONE_REF
-              OutputArtifacts:
-                - Name: EEProdScriptsArtifact
-            - Name: 'License-Download'
-              RunOrder: 3
-              ActionTypeId:
-                Category: Source
-                Owner: AWS
-                Provider: S3
-                Version: '1'
-              Configuration:
-                S3Bucket: '${self:custom.settings.licenseBucketName}'
-                S3ObjectKey: '${self:custom.settings.licenseObjectKey}'
-                PollForSourceChanges: false
-              OutputArtifacts:
-                - Name: LicenseS3Artifact
-              InputArtifacts: []
+        - !If
+          - UseCodeCommit
+          - Name: Source
+            Actions:
+              - Name: CodeCommitSource
+                RunOrder: 1
+                ActionTypeId:
+                  Category: Source
+                  Owner: AWS
+                  Provider: CodeCommit
+                  Version: '1'
+                Configuration:
+                  RepositoryName: ${self:custom.settings.repoName}
+                  BranchName: ${self:custom.settings.repoBranch}
+                  PollForSourceChanges: 'false'
+                  OutputArtifactFormat: CODEBUILD_CLONE_REF
+                OutputArtifacts:
+                  - Name: SourceCodeCommitArtifact
+          - Name: Source
+            Actions:
+              - Name: GitHubSource
+                ActionTypeId:
+                  Category: Source
+                  Owner: ThirdParty
+                  Provider: GitHub
+                  Version: '1'
+                Configuration:
+                  OAuthToken: !Ref GitHubOAuthToken
+                  Owner: ${self:custom.settings.githubOwner}
+                  Repo: ${self:custom.settings.repoName}
+                  Branch: ${self:custom.settings.repoBranch}
+                  PollForSourceChanges: true
+                OutputArtifacts:
+                  - Name: SourceGitHubArtifact
         - Name: 'Generate-Deployment-Package'
           Actions:
             - Name: 'Generate-Package'
@@ -177,8 +103,6 @@ Resources:
                   - UseCodeCommit
                   - Name: SourceCodeCommitArtifact
                   - Name: SourceGitHubArtifact
-                - Name: 'EEProdScriptsArtifact'
-                - Name: 'LicenseS3Artifact'
               OutputArtifacts:
                 - Name: 'CustomerPackage'
 
