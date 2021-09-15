@@ -11,17 +11,5 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-# the name of the version enabled S3 Bucket which holds the license files.
-licenseBucketName: ''
-
-# the key for the S3 Object which holds the license files
-licenseObjectKey: ''
-
-# the name of the CodeCommit repository which holds the packaging script
-packagingScriptRepo: ''
-
-# the name of the branch which holds the version of the packaging script to be utilized
-packagingScriptBranch: 'master'
-
 # the name of the party for whom the source drop is intended
-dropCustomerName: 'aCustomer'
+dropCustomerName: 'false'
