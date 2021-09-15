@@ -227,6 +227,55 @@ Conditions:
     - !Condition HasAdminEmail
   IsDemoDeployment: !Equals [!Ref DemoDeployment, Yes]
 
+Mappings:
+  RegionShortNames:
+    us-east-1:
+      'shortName': 'va'
+    us-east-2:
+      'shortName': 'oh'
+    us-west-1:
+      'shortName': 'ca'
+    us-west-2:
+      'shortName': 'or'
+    ap-east-1:
+      'shortName': 'hk'
+    ap-south-1:
+      'shortName': 'mum'
+    ap-northeast-3:
+      'shortName': 'osa'
+    ap-northeast-2:
+      'shortName': 'sel'
+    ap-southeast-1:
+      'shortName': 'sg'
+    ap-southeast-2:
+      'shortName': 'syd'
+    ap-northeast-1:
+      'shortName': 'ty'
+    ca-central-1:
+      'shortName': 'ca'
+    cn-north-1:
+      'shortName': 'cn'
+    cn-northwest-1:
+      'shortName': 'nx'
+    eu-central-1:
+      'shortName': 'fr'
+    eu-west-1:
+      'shortName': 'irl'
+    eu-west-2:
+      'shortName': 'ldn'
+    eu-west-3:
+      'shortName': 'par'
+    eu-north-1:
+      'shortName': 'sth'
+    me-south-1:
+      'shortName': 'bhr'
+    sa-east-1:
+      'shortName': 'sao'
+    us-gov-east-1:
+      'shortName': 'gce'
+    us-gov-west-1:
+      'shortName': 'gcw'
+ 
 Resources:
   # KMS key to be used for encrypting/decrypting the artifacts
   EncryptionKey:
@@ -469,11 +518,30 @@ Resources:
                   - iam:CreateInstanceProfile
                   - iam:AddRoleToInstanceProfile
                   - iam:RemoveRoleFromInstanceProfile
-                  # deletion of environment after testing
                   - iam:GetPolicy
                   - iam:DeleteInstanceProfile
                   - iam:DeletePolicy
-                Resource: '*'
+                Resource:
+                  - !Join
+                    - '-'
+                    - - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${EnvName}'
+                      - !FindInMap [RegionShortNames, !Ref 'DeploymentRegion', shortName]
+                      - !Sub '${SolutionName}-*'
+                  - !Join
+                    - '-'
+                    - - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${EnvName}'
+                      - !FindInMap [RegionShortNames, !Ref 'DeploymentRegion', shortName]
+                      - !Sub '${SolutionName}-*'
+                  - !Join
+                    - '-'
+                    - - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:instance-profile/${EnvName}'
+                      - !FindInMap [RegionShortNames, !Ref 'DeploymentRegion', shortName]
+                      - !Sub '${SolutionName}-*'
+                  - !Join
+                    - '-'
+                    - - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/service-role/${EnvName}'
+                      - !FindInMap [RegionShortNames, !Ref 'DeploymentRegion', shortName]
+                      - !Sub '${SolutionName}-*'
                 Effect: Allow
         - PolicyName: DenyAssumeRole # Deny Assume Role privilege to prevent Role permissions self-escalation
           PolicyDocument:
