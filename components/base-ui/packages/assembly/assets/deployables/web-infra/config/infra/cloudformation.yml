@@ -100,6 +100,7 @@ Resources:
   # S3 Bucket for the solution static website
   WebsiteBucket:
     Type: AWS::S3::Bucket
+    DependsOn: [LoggingBucket]
     Properties:
       BucketName: ${self:custom.settings.websiteBucketName}
       BucketEncryption:
@@ -159,6 +160,7 @@ Resources:
   # S3 Bucket for the documentation website
   DocsSiteBucket:
     Type: AWS::S3::Bucket
+    DependsOn: [LoggingBucket]
     Properties:
       BucketName: ${self:custom.settings.docsSiteBucketName}
       BucketEncryption:
