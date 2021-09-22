@@ -516,7 +516,9 @@ class AppstreamService extends Service {
       await appstream.deleteImage({ Name: imageName }).promise();
     } catch (e) {
       // If the image simply couldn't be found continue with the deletion process.
-      if (e.code !== 'ResourceNotFoundException') {
+      // As the API handler role has very limited scope, treat AccessDenied as ResourceNotFound
+      // If an error occurs in image creation, the role will not be able to list all images to verify
+      if (e.code !== 'ResourceNotFoundException' && e.code !== 'AccessDeniedException') {
         const safe = e.code === 'ResourceInUseException';
         throw this.boom.badRequest(e.message, safe);
       }
