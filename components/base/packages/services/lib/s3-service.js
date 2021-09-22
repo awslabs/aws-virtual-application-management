@@ -230,6 +230,27 @@ class S3Service extends Service {
     const result = await this.api.getObject({ Bucket: bucket, Key: key }).promise();
     return result.Body.toString(encoding);
   }
+
+  async deleteObjectsWithPrefix({ bucket, prefix }) {
+    if (!_.isString(prefix)) {
+      // If a prefix is not provided to listObjects it retrieves everything in the bucket.
+      // This protects against accidental deletion of all objects in a bucket.
+      throw new Error('A prefix must be provided');
+    }
+
+    const objects = await this.listObjects({ bucket, prefix });
+    const params = {
+      Bucket: bucket,
+      Delete: {
+        Objects: objects.map(o => {
+          return { Key: o.key };
+        }),
+        Quiet: false,
+      },
+    };
+
+    return this.api.deleteObjects(params).promise();
+  }
 }
 
 export default S3Service;
