@@ -116,6 +116,7 @@ Resources:
                 - !GetAtt [AuthenticationProviderTypesDb, Arn]
                 - !GetAtt [AuthenticationProviderConfigsDb, Arn]
                 - !GetAtt [RevokedTokensDb, Arn]
+                - !GetAtt [ValidTokensDb, Arn]
         - PolicyName: param-store-access
           PolicyDocument:
             Statement:
@@ -438,6 +439,30 @@ Resources:
       BillingMode: PAY_PER_REQUEST
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
+
+  ValidTokensDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbValidTokens}
+      AttributeDefinitions:
+        - AttributeName: 'uid'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'uid'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      SSESpecification: !If
+        - UseCmkEncryption
+        - SSEEnabled: true
+          KMSMasterKeyId: !Ref DynamoDbKmsKeyAlias
+          SSEType: 'KMS'
+        - SSEEnabled: false
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
   LocksDb:
     Type: AWS::DynamoDB::Table
     Properties:

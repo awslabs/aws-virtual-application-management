@@ -34,6 +34,7 @@ import {
   AuthenticationProviderTypeService,
   JwtService,
   TokenRevocationService,
+  TokenSwapperService,
 } from '@aws-ee/base-api-services';
 
 const settingKeys = {
@@ -56,6 +57,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('authenticationProviderTypeService', new AuthenticationProviderTypeService());
   container.register('authenticationService', new AuthenticationService());
   container.register('tokenRevocationService', new TokenRevocationService());
+  container.register('tokenSwapperService', new TokenSwapperService());
 
   container.register('dbService', new DbService(), { lazy: false });
   container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
@@ -92,6 +94,7 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   };
   table('dbAuthenticationProviderTypes', 'AuthenticationProviderTypes');
   table('dbAuthenticationProviderConfigs', 'AuthenticationProviderConfigs');
+  table('dbValidTokens', 'ValidTokens');
   table('dbRevokedTokens', 'RevokedTokens');
   table('dbUsers', 'Users');
   table('dbUserRoles', 'UserRoles');

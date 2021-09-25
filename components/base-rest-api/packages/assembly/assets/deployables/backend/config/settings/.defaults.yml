@@ -100,6 +100,9 @@ dbUserRoles: ${self:custom.settings.dbPrefix}-UserRoles
 # DyanmoDB table name for Token Revocation Table
 dbRevokedTokens: ${self:custom.settings.dbPrefix}-RevokedTokens
 
+# DyanmoDB table name for Valid Tokens
+dbValidTokens: ${self:custom.settings.dbPrefix}-ValidTokens
+
 # DynamoDB table name for Locks
 dbLocks: ${self:custom.settings.dbPrefix}-Locks
 

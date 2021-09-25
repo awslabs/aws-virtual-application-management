@@ -27,7 +27,7 @@ const authenticated = claims => ({ ...claims, authenticated: true });
 class AuthenticationService extends Service {
   constructor() {
     super();
-    this.dependency(['authenticationProviderConfigService', 'pluginRegistryService']);
+    this.dependency(['authenticationProviderConfigService', 'pluginRegistryService', 'tokenSwapperService']);
   }
 
   async init() {
@@ -94,6 +94,8 @@ class AuthenticationService extends Service {
         { token, issuer: claims.iss },
         providerConfig,
       );
+      const tokenSwapperService = await this.service('tokenSwapperService');
+      await tokenSwapperService.swap({ token, uid });
       return authenticated({
         token,
         verifiedToken,

@@ -24,3 +24,4 @@ export * from './authentication-providers/helpers/resolver';
 export { default as AuthenticationService } from './authentication-service';
 export { default as JwtService } from './jwt-service';
 export { default as TokenRevocationService } from './token-revocation-service';
+export { default as TokenSwapperService } from './token-swapper-service';
