@@ -1,3 +1,18 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ * http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
 import _ from 'lodash';
 import { Service } from '@aws-ee/base-services-container';
 import jwtDecode from 'jwt-decode';
@@ -21,11 +36,24 @@ class TokenSwapperService extends Service {
     const dbService = await this.service('dbService');
     const dbValidTokens = this.settings.get(settingKeys.dbValidTokens);
 
+    if (!uid) {
+      throw this.boom.badRequest('Empty uid', true);
+    }
+    let payload;
+    try {
+      payload = jwtDecode(token);
+    } catch (error) {
+      throw this.boom.invalidToken('Invalid Token', true).cause(error);
+    }
+    const ttl = _.get(payload, 'exp', 0);
+    if (ttl === 0) {
+      throw this.boom.invalidToken('Expired Token', true);
+    }
     const { isSameToken } = await this.revokeValidToken({ token, uid });
     if (isSameToken) {
       return;
     }
-    const record = { uid, token };
+    const record = { uid, token, ttl };
     await dbService.helper
       .updater()
       .table(dbValidTokens)
@@ -72,12 +100,16 @@ class TokenSwapperService extends Service {
       );
     }
 
+    this.log.info('Revoking previous user session');
     // invoke the token revoker and pass the token that needs to be revoked
+
     try {
-      await this.invoke(tokenRevokerLocator, 'requestContext', { token: oldToken }, providerConfig);
+      await this.invoke(tokenRevokerLocator, undefined, { token: oldToken }, providerConfig);
     } catch (error) {
-      throw this.boom.badRequest(`Error trying to revoke token: ${error}`);
+      throw this.boom.badRequest(`Error trying to revoke token`, true).cause(error);
     }
+
+    this.log.info('Previous user session succesfully revoked');
     return { isSameToken: false };
   }
 }
