@@ -45,10 +45,13 @@ class TokenSwapperService extends Service {
     } catch (error) {
       throw this.boom.invalidToken('Invalid Token', true).cause(error);
     }
+    // New token should not be expired
     const ttl = _.get(payload, 'exp', 0);
     if (ttl === 0) {
       throw this.boom.invalidToken('Expired Token', true);
     }
+    // If token is the same as the token in the dbValidToken then
+    // swap is not required.
     const { isSameToken } = await this.revokeValidToken({ token, uid });
     if (isSameToken) {
       return;
@@ -83,6 +86,8 @@ class TokenSwapperService extends Service {
       return { isSameToken: true };
     }
 
+    // In the case that a token becomes corrupt or an invalid token has ended up in the valid token db
+    // then an error should be thrown.
     let payload;
     try {
       payload = jwtDecode(oldToken);
@@ -92,6 +97,7 @@ class TokenSwapperService extends Service {
     const providerId = payload.iss;
     const providerConfig = await authenticationProviderConfigService.getAuthenticationProviderConfig(providerId);
 
+    // WARNING: Must provide a tokenRevokerLocator within the providerConfig
     const tokenRevokerLocator = _.get(providerConfig, 'config.type.config.impl.tokenRevokerLocator');
     if (!tokenRevokerLocator) {
       throw this.boom.badRequest(
@@ -102,11 +108,10 @@ class TokenSwapperService extends Service {
 
     this.log.info('Revoking previous user session');
     // invoke the token revoker and pass the token that needs to be revoked
-
     try {
       await this.invoke(tokenRevokerLocator, undefined, { token: oldToken }, providerConfig);
     } catch (error) {
-      throw this.boom.badRequest(`Error trying to revoke token`, true).cause(error);
+      throw this.boom.badRequest('Error trying to revoke token', false).cause(error);
     }
 
     this.log.info('Previous user session succesfully revoked');

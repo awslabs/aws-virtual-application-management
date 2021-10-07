@@ -18,7 +18,7 @@ import DbServiceMock from '../../__mocks__/db-service.mock';
 import SettingsServiceMock from '../../__mocks__/settings-service.mock';
 import TokenSwapperService from '../token-swapper-service';
 
-const settings = {
+const settingsKey = {
   dbValidTokens: 'dbValidTokens',
   dbRevokedTokens: 'dbRevokedTokens',
 };
@@ -42,19 +42,22 @@ describe('TokenSwapperService', () => {
   let dbService;
   let authenticationProviderConfigService;
   let logger;
+  let settings;
+  let revokeServiceMock;
 
   beforeEach(async done => {
     sut = new TokenSwapperService();
     dbService = new DbServiceMock();
     authenticationProviderConfigService = { getAuthenticationProviderConfig: jest.fn() };
     logger = { info: jest.fn() };
-
+    settings = new SettingsServiceMock(settingsKey);
+    revokeServiceMock = { revoke: jest.fn() };
     container = new ServicesContainerMock({
       sut,
       dbService,
-      settings: new SettingsServiceMock(settings),
+      settings,
       authenticationProviderConfigService,
-      revokeServiceMock: { revoke: jest.fn() },
+      revokeServiceMock,
       log: logger,
     });
     await container.initServices();
@@ -113,8 +116,8 @@ describe('TokenSwapperService', () => {
         } catch (err) {
           throw new Error(`Expected no error but error shown: ${err}`);
         }
-        expect(dbService.getItem(settings.dbRevokedTokens, { uid: validUID })).toBeUndefined();
-        expect(dbService.getItem(settings.dbValidTokens, { uid: validUID })).toEqual({
+        expect(dbService.getItem(settingsKey.dbRevokedTokens, { uid: validUID })).toBeUndefined();
+        expect(dbService.getItem(settingsKey.dbValidTokens, { uid: validUID })).toEqual({
           token: validToken,
           ttl: 1,
           uid: validUID,
@@ -143,7 +146,6 @@ describe('TokenSwapperService', () => {
       }
       done();
     });
-    // it()
     describe('when valid provider config is given', () => {
       beforeEach(async done => {
         authenticationProviderConfigService.getAuthenticationProviderConfig.mockReturnValue({
@@ -177,6 +179,61 @@ describe('TokenSwapperService', () => {
           expect(err.message).toBe(
             "Error revoking token. The authentication provider with id = 'undefined' does not support token revocation",
           );
+          expect(err.status).toBe(400);
+          expect(err.safe).toBe(false);
+          done();
+          return;
+        }
+        throw new Error('Expected an exception');
+      });
+    });
+
+    describe('when invalid token is in db', () => {
+      beforeEach(async done => {
+        const dbValidTokens = settings.get(settingsKey.dbValidTokens);
+        const record = { token: 'Invalid Token' };
+        await dbService.helper
+          .updater()
+          .table(dbValidTokens)
+          .key({ uid: validUID })
+          .item(record)
+          .update();
+        done();
+      });
+      it('fails with invalid token in db', async done => {
+        try {
+          await sut.swap({ token: validToken, uid: validUID });
+        } catch (err) {
+          expect(err.message).toBe('Invalid Revoke Token');
+          expect(err.status).toBe(403);
+          expect(err.safe).toBe(true);
+          done();
+          return;
+        }
+        throw new Error('Expected an exception');
+      });
+    });
+
+    describe('when revoker throws an error', () => {
+      beforeEach(async done => {
+        authenticationProviderConfigService.getAuthenticationProviderConfig.mockReturnValue({
+          config: {
+            type: {
+              config: { impl: { tokenRevokerLocator } },
+            },
+          },
+        });
+        await sut.swap({ token: validToken, uid: validUID });
+        revokeServiceMock.revoke.mockImplementation(() => {
+          throw new Error('Revoker error');
+        });
+        done();
+      });
+      it('fails when revoker throws an error', async done => {
+        try {
+          await sut.swap({ token: secondValidToken, uid: validUID });
+        } catch (err) {
+          expect(err.message).toBe('Error trying to revoke token');
           expect(err.status).toBe(400);
           expect(err.safe).toBe(false);
           done();
