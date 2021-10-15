@@ -1,37 +1,15 @@
-## Welcome to GitHub Pages
+## Welcome to AWS Virtual Application Management (AWS VAM)
 
-You can use the [editor on GitHub](https://github.com/awslabs/aws-virtual-application-management/edit/main/docs/index.md) to maintain and preview the content for your website in Markdown files.
+**Amazon AppStream 2.0** offers a rich set of features to allow customers to stream non-persistent applications and desktops to end users. These features offer a variety of controls to effectively scale fleets of resources and various properties pertaining to the streaming session. However, customers across industries and verticals have identified the following challenges when working with the service:
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+1. Building and patching applications on AppStream Image Builders is a time consuming and error prone process
+2. IT is often the contact point for launching new AppStream Fleets rather than providing requesters a point-and-click self-service portal
+3. It is difficult to understand and optimize usage, requiring additional work to create custom built dashboards
 
-### Markdown
+Based on feedback from various customers, AWS VAM was developed as solution to address the management and deployment of images at scale. The intent is to provide a **companion application** for AppStream 2.0 with the additional capabilites for administrators to create, manage, and deploy images and fleets. At it's core, it is a frontend application that sits on top of the AppStream 2.0 backend resources, a sample of which can be seen in the image below. Automation is provided through Powershell with the ability for IT to automatically deploy applications by configuring **Chocolatey/Powershell** scripts in an application repository provided by the solution.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+![AWS Virtual Application Management Dashboard landing page](/static/introduction/overview/VAMDashboard.png)
 
-```markdown
-Syntax highlighted code block
+### Documentation
 
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/awslabs/aws-virtual-application-management/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+Checkout our documentation to learn more about using AWS VAM:
