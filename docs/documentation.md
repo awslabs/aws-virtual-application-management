@@ -5,7 +5,7 @@
 
 ## User Guide
 
-[Application Repository](/docs/applicationRepository.md)\
+[Application Repository](/applicationRepository.md)\
 [Sidebar: Introduction](/docs/sidebarIntroduction.md)\
 [Sidebar: Dashboard](/docs/sidebarDashboard.md)\
 [Sidebar: Applications](/docs/sidebarApplication.md)\
