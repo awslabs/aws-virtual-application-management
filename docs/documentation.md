@@ -1,6 +1,6 @@
 ## Deployment Guide
 
-[Installation Overview](/docs/installationOverview.md)\
+[Installation Overview](/installationOverview.md)\
 [Initial Deployment](/docs/installationDeployment.md)\
 [Deploying Updates](/docs/deployingUpdates.md)
 
