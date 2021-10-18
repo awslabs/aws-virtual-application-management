@@ -10,4 +10,4 @@ Based on feedback from various customers, AWS VAM was developed as solution to a
 
 ### Documentation
 
-To learn more about launching and using the AWS solution, please checkout [Documentation](/docs/documentation.md)
+To learn more about launching and using the AWS solution, please checkout [Documentation](documentation.md)
