@@ -6,26 +6,26 @@
 ## User Guide
 
 [Application Repository](/applicationRepository.md)\
-[Sidebar: Introduction](/docs/sidebarIntroduction.md)\
-[Sidebar: Dashboard](/docs/sidebarDashboard.md)\
-[Sidebar: Applications](/docs/sidebarApplication.md)\
-[Sidebar: AppStream Images](/docs/sidebarAppStreamImages.md)\
-[Sidebar: AppStream Fleets](/docs/sidebarAppStreamFleets.md)\
-[Sidebar: Dynamic Catalogs](/docs/dynamicCatalogs.md)
+[Sidebar: Introduction](/sidebarIntroduction.md)\
+[Sidebar: Dashboard](/sidebarDashboard.md)\
+[Sidebar: Applications](/sidebarApplication.md)\
+[Sidebar: AppStream Images](/sidebarAppStreamImages.md)\
+[Sidebar: AppStream Fleets](/sidebarAppStreamFleets.md)\
+[Sidebar: Dynamic Catalogs](/dynamicCatalogs.md)
 
 ## Best Practices
 
-[Introduction](/docs/introduction.md)\
-[Multiple Deployment Environments](/docs/multipleDeploymentEnvironments.md)\
-[Amazon Inspector](/docs/amazonInspector.md)\
-[AWS CloudTrail](/docs/awsCloudTrail.md)\
-[AWS Shield](/docs/awsShield.md)\
-[Rotating the JWT Master Token](/docs/rotatingToken.md)
+[Introduction](/introduction.md)\
+[Multiple Deployment Environments](/multipleDeploymentEnvironments.md)\
+[Amazon Inspector](/amazonInspector.md)\
+[AWS CloudTrail](/awsCloudTrail.md)\
+[AWS Shield](/awsShield.md)\
+[Rotating the JWT Master Token](/rotatingToken.md)
 
 ## FAQs
 
-[FAQs](/docs/faqs.md)
+[FAQs](/faqs.md)
 
 ## Troubleshooting Guide
 
-[Common Errors](/docs/commonErrors.md)
+[Common Errors](/commonErrors.md)
