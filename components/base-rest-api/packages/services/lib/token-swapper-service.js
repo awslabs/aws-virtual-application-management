@@ -21,11 +21,13 @@ import { newInvoker } from './authentication-providers/helpers/invoker';
 const settingKeys = {
   dbValidTokens: 'dbValidTokens',
 };
+const validTokenKmsKeyAlias = process.env.VALID_TOKEN_KMS_KEY_ALIAS_ARN;
+
 class TokenSwapperService extends Service {
   constructor() {
     super();
     this.boom.extend(['invalidToken', 403]);
-    this.dependency(['dbService', 'authenticationProviderConfigService']);
+    this.dependency(['dbService', 'authenticationProviderConfigService', 'aws']);
   }
 
   async init() {
@@ -56,7 +58,16 @@ class TokenSwapperService extends Service {
     if (isSameToken) {
       return;
     }
-    const record = { uid, token, ttl };
+    const aws = await this.service('aws');
+    const kms = new aws.sdk.KMS();
+    const params = {
+      KeyId: validTokenKmsKeyAlias,
+      Plaintext: token,
+    };
+    this.log.info('Encrypt user token');
+    const { CiphertextBlob } = await kms.encrypt(params).promise();
+
+    const record = { uid, encryptedToken: CiphertextBlob, ttl };
     await dbService.helper
       .updater()
       .table(dbValidTokens)
@@ -80,7 +91,19 @@ class TokenSwapperService extends Service {
       return { isSameToken: false };
     }
 
-    const oldToken = record.token;
+    const encryptedToken = record.encryptedToken;
+    const aws = await this.service('aws');
+    const kms = new aws.sdk.KMS();
+
+    const params = {
+      CiphertextBlob: encryptedToken,
+      KeyId: validTokenKmsKeyAlias,
+    };
+
+    this.log.info('Past token is being decrypted');
+    const { Plaintext } = await kms.decrypt(params).promise();
+    const oldToken = Buffer.from(Plaintext).toString();
+
     const isSameToken = token === oldToken;
     if (isSameToken) {
       return { isSameToken: true };

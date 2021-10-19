@@ -19,6 +19,7 @@ authenticationLayerHandler:
   environment:
     APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
     APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
+    VALID_TOKEN_KMS_KEY_ALIAS_ARN: ${self:custom.settings.validTokenKmsKeyAliasArn}
 
 apiHandler:
   handler: src/lambdas/api-handler/handler.handler
