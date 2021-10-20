@@ -34,6 +34,16 @@ const secondValidToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZXN0IjoidmFsd
 const expiredSignature = 'acXIsOvdd3RxCeANdmxyd1gfnVl9qaOg1ZIrC3S9NbI';
 const expiredToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZXN0IjoidmFsdWUiLCJpYXQiOjE2MDYyMTQ1OTQsImV4cCI6MH0.${expiredSignature}`;
 
+const decryptedTokenMap = {
+  EncryptedToken1: validToken,
+  EncryptedToken2: secondValidToken,
+  InvalidToken: 'InvalidToken',
+  EncryptedExpiredToken: expiredToken,
+};
+
+const encryptedTokenMap = {};
+encryptedTokenMap[validToken] = 'EncryptedToken1';
+encryptedTokenMap[secondValidToken] = 'EncryptedToken2';
 const validUID = '1234567890';
 
 describe('TokenSwapperService', () => {
@@ -44,6 +54,7 @@ describe('TokenSwapperService', () => {
   let logger;
   let settings;
   let revokeServiceMock;
+  let mockKMS;
 
   beforeEach(async done => {
     sut = new TokenSwapperService();
@@ -52,6 +63,18 @@ describe('TokenSwapperService', () => {
     logger = { info: jest.fn() };
     settings = new SettingsServiceMock(settingsKey);
     revokeServiceMock = { revoke: jest.fn() };
+    mockKMS = {
+      encrypt: jest.fn(params => {
+        return { promise: jest.fn().mockReturnValue({ CiphertextBlob: encryptedTokenMap[params.Plaintext] }) };
+      }),
+      decrypt: jest.fn(params => {
+        return { promise: jest.fn().mockReturnValue({ Plaintext: decryptedTokenMap[params.CiphertextBlob] }) };
+      }),
+    };
+    const mockAWS = {
+      initService: jest.fn().mockResolvedValue(),
+      sdk: { KMS: jest.fn().mockReturnValue(mockKMS) },
+    };
     container = new ServicesContainerMock({
       sut,
       dbService,
@@ -59,6 +82,7 @@ describe('TokenSwapperService', () => {
       authenticationProviderConfigService,
       revokeServiceMock,
       log: logger,
+      aws: mockAWS,
     });
     await container.initServices();
     done();
@@ -80,7 +104,7 @@ describe('TokenSwapperService', () => {
 
     it('fails with invalid token', async done => {
       try {
-        await sut.swap({ token: 'Invalid Token', uid: '1' });
+        await sut.swap({ token: 'InvalidToken', uid: '1' });
       } catch (err) {
         expect(err.message).toBe('Invalid Token');
         expect(err.status).toBe(403);
@@ -118,7 +142,7 @@ describe('TokenSwapperService', () => {
         }
         expect(dbService.getItem(settingsKey.dbRevokedTokens, { uid: validUID })).toBeUndefined();
         expect(dbService.getItem(settingsKey.dbValidTokens, { uid: validUID })).toEqual({
-          token: validToken,
+          encryptedToken: 'EncryptedToken1',
           ttl: 1,
           uid: validUID,
         });
@@ -191,7 +215,7 @@ describe('TokenSwapperService', () => {
     describe('when invalid token is in db', () => {
       beforeEach(async done => {
         const dbValidTokens = settings.get(settingsKey.dbValidTokens);
-        const record = { token: 'Invalid Token' };
+        const record = { encryptedToken: 'InvalidToken' };
         await dbService.helper
           .updater()
           .table(dbValidTokens)

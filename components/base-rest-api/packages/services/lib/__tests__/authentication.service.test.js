@@ -76,8 +76,15 @@ describe('AuthenticationService', () => {
     userService = new UserService();
     userRolesService = new UserRolesService();
     tokenSwapperService = new TokenSwapperService();
-    logger = { error: jest.fn() };
-
+    logger = { error: jest.fn(), info: jest.fn() };
+    const mockKMS = {
+      encrypt: jest.fn().mockReturnValue({ promise: jest.fn().mockReturnValue({ CiphertextBlob: 'EncryptedToken' }) }),
+      decrypt: jest.fn().mockReturnValue({ promise: jest.fn().mockReturnValue({ Plaintext: validJWTToken }) }),
+    };
+    const mockAWS = {
+      initService: jest.fn().mockResolvedValue(),
+      sdk: { KMS: jest.fn().mockReturnValue(mockKMS) },
+    };
     container = new ServicesContainerMock({
       sut,
       pluginRegistryService: { visitPlugins: jest.fn() },
@@ -94,6 +101,7 @@ describe('AuthenticationService', () => {
       tokenSwapperService,
       settings: new SettingsServiceMock(settings),
       log: logger,
+      aws: mockAWS,
     });
     await container.initServices();
     done();
