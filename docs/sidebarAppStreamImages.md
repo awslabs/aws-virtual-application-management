@@ -56,8 +56,8 @@ The image details page provides information about a selected image. To get to im
 
 ### General Details
 
-**Platform**: The OS platform used for the image.
-**Created**: The date and time the image was created.
+**Platform**: The OS platform used for the image.\
+**Created**: The date and time the image was created.\
 **Dynamic Catalogs Enabled**: Yes or No depending on the whether the image is created with the dynamic catalogs feature enabled.
 
 ### Applications
