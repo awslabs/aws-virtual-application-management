@@ -1,4 +1,4 @@
-# AppStream Images Introduction
+# AppStream Images
 
 The Appstream Images page allows the user to view a list of images which have been created within the solution. It provides the user with a button to create images (see [Create New Appstream Images within VAM](#creating-appstream-images)).
 
