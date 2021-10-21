@@ -18,14 +18,20 @@ import {
   UserRolesService,
   AuthorizationService,
   UserAuthzService,
-  DbService,
   AuditWriterService,
 } from '@aws-ee/base-services';
+import DbServiceMock from '../../__mocks__/db-service.mock';
 
 import ServicesContainerMock from '../../__mocks__/services-container.mock';
+import SettingsServiceMock from '../../__mocks__/settings-service.mock';
 import AuthenticationService from '../authentication-service';
+import TokenSwapperService from '../token-swapper-service';
 
 jest.mock('@aws-ee/base-services');
+
+const settings = {
+  dbValidTokens: 'dbValidTokens',
+};
 
 const validatorMockResponse = {
   verifiedToken: 'validatorToken',
@@ -35,9 +41,10 @@ const validatorMockResponse = {
 };
 
 const validJWTToken =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwidXNlcm5hbWUiOiJNb2NrVXNlciIsImlhdCI6MTUxNjIzOTAyMiwiaXNzIjoiTW9ja0F1dGhQcm92aWRlciIsImN1c3RvbTphdXRoZW50aWNhdGlvblByb3ZpZGVySWQiOiJNb2NrUHJvdmlkZXJJZCIsImN1c3RvbTppZGVudGl0eVByb3ZpZGVyTmFtZSI6Ik1vY2tQcm92aWRlck5hbWUifQ.xx71aYmzXs2yNzOfR68wnoyx44u4la9lpOgMfopr5i4';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwidXNlcm5hbWUiOiJNb2NrVXNlciIsImlhdCI6MTUxNjIzOTAyMiwiaXNzIjoiTW9ja0F1dGhQcm92aWRlciIsImN1c3RvbTphdXRoZW50aWNhdGlvblByb3ZpZGVySWQiOiJNb2NrUHJvdmlkZXJJZCIsImN1c3RvbTppZGVudGl0eVByb3ZpZGVyTmFtZSI6Ik1vY2tQcm92aWRlck5hbWUiLCJleHAiOjF9.RVW2FgZxn0PUdfohvKmCDCzqgzhzYnd1_8ez3Scaw6c';
 
 const validationLocator = 'locator:service:validatorServiceMock/validate';
+const revokerLocator = 'locator:service:revokerServiceMock/revoke';
 
 describe('AuthenticationService', () => {
   let sut;
@@ -51,6 +58,7 @@ describe('AuthenticationService', () => {
   let userService;
   let userRolesService;
   let logger;
+  let tokenSwapperService;
 
   beforeEach(async done => {
     sut = new AuthenticationService();
@@ -61,27 +69,39 @@ describe('AuthenticationService', () => {
       validateApiKey: jest.fn().mockRejectedValue('Invalid api key'),
     };
 
-    dbService = new DbService();
+    dbService = new DbServiceMock();
     auditWriterService = new AuditWriterService();
     authorizationService = new AuthorizationService();
     userAuthzService = new UserAuthzService();
     userService = new UserService();
     userRolesService = new UserRolesService();
-    logger = { error: jest.fn() };
-
+    tokenSwapperService = new TokenSwapperService();
+    logger = { error: jest.fn(), info: jest.fn() };
+    const mockKMS = {
+      encrypt: jest.fn().mockReturnValue({ promise: jest.fn().mockReturnValue({ CiphertextBlob: 'EncryptedToken' }) }),
+      decrypt: jest.fn().mockReturnValue({ promise: jest.fn().mockReturnValue({ Plaintext: validJWTToken }) }),
+    };
+    const mockAWS = {
+      initService: jest.fn().mockResolvedValue(),
+      sdk: { KMS: jest.fn().mockReturnValue(mockKMS) },
+    };
     container = new ServicesContainerMock({
       sut,
       pluginRegistryService: { visitPlugins: jest.fn() },
       authenticationProviderConfigService,
       apiKeyService,
       validatorServiceMock: { validate: jest.fn().mockReturnValue(validatorMockResponse) },
+      revokerServiceMock: { revoke: jest.fn().mockReturnValue(true) },
       dbService,
       auditWriterService,
       authorizationService,
       userAuthzService,
       userService,
       userRolesService,
+      tokenSwapperService,
+      settings: new SettingsServiceMock(settings),
       log: logger,
+      aws: mockAWS,
     });
     await container.initServices();
     done();
@@ -118,7 +138,11 @@ describe('AuthenticationService', () => {
     describe('when valid provider config is given', () => {
       beforeEach(() => {
         authenticationProviderConfigService.getAuthenticationProviderConfig.mockReturnValue({
-          config: { type: { config: { impl: { tokenValidatorLocator: validationLocator } } } },
+          config: {
+            type: {
+              config: { impl: { tokenValidatorLocator: validationLocator, tokenRevokerLocator: revokerLocator } },
+            },
+          },
         });
         userService.mustFindUser.mockReturnValueOnce({ uid: 'mockUid', userRole: 'admin' });
         userRolesService.mustFind.mockReturnValueOnce({ id: 'admin' });

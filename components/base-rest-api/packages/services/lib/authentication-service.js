@@ -27,7 +27,7 @@ const authenticated = claims => ({ ...claims, authenticated: true });
 class AuthenticationService extends Service {
   constructor() {
     super();
-    this.dependency(['authenticationProviderConfigService', 'pluginRegistryService']);
+    this.dependency(['authenticationProviderConfigService', 'pluginRegistryService', 'tokenSwapperService']);
   }
 
   async init() {
@@ -82,8 +82,11 @@ class AuthenticationService extends Service {
       });
     }
     let tokenValidatorLocator;
+
     try {
       tokenValidatorLocator = providerConfig.config.type.config.impl.tokenValidatorLocator;
+      // eslint-disable-next-line no-unused-vars
+      const tokenRevokerLocator = providerConfig.config.type.config.impl.tokenRevokerLocator;
     } catch (error) {
       // exceptional circumstance, throw an actual error
       throw new Error(`malformed provider config for provider id '${providerId}'`);
@@ -94,6 +97,11 @@ class AuthenticationService extends Service {
         { token, issuer: claims.iss },
         providerConfig,
       );
+      const tokenSwapperService = await this.service('tokenSwapperService');
+      await tokenSwapperService.swap({
+        token,
+        uid,
+      });
       return authenticated({
         token,
         verifiedToken,

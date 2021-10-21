@@ -85,6 +85,12 @@ authenticationLayerHandlerRoleArn: 'arn:${AWS::Partition}:iam::${self:custom.set
 # The alias used for the KMS key created to encrypt/decrypt data in the DynamoDB tables
 dynamoDbKmsKeyAlias: ${self:custom.settings.namespace}-DynamoDbKey
 
+# The alias used for the KMS Key created to encrypt/decrypt tokens in the dbValidTokens table
+validTokenKmsKeyAlias: ${self:custom.settings.namespace}-ValidTokensDbKey
+
+# The alias arn used for the KMS Key created to encrypt/decrypt tokens in the dbValidTokens table
+validTokenKmsKeyAliasArn: !Sub 'arn:${AWS::Partition}:kms:${self:custom.settings.awsRegion}:${self:custom.settings.awsAccountInfo.awsAccountId}:alias/${self:custom.settings.validTokenKmsKeyAlias}'
+
 # DynamoDB table name for supported authentication provider types
 dbAuthenticationProviderTypes: ${self:custom.settings.dbPrefix}-AuthenticationProviderTypes
 
@@ -99,6 +105,9 @@ dbUserRoles: ${self:custom.settings.dbPrefix}-UserRoles
 
 # DyanmoDB table name for Token Revocation Table
 dbRevokedTokens: ${self:custom.settings.dbPrefix}-RevokedTokens
+
+# DyanmoDB table name for Valid Tokens
+dbValidTokens: ${self:custom.settings.dbPrefix}-ValidTokens
 
 # DynamoDB table name for Locks
 dbLocks: ${self:custom.settings.dbPrefix}-Locks
