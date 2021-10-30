@@ -51,7 +51,7 @@ adDomain: ${self:custom.settings.solutionName}-${self:custom.settings.envName}
 adDomainName: ${self:custom.settings.adDomain}.com
 ou: ou=Computers,ou=${self:custom.settings.adDomain},dc=${self:custom.settings.adDomain},dc=com
 imageBuilderIAMRoleArn: ${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderIAMRoleArn}
-appstreamImageArn: arn:aws:appstream:${self:custom.settings.awsRegion}::image/AppStream-WinServer2019-06-01-2021
+appstreamImageArn: arn:aws:appstream:${self:custom.settings.awsRegion}::image/AppStream-WinServer2019-10-08-2021
 imageBuilderSecurityGroupId: ${cf:${self:custom.settings.imageBuilderStackName}.ImageBuilderSecurityGroup}
 installerInstanceSecurityGroup: ${cf:${self:custom.settings.imageBuilderStackName}.InstallerInstanceSecurityGroup}
 appstreamInstanceRoleArn: ${cf:${self:custom.settings.imageBuilderStackName}.AppstreamInstanceRoleArn}
