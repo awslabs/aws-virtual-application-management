@@ -14,9 +14,9 @@
 REACT_APP_AD_JOINED: ${self:custom.settings.adJoined}
 
 # specify defaults here -- they can be overridden, but also relied on as defaults.
-REACT_APP_VERSION: Not for any critical, production, or otherwise important code, data, or other Content.
+REACT_APP_VERSION:  
 
-REACT_APP_VERSION_DISCLAIMER_HEADER: Not for any critical, production, or otherwise important code, data, or other Content.
+REACT_APP_VERSION_DISCLAIMER_HEADER:  
 
 REACT_APP_VERSION_DISCLAIMER_CONTENT: >-
   This sample code is provided to you as AWS Content under the AWS Customer Agreement,
