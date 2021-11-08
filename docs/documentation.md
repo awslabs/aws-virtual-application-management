@@ -15,7 +15,6 @@
 
 ## Best Practices
 
-[Introduction](/introduction.md)\
 [Multiple Deployment Environments](/multipleDeploymentEnvironments.md)\
 [Amazon Inspector](/amazonInspector.md)\
 [AWS CloudTrail](/awsCloudTrail.md)\
