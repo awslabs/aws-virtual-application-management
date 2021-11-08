@@ -11,7 +11,7 @@
 [Sidebar: Applications](/sidebarApplications.md)\
 [Sidebar: AppStream Images](/sidebarAppStreamImages.md)\
 [Sidebar: AppStream Fleets](/sidebarAppStreamFleets.md)\
-[Sidebar: Dynamic Catalogs](/dynamicCatalogs.md)
+[Sidebar: Dynamic Catalogs](/sidbarDynamicCatalogs.md)
 
 ## Best Practices
 
