@@ -18,7 +18,7 @@
 [Multiple Deployment Environments](/multipleDeploymentEnvironments.md)\
 [Amazon Inspector](/amazonInspector.md)\
 [AWS CloudTrail](/awsCloudTrail.md)\
-[AWS Shield](/awsShield.md)\
+[AWS Shield](/awsShield.md)
 
 ## FAQs
 
