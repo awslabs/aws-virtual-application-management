@@ -19,7 +19,6 @@
 [Amazon Inspector](/amazonInspector.md)\
 [AWS CloudTrail](/awsCloudTrail.md)\
 [AWS Shield](/awsShield.md)\
-[Rotating the JWT Master Token](/rotatingToken.md)
 
 ## FAQs
 
