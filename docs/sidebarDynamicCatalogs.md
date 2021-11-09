@@ -1,7 +1,5 @@
 # Dynamic Catalogs
 
-## Dynamic Catalogs Introduction
-
 Dynamic Catalogs allow an administrator to limit access to one or more applications served by a fleet to the specific active directory (AD) group(s) he or she chooses. Dynamic Catalogs are created by clicking on the Create Dynamic Catalog button. Once a catalog is created, it may be shared with one or more AD groups.
 
 **Prerequisites**
