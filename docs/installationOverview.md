@@ -376,7 +376,9 @@ The CodePipeline is owned by the Cloud Formation stack created in the initial st
 ### Deployed via Interactive Deployment
 
 If you want to remove (un-deploy) the solution, run the following command.
-NOTE: This operation can not be undone. Please make sure to un-deploy if you are absolutely sure that you no longer 
+
+
+> **Note:** This operation can not be undone. Please make sure to un-deploy if you are absolutely sure that you no longer 
 need the solution. You can recreate the solution after you remove it but you cannot get the previous solution deployment
 back once you remove it.
 
@@ -410,8 +412,9 @@ As an example, a VAM solution deployed to account 0000-0000-0000 with an environ
 
 #### Empty Buckets
 
-| WARNING: Bucket contents will be permenently deleted. Be sure to backup anything which needs to be saved. |
-| --- |
+| WARNING: Bucket contents will be permenently deleted          |
+|:---------------------------|
+| Be sure to backup anything which needs to be saved. |
 
 In the AWS Console, select each bucket from the following list, one at a time, and click 'Empty'. If the bucket is already empty, simply click 'Cancel' on the subsequent screen. Otherwise, type `permanently delete` in the space provided then click 'Empty'
 
