@@ -34,13 +34,8 @@ The provider of the zip archive should have included a SHA 256 hash to verify th
 * Create an S3 bucket with versioning enabled. This is required by CodePipeline.
 * Upload the VAM solution zip to this bucket.
 
----
-**NOTE**
-
-Create the S3 bucket in the same region where VAM will ultimately be deployed. For example,
+> **Note:** Create the S3 bucket in the same region where VAM will ultimately be deployed. For example,
 if VAM should primarily run in us-west-2 for cost purposes, then the S3 bucket should live there also.
-
----
 
 ### Step 3: Creating a CloudFormation stack
 
@@ -385,7 +380,7 @@ NOTE: This operation can not be undone. Please make sure to un-deploy if you are
 need the solution. You can recreate the solution after you remove it but you cannot get the previous solution deployment
 back once you remove it.
 
-FORCE_DELETE: the ```FORCE_DELETE=true``` option is more destructive than otherwise removing the solution however one will likely encounter errors without it. ```FORCE_DELETE``` will empty several S3 Buckets before attempting to remove the solution. These include
+**FORCE_DELETE**: the ```FORCE_DELETE=true``` option is more destructive than otherwise removing the solution however one will likely encounter errors without it. ```FORCE_DELETE``` will empty several S3 Buckets before attempting to remove the solution. These include
 
 * Installable Applications
 * GPO Objects
