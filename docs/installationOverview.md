@@ -1,4 +1,4 @@
-## Deploying the VAM Solution
+# Deploying the VAM Solution
 
 You can deploy VAM using either of the following methods:
   * [Using AWS CloudFormation template](#using-an-aws-cloudformation-template)
@@ -22,36 +22,41 @@ the same configuration.
 ### Step 1: Verify the zip archive
 The provider of the zip archive should have included a SHA 256 hash to verify the archive is the one expected.
 
-1. Unzip the archive.
-2. Execute the following relative to the root of the unzipped archive:
+* Unzip the archive.
+* Execute the following relative to the root of the unzipped archive:
 
 `components/vam-silky-smooth-deployments/packages/deployment-pipeline/scripts/verify-zip.sh <path to zip archvie> <expected SHA 256 checksum>`
 
-3. The script should exit with code `0` and the output should end with "`It is ok to proceed.`" If the output ends with "`Please report this to the provider of this package.`", it is highly recommended to *STOP* and do so.
+* The script should exit with code `0` and the output should end with "`It is ok to proceed.`" If the output ends with "`Please report this to the provider of this package.`", it is highly recommended to *STOP* and do so.
 
 ### Step 2: Creating the S3 bucket
 
-1. Create an S3 bucket with versioning enabled. This is required by CodePipeline.
-2. Upload the VAM solution zip to this bucket.
+* Create an S3 bucket with versioning enabled. This is required by CodePipeline.
+* Upload the VAM solution zip to this bucket.
 
-Note: Create the S3 bucket in the same region where VAM will ultimately be deployed. For example,
+---
+**NOTE**
+
+Create the S3 bucket in the same region where VAM will ultimately be deployed. For example,
 if VAM should primarily run in us-west-2 for cost purposes, then the S3 bucket should live there also.
+
+---
 
 ### Step 3: Creating a CloudFormation stack
 
 Create a CloudFormation stack using the CLI or console. The CloudFormation template used to create
 the stack can be found in the zip file (`components/vam-silky-smooth-deployments/packages/deployment-pipeline/config/buildspec/cloudformation.yml`).
 
-1. Open https://console.aws.amazon.com/cloudformation/home#/stacks/create/template in a web browser (and login to the appropriate account if needed)
-2. Choose `Upload a template file`.
-3. Click `Choose file`.
-4. Select the file `components/vam-silky-smooth-deployments/packages/deployment-pipeline/config/buildspec/cloudformation.yml` from the extracted source code and click `Next`.
-5. Now specify the stack details. Enter the stack name and required parameters. The parameters each have a description of their function. 
-6. If the solution is to use an existing VPC and Subnets or connect AppStream Stacks to G Suite domains, specify these too. Consider whether AppStream Fleet instances need to be joined to an AD domain, and/or if Dynamic Catalogs are required. If so, ensure that AdJoined is set to true. Then click `Next`.
-7. Change any stack options desired and then click Next.
-8. Ensure that the Admin Email parameter is a valid email address. This is how the initial admin user credentials will be sent.
-9. Review the configuration, acknowledge that this stack will create IAM resources 
-10. Create stack.
+* Open https://console.aws.amazon.com/cloudformation/home#/stacks/create/template in a web browser (and login to the appropriate account if needed)
+* Choose `Upload a template file`.
+* Click `Choose file`.
+* Select the file `components/vam-silky-smooth-deployments/packages/deployment-pipeline/config/buildspec/cloudformation.yml` from the extracted source code and click `Next`.
+* Now specify the stack details. Enter the stack name and required parameters. The parameters each have a description of their function. 
+* If the solution is to use an existing VPC and Subnets or connect AppStream Stacks to G Suite domains, specify these too. Consider whether AppStream Fleet instances need to be joined to an AD domain, and/or if Dynamic Catalogs are required. If so, ensure that AdJoined is set to true. Then click `Next`.
+* Change any stack options desired and then click Next.
+* Ensure that the Admin Email parameter is a valid email address. This is how the initial admin user credentials will be sent.
+* Review the configuration, acknowledge that this stack will create IAM resources 
+* Create stack.
 
 
 ### Step 4: Obtaining website URL
@@ -86,7 +91,7 @@ with an AD Connector deployed and active to proxy requests, and the VPC DHCP opt
 You can also leverage an existing Domain Controller (with AD Connector) that resides on-prem as long as there is network connectivity between the VPC and your
 on-prem (VPN or Direct Connect). Additional prerequisites for leveraging AD Connector can be found [here](https://docs.aws.amazon.com/directoryservice/latest/admin-guide/prereq_connector.html).
 
-* Active Directory must have an account created that AppStream will use as a service account
+* Active Directory must have an account created that AppStream will use as a service account.
 Create a secret in Secrets Manager to store the credentials for
 this account. Add two keys named `username` and `password` with the appropriate values.
 For more information, see [Granting Permissions to Create and Manage Active Directory Computer Objects](https://docs.aws.amazon.com/appstream2/latest/developerguide/active-directory-admin.html#active-directory-permissions).
@@ -284,6 +289,56 @@ Please follow prevailing best practices for auditing your NPM dependencies and f
 
 ---
 
+## AWS Web Application Firewall (WAF)
+
+After the solution is deployed, an Amazon CloudFront distribution of the website is created.
+By default, this distribution is protected by an AWS Web Application Firewall (WAF) configuration which prevents any public IP from accessing the website.
+
+### Allow new IPs to access the website
+
+One of the post-deployment steps that runs as part of a complete deployment, creates a parameter in AWS Systems Manager Parameter Store.
+
+Open up a browser and log into your AWS Console. Navigate to AWS Systems Manager > Parameter Store.
+
+You can find the configuration parameter by its name and path. It will be named `/<YOUR_STAGE_NAME>/<YOUR_SOLUTION_NAME>/cloud-front-waf-allow-list`.
+
+Edit that parameter's value. You can see that it has a very restrictive configuration by default, `[{"Type": "IPV4", "Value": "127.0.0.1/32"}]`.
+You can remove this value and substitute it with your own configuration.
+
+Here is an example configuration that allows two IPv4 ranges:
+
+```json
+[
+  {
+    "Type": "IPV4",
+    "Value": "192.168.0.123/32"
+  },
+  {
+    "Type": "IPV4",
+    "Value": "10.0.0.1/25"
+  }
+]
+```
+
+The configuration value uses CIDR notation. The solution will update WAF configuration based on the parameter value upon re-deployment of the solution or invocation of the post-deployment Lambda.
+As such, after you have saved the new parameter value, either run the solution deployment script or invoke the post-deployment lambda.
+
+To invoke the post-deployment Lambda, you can navigate to the Lambda service in the AWS Console and run a Test for the post-deployment Lambda with no parameters (i.e. { } on the payload) or you can use serverless from the host you used to deploy the solution by navigating into `main/.generated-solution/post-deployment` and then running `pnpx sls invoke -f postDeployment -s <STAGE>`.
+
+After running the post-deployment Lambda there might be a slight delay of 1 minute before the changes are propagated through the AWS services.
+
+To update the configuration, the post-deployment step uses the Javascript SDK. For more information about supported configuration values, refer to the [official documentation](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/WAF.html#updateIPSet-property).
+
+### Disable WAF (Not recommended)
+
+You can disable WAF completely by overwriting the `useCloudFrontWaf` setting and setting it to `false`.
+You can do this by editing the setting configuration file for your stage at `config/settings/${stage}.yml` and adding the line:
+
+```yaml
+useCloudFrontWaf: false
+```
+---
+
 ## Removing the Solution
 
 There are different methods for removing the solution depending on how it was installed. Different subsections will guide one through various steps and recommendations for removing the solution.
@@ -359,7 +414,9 @@ S3 Bucket names are required to be globally unique. To maintain this, VAM uses a
 As an example, a VAM solution deployed to account 0000-0000-0000 with an environment name of 'test' and a solution name of 'vam' in us-east-1 (Virginia) would have the namespace of `000000000000-test-va-vam`.
 
 #### Empty Buckets
-WARNING: Bucket contents will be permenently deleted. Be sure to backup anything which needs to be saved.
+
+| WARNING: Bucket contents will be permenently deleted. Be sure to backup anything which needs to be saved. |
+| --- |
 
 In the AWS Console, select each bucket from the following list, one at a time, and click 'Empty'. If the bucket is already empty, simply click 'Cancel' on the subsequent screen. Otherwise, type `permanently delete` in the space provided then click 'Empty'
 
@@ -401,56 +458,6 @@ Installing this solution will create a multi-region Cloud Trail prefixed using t
 
 The solution will also create an S3 bucket into which the Cloud Trail logs are placed. It is important to note that upon solution removal, the Cloud Trail will be deleted, but this bucket will be retained. The S3 bucket (*environment name*`-`*2 letter region ID*`-`*solution name*`-backend-cloudtrailbucket-`*alphanumeric disambiguator*) can be emptied and deleted once the solution is removed consistent with one's own log retention policies.
 
----
-
-## AWS Web Application Firewall (WAF)
-
-After the solution is deployed, an Amazon CloudFront distribution of the website is created.
-By default, this distribution is protected by an AWS Web Application Firewall (WAF) configuration which prevents any public IP from accessing the website.
-
-### Allow new IPs to access the website
-
-One of the post-deployment steps that runs as part of a complete deployment, creates a parameter in AWS Systems Manager Parameter Store.
-
-Open up a browser and log into your AWS Console. Navigate to AWS Systems Manager > Parameter Store.
-
-You can find the configuration parameter by its name and path. It will be named `/<YOUR_STAGE_NAME>/<YOUR_SOLUTION_NAME>/cloud-front-waf-allow-list`.
-
-Edit that parameter's value. You can see that it has a very restrictive configuration by default, `[{"Type": "IPV4", "Value": "127.0.0.1/32"}]`.
-You can remove this value and substitute it with your own configuration.
-
-Here is an example configuration that allows two IPv4 ranges:
-
-```json
-[
-  {
-    "Type": "IPV4",
-    "Value": "192.168.0.123/32"
-  },
-  {
-    "Type": "IPV4",
-    "Value": "10.0.0.1/25"
-  }
-]
-```
-
-The configuration value uses CIDR notation. The solution will update WAF configuration based on the parameter value upon re-deployment of the solution or invocation of the post-deployment Lambda.
-As such, after you have saved the new parameter value, either run the solution deployment script or invoke the post-deployment lambda.
-
-To invoke the post-deployment Lambda, you can navigate to the Lambda service in the AWS Console and run a Test for the post-deployment Lambda with no parameters (i.e. { } on the payload) or you can use serverless from the host you used to deploy the solution by navigating into `main/.generated-solution/post-deployment` and then running `pnpx sls invoke -f postDeployment -s <STAGE>`.
-
-After running the post-deployment Lambda there might be a slight delay of 1 minute before the changes are propagated through the AWS services.
-
-To update the configuration, the post-deployment step uses the Javascript SDK. For more information about supported configuration values, refer to the [official documentation](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/WAF.html#updateIPSet-property).
-
-### Disable WAF (Not recommended)
-
-You can disable WAF completely by overwriting the `useCloudFrontWaf` setting and setting it to `false`.
-You can do this by editing the setting configuration file for your stage at `config/settings/${stage}.yml` and adding the line:
-
-```yaml
-useCloudFrontWaf: false
-```
 ---
 
 ## Recommended Reading
