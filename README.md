@@ -94,7 +94,7 @@ solution. A benefit of this method is that updated zip files are automatically d
 the same configuration.
 
 ### Step 1: Verify the zip archive
-Download the ZIP archive for the solution. A SHA 256 hash should exist to verify the archive is the one expected.
+Download the ZIP archive for the solution. A SHA 256 hash should exist to verify the archive is the one expected. Download the ZIP archive for the solution. A SHA 256 hash should exist to verify the archive is the one expected.
 
 1. Unzip the archive.
 2. Execute the following relative to the root of the unzipped archive:
