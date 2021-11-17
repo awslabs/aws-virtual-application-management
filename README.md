@@ -72,8 +72,6 @@ deploy function ............... Deploy a single function from the service
 
 ---
 
-## Deploying the VAM Solution
-
 You can deploy VAM using either of the following methods:
   * [Using AWS CloudFormation template](#using-an-aws-cloudformation-template)
   * [Using a pre-existing VPC and subnets](#deploy-using-a-pre-existing-vpc-and-subnets)
@@ -94,21 +92,21 @@ solution. A benefit of this method is that updated zip files are automatically d
 the same configuration.
 
 ### Step 1: Verify the zip archive
-Download the ZIP archive for the solution. A SHA 256 hash should exist to verify the archive is the one expected. Download the ZIP archive for the solution. A SHA 256 hash should exist to verify the archive is the one expected.
+Download the ZIP archive for the solution. A SHA 256 hash should exist to verify the archive is the one expected. If you do not have the checksum, feel free to continue to Step 2.
 
-1. Unzip the archive.
-2. Execute the following relative to the root of the unzipped archive:
+* Unzip the archive.
+* Execute the following relative to the root of the unzipped archive:
 
 `components/vam-silky-smooth-deployments/packages/deployment-pipeline/scripts/verify-zip.sh <path to zip archvie> <expected SHA 256 checksum>`
 
-3. The script should exit with code `0` and the output should end with "`It is ok to proceed.`" If the output ends with "`Please report this to the provider of this package.`", it is highly recommended to *STOP* and do so.
+* The script should exit with code `0` and the output should end with "`It is ok to proceed.`" If the output ends with "`Please report this to the provider of this package.`", it is highly recommended to *STOP* and do so.
 
 ### Step 2: Creating the S3 bucket
 
-1. Create an S3 bucket with versioning enabled. This is required by CodePipeline.
-2. Upload the VAM solution zip to this bucket.
+* Create an S3 bucket with versioning enabled. This is required by CodePipeline.
+* Upload the VAM solution zip to this bucket.
 
-Note: Create the S3 bucket in the same region where VAM will ultimately be deployed. For example,
+> **Note:** Create the S3 bucket in the same region where VAM will ultimately be deployed. For example,
 if VAM should primarily run in us-west-2 for cost purposes, then the S3 bucket should live there also.
 
 ### Step 3: Creating a CloudFormation stack
@@ -116,16 +114,16 @@ if VAM should primarily run in us-west-2 for cost purposes, then the S3 bucket s
 Create a CloudFormation stack using the CLI or console. The CloudFormation template used to create
 the stack can be found in the zip file (`components/vam-silky-smooth-deployments/packages/deployment-pipeline/config/buildspec/cloudformation.yml`).
 
-1. Open https://console.aws.amazon.com/cloudformation/home#/stacks/create/template in a web browser (and login to the appropriate account if needed)
-2. Choose `Upload a template file`.
-3. Click `Choose file`.
-4. Select the file `components/vam-silky-smooth-deployments/packages/deployment-pipeline/config/buildspec/cloudformation.yml` from the extracted source code and click `Next`.
-5. Now specify the stack details. Enter the stack name and required parameters. The parameters each have a description of their function. 
-6. If the solution is to use an existing VPC and Subnets or connect AppStream Stacks to G Suite domains, specify these too. Consider whether AppStream Fleet instances need to be joined to an AD domain, and/or if Dynamic Catalogs are required. If so, ensure that AdJoined is set to true. Then click `Next`.
-7. Change any stack options desired and then click Next.
-8. Ensure that the Admin Email parameter is a valid email address. This is how the initial admin user credentials will be sent.
-9. Review the configuration, acknowledge that this stack will create IAM resources 
-10. Create stack.
+* Open https://console.aws.amazon.com/cloudformation/home#/stacks/create/template in a web browser (and login to the appropriate account if needed)
+* Choose `Upload a template file`.
+* Click `Choose file`.
+* Select the file `components/vam-silky-smooth-deployments/packages/deployment-pipeline/config/buildspec/cloudformation.yml` from the extracted source code and click `Next`.
+* Now specify the stack details. Enter the stack name and required parameters. The parameters each have a description of their function. 
+* If the solution is to use an existing VPC and Subnets or connect AppStream Stacks to G Suite domains, specify these too. Consider whether AppStream Fleet instances need to be joined to an AD domain, and/or if Dynamic Catalogs are required. If so, ensure that AdJoined is set to true. Then click `Next`.
+* Change any stack options desired and then click Next.
+* Ensure that the Admin Email parameter is a valid email address. This is how the initial admin user credentials will be sent.
+* Review the configuration, acknowledge that this stack will create IAM resources 
+* Create stack.
 
 
 ### Step 4: Obtaining website URL
@@ -160,7 +158,7 @@ with an AD Connector deployed and active to proxy requests, and the VPC DHCP opt
 You can also leverage an existing Domain Controller (with AD Connector) that resides on-prem as long as there is network connectivity between the VPC and your
 on-prem (VPN or Direct Connect). Additional prerequisites for leveraging AD Connector can be found [here](https://docs.aws.amazon.com/directoryservice/latest/admin-guide/prereq_connector.html).
 
-* Active Directory must have an account created that AppStream will use as a service account
+* Active Directory must have an account created that AppStream will use as a service account.
 Create a secret in Secrets Manager to store the credentials for
 this account. Add two keys named `username` and `password` with the appropriate values.
 For more information, see [Granting Permissions to Create and Manage Active Directory Computer Objects](https://docs.aws.amazon.com/appstream2/latest/developerguide/active-directory-admin.html#active-directory-permissions).
@@ -358,125 +356,6 @@ Please follow prevailing best practices for auditing your NPM dependencies and f
 
 ---
 
-## Removing the Solution
-
-There are different methods for removing the solution depending on how it was installed. Different subsections will guide one through various steps and recommendations for removing the solution.
-
-### Removal Prerequisites
-
-VAM creates some artifacts which can place dependencies on components which were deployed with the solution. Examples of dependencies may include connections from EC2 instances or AppStream 2.0 fleets to various VPC components.
-
-#### Remove VAM created AppStream 2.0 Fleets
-
-In the VAM solution, simply go to the Fleets tab, stop any running fleets and delete the fleets. If the VAM solution is unavailable, these operations can be completed from the AWS Console however it is important to note that both the Fleet and its Stack (should be of the same name) should be deleted. If the Stack is to be deleted first, it must first be disassociated from its fleet.
-
-#### Remove any VAM created EC2 instances
-
-In the AWS Console under the EC2 service, look at any existing instances. Specifically look for any with a name of the form ```<environment-name>-<2-letter-region-id>-<solution-name>-installer-host-xxxxxxxx```. where ```xxxxxxxx``` is a generated alpha-numeric disambiguator string. For example, if you chose 'myTestEnv' as the environment name and 'vam' as the solution name and deployed to 'us-east-1 (Virginia)', your installer hosts will be of the form ```myTestEnv-va-vam-install-host-xxxxxxxx```. Terminate these instances.
-
-#### Remove Policies added to VAM deployed Roles
-
-There are reasons one might add policies to IAM roles created by the VAM solution. For instance, one may have specific policies which were added to ```<environment-name>-<2-letter-region-id>-<solution-name>-image-builder-InstallerHostRole-XXX``` role for his or her own monitoring needs. A common role to modify is the ```<environment-name>-<2-letter-region-id>-<solution-name>-LtiHandler``` role. The standard modification is to attach a policy which allows ```CreateStreamingUrl``` on one or more AppStream 2.0 fleets utilized as part of an LTI environment.
-
-Any additional policies attached to IAM roles created by VAM will need to be detached or deleted for the removal process to complete successfully. This can be done from within the IAM service in the AWS Console.
-
-
-### Deployed Using an AWS CloudFormation template
-
-#### "DemoDeployment" Parameter set to "Yes"
-
-Removing a demo deployment simply requires pipeline approval. During installation, a CodePipeline was created. Simply return to that code pipeline and approve continuation to the next step. Once the pipeline completes, the solution should be removed. If removal via the pipleine fails, use the removal steps under [Deployed via Interactive Deployment](#Deployed-via-Interactive-Deployment) if you have a [development environment](#Interactive-Installation) configured, otherwise, one can [remove the solution manually](#Manually-Removing-the-Solution).
-
-Once the solution has been removed, it is safe to [delete the CodePipeline](#Deleting-the-Code-Pipeline).
-
-### Deleting the Code Pipeline
-
-#### Prerequisite
-CloudFormation instalation creates an S3 Bucket and places some objects in it. This bucket should be empty when attempting to remove the CodePipeline. In the S3 Service in the AWS Conosole, locate a bucket which contains the name of the initial stack created by the CloudFormation temmplate followed by the string `-AppArtifactBucket-`. Empty this bucket.
-
-#### Removing the Pipeline
-The CodePipeline is owned by the Cloud Formation stack created in the initial step of [deploying via AWS CloudFormation](#Using-an-AWS-CloudFormation-template). The best way to remove the pipeline and its associated roles and infrastructure is to delete that stack. This can be done easily by finding it in the CloudFormation service in the AWS Console and selecting 'Delete' from 'Actions'.
-
-### Deployed via Interactive Deployment
-
-If you want to remove (un-deploy) the solution, run the following command.
-NOTE: This operation can not be undone. Please make sure to un-deploy if you are absolutely sure that you no longer 
-need the solution. You can recreate the solution after you remove it but you cannot get the previous solution deployment
-back once you remove it.
-
-FORCE_DELETE: the ```FORCE_DELETE=true``` option is more destructive than otherwise removing the solution however one will likely encounter errors without it. ```FORCE_DELETE``` will empty several S3 Buckets before attempting to remove the solution. These include
-
-* Installable Applications
-* GPO Objects
-* Website Content
-* Documentation Content
-* Logging
-
-The removal process will be unable to remove these buckets if they are not already empty and thus will show errors.
-
-```bash
-$ cd $PROJECT_HOME
-$ FORCE_DELETE=true pnpx sls solution-remove --stage $STAGE_NAME 
-```
-
-### Manually Removing the Solution
-If the interactive removal fails, a development environment is unavailable, or the CodePipeline removal option is not available, the solution may be removed manually.
-
-#### Note on S3 Bucket Namespace
-S3 Bucket names are required to be globally unique. To maintain this, VAM uses a "namespace" prefix which is made up of the following elements seperated by hyphens (-):
-
-1. AccountId: The twelve digit Account Id under which the solution is installed.
-2. Environment Name: This is a user defined field selected at insallation.
-3. Region Identifier: A two character identfier for the region. For instance, if VAM is installed to us-west-2 (Oregon), the region identifier will be 'or'.
-4. Solution Name: Although this is chosen at installation time, this is typically 'vam'.
-
-As an example, a VAM solution deployed to account 0000-0000-0000 with an environment name of 'test' and a solution name of 'vam' in us-east-1 (Virginia) would have the namespace of `000000000000-test-va-vam`.
-
-#### Empty Buckets
-WARNING: Bucket contents will be permenently deleted. Be sure to backup anything which needs to be saved.
-
-In the AWS Console, select each bucket from the following list, one at a time, and click 'Empty'. If the bucket is already empty, simply click 'Cancel' on the subsequent screen. Otherwise, type `permanently delete` in the space provided then click 'Empty'
-
-* *namespace*-application-repo
-* *namespace*-dap-config
-* *namespace*-docs-site
-* *namespace*-gpo-templates
-* *namespace*-installer-work
-* *namespace*-metrics
-* *namespace*-website
-
-There is also a logging bucket, but that will need to be emptied later as removal of other compoenents will result in this bucket recieving more data.
-
-#### Removing the CloudFormation Stacks
-vam CloudFormation stacks use a naming scheme similar to the [S3 Buckets](#Note-on-S3-Bucket-Namespace) however for CloudFormation, the account ID is omitted. Therefore, following the previous example of the solution deployed to account 0000-0000-0000 in us-east-1 with environment name of 'test' and solution name of 'vam', the namespace prefix will be `test-va-vam`.
-
-Under the CloudFormation service in the AWS Console, delete the following stacks:
-
-* *namespace*-vam
-* *namespace*-postDeployment
-* *namespace*-eventbridge-infra
-* *namespace*-edgeLambda
-* *namespace*-image-builder
-* *namespace*-customDomains
-
-#### Removing Webinfra
-Once the `*namespace*-webinfra` is the only remaining stack, it's time to empty the loggin bucket. Refer to the [earlier section](#Empty-Buckets) for more information on emptying an S3 Bucket, and empty the `*namespace*-logging` bucket. Now go back to the CloudFormation Console page and delete the `*namespace*-webinfra` stack.
-
-### LTI Handler Stack
-Most removal methods will skip removing the LTI Handler Lambda stack. This can be discovered by checking the CloudFormation console in the region to which the solution was deployed and searching for a stack named `*namespace*-vam`. If this exists, it is safe to delete at any time during the removal process or afterward.
-
----
-
-## Cloud Trail
-
-Installing this solution will create a multi-region Cloud Trail prefixed using the solution namespace (environment name-2 character region ID-solution name). It is important to note that if the account already has a Cloud Trail delivering events to a particular location, this additional delivery will incur [some cost](https://aws.amazon.com/cloudtrail/pricing/). While it is recommended to have Cloud Trail enabled, if another Cloud Trail is already tracking events, it should be safe to delete this one.
-
-### Cloud Trail S3 Bucket Retention
-
-The solution will also create an S3 bucket into which the Cloud Trail logs are placed. It is important to note that upon solution removal, the Cloud Trail will be deleted, but this bucket will be retained. The S3 bucket (*environment name*`-`*2 letter region ID*`-`*solution name*`-backend-cloudtrailbucket-`*alphanumeric disambiguator*) can be emptied and deleted once the solution is removed consistent with one's own log retention policies.
-
----
-
 ## AWS Web Application Firewall (WAF)
 
 After the solution is deployed, an Amazon CloudFront distribution of the website is created.
@@ -525,6 +404,130 @@ You can do this by editing the setting configuration file for your stage at `con
 ```yaml
 useCloudFrontWaf: false
 ```
+---
+
+## Removing the Solution
+
+There are different methods for removing the solution depending on how it was installed. Different subsections will guide one through various steps and recommendations for removing the solution.
+
+### Removal Prerequisites
+
+VAM creates some artifacts which can place dependencies on components which were deployed with the solution. Examples of dependencies may include connections from EC2 instances or AppStream 2.0 fleets to various VPC components.
+
+#### Remove VAM created AppStream 2.0 Fleets
+
+In the VAM solution, simply go to the Fleets tab, stop any running fleets and delete the fleets. If the VAM solution is unavailable, these operations can be completed from the AWS Console however it is important to note that both the Fleet and its Stack (should be of the same name) should be deleted. If the Stack is to be deleted first, it must first be disassociated from its fleet.
+
+#### Remove any VAM created EC2 instances
+
+In the AWS Console under the EC2 service, look at any existing instances. Specifically look for any with a name of the form ```<environment-name>-<2-letter-region-id>-<solution-name>-installer-host-xxxxxxxx```. where ```xxxxxxxx``` is a generated alpha-numeric disambiguator string. For example, if you chose 'myTestEnv' as the environment name and 'vam' as the solution name and deployed to 'us-east-1 (Virginia)', your installer hosts will be of the form ```myTestEnv-va-vam-install-host-xxxxxxxx```. Terminate these instances.
+
+#### Remove Policies added to VAM deployed Roles
+
+There are reasons one might add policies to IAM roles created by the VAM solution. For instance, one may have specific policies which were added to ```<environment-name>-<2-letter-region-id>-<solution-name>-image-builder-InstallerHostRole-XXX``` role for his or her own monitoring needs. A common role to modify is the ```<environment-name>-<2-letter-region-id>-<solution-name>-LtiHandler``` role. The standard modification is to attach a policy which allows ```CreateStreamingUrl``` on one or more AppStream 2.0 fleets utilized as part of an LTI environment.
+
+Any additional policies attached to IAM roles created by VAM will need to be detached or deleted for the removal process to complete successfully. This can be done from within the IAM service in the AWS Console.
+
+
+### Deployed Using an AWS CloudFormation template
+
+#### "DemoDeployment" Parameter set to "Yes"
+
+Removing a demo deployment simply requires pipeline approval. During installation, a CodePipeline was created. Simply return to that code pipeline and approve continuation to the next step. Once the pipeline completes, the solution should be removed. If removal via the pipleine fails, use the removal steps under [Deployed via Interactive Deployment](#Deployed-via-Interactive-Deployment) if you have a [development environment](#Interactive-Installation) configured, otherwise, one can [remove the solution manually](#Manually-Removing-the-Solution).
+
+Once the solution has been removed, it is safe to [delete the CodePipeline](#Deleting-the-Code-Pipeline).
+
+### Deleting the Code Pipeline
+
+#### Prerequisite
+CloudFormation instalation creates an S3 Bucket and places some objects in it. This bucket should be empty when attempting to remove the CodePipeline. In the S3 Service in the AWS Conosole, locate a bucket which contains the name of the initial stack created by the CloudFormation temmplate followed by the string `-AppArtifactBucket-`. Empty this bucket.
+
+#### Removing the Pipeline
+The CodePipeline is owned by the Cloud Formation stack created in the initial step of [deploying via AWS CloudFormation](#Using-an-AWS-CloudFormation-template). The best way to remove the pipeline and its associated roles and infrastructure is to delete that stack. This can be done easily by finding it in the CloudFormation service in the AWS Console and selecting 'Delete' from 'Actions'.
+
+### Deployed via Interactive Deployment
+
+If you want to remove (un-deploy) the solution, run the following command.
+
+
+> **Note:** This operation can not be undone. Please make sure to un-deploy if you are absolutely sure that you no longer 
+need the solution. You can recreate the solution after you remove it but you cannot get the previous solution deployment
+back once you remove it.
+
+**FORCE_DELETE**: the ```FORCE_DELETE=true``` option is more destructive than otherwise removing the solution however one will likely encounter errors without it. ```FORCE_DELETE``` will empty several S3 Buckets before attempting to remove the solution. These include
+
+* Installable Applications
+* GPO Objects
+* Website Content
+* Documentation Content
+* Logging
+
+The removal process will be unable to remove these buckets if they are not already empty and thus will show errors.
+
+```bash
+$ cd $PROJECT_HOME
+$ FORCE_DELETE=true pnpx sls solution-remove --stage $STAGE_NAME 
+```
+
+### Manually Removing the Solution
+If the interactive removal fails, a development environment is unavailable, or the CodePipeline removal option is not available, the solution may be removed manually.
+
+#### Note on S3 Bucket Namespace
+S3 Bucket names are required to be globally unique. To maintain this, VAM uses a "namespace" prefix which is made up of the following elements seperated by hyphens (-):
+
+1. AccountId: The twelve digit Account Id under which the solution is installed.
+2. Environment Name: This is a user defined field selected at insallation.
+3. Region Identifier: A two character identfier for the region. For instance, if VAM is installed to us-west-2 (Oregon), the region identifier will be 'or'.
+4. Solution Name: Although this is chosen at installation time, this is typically 'vam'.
+
+As an example, a VAM solution deployed to account 0000-0000-0000 with an environment name of 'test' and a solution name of 'vam' in us-east-1 (Virginia) would have the namespace of `000000000000-test-va-vam`.
+
+#### Empty Buckets
+
+| WARNING: Bucket contents will be permenently deleted          |
+|:---------------------------|
+| Be sure to backup anything which needs to be saved. |
+
+In the AWS Console, select each bucket from the following list, one at a time, and click 'Empty'. If the bucket is already empty, simply click 'Cancel' on the subsequent screen. Otherwise, type `permanently delete` in the space provided then click 'Empty'
+
+* *namespace*-application-repo
+* *namespace*-dap-config
+* *namespace*-docs-site
+* *namespace*-gpo-templates
+* *namespace*-installer-work
+* *namespace*-metrics
+* *namespace*-website
+
+There is also a logging bucket, but that will need to be emptied later as removal of other compoenents will result in this bucket recieving more data.
+
+#### Removing the CloudFormation Stacks
+vam CloudFormation stacks use a naming scheme similar to the [S3 Buckets](#Note-on-S3-Bucket-Namespace) however for CloudFormation, the account ID is omitted. Therefore, following the previous example of the solution deployed to account 0000-0000-0000 in us-east-1 with environment name of 'test' and solution name of 'vam', the namespace prefix will be `test-va-vam`.
+
+Under the CloudFormation service in the AWS Console, delete the following stacks:
+
+* *namespace*-vam
+* *namespace*-postDeployment
+* *namespace*-eventbridge-infra
+* *namespace*-edgeLambda
+* *namespace*-image-builder
+* *namespace*-customDomains
+
+#### Removing Webinfra
+Once the `*namespace*-webinfra` is the only remaining stack, it's time to empty the loggin bucket. Refer to the [earlier section](#Empty-Buckets) for more information on emptying an S3 Bucket, and empty the `*namespace*-logging` bucket. Now go back to the CloudFormation Console page and delete the `*namespace*-webinfra` stack.
+
+### LTI Handler Stack
+Most removal methods will skip removing the LTI Handler Lambda stack. This can be discovered by checking the CloudFormation console in the region to which the solution was deployed and searching for a stack named `*namespace*-vam`. If this exists, it is safe to delete at any time during the removal process or afterward.
+
+---
+
+## Cloud Trail
+
+Installing this solution will create a multi-region Cloud Trail prefixed using the solution namespace (environment name-2 character region ID-solution name). It is important to note that if the account already has a Cloud Trail delivering events to a particular location, this additional delivery will incur [some cost](https://aws.amazon.com/cloudtrail/pricing/). While it is recommended to have Cloud Trail enabled, if another Cloud Trail is already tracking events, it should be safe to delete this one.
+
+### Cloud Trail S3 Bucket Retention
+
+The solution will also create an S3 bucket into which the Cloud Trail logs are placed. It is important to note that upon solution removal, the Cloud Trail will be deleted, but this bucket will be retained. The S3 bucket (*environment name*`-`*2 letter region ID*`-`*solution name*`-backend-cloudtrailbucket-`*alphanumeric disambiguator*) can be emptied and deleted once the solution is removed consistent with one's own log retention policies.
+
 ---
 
 ## Recommended Reading
