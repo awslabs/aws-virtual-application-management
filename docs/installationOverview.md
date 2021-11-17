@@ -398,7 +398,7 @@ $ FORCE_DELETE=true pnpx sls solution-remove --stage $STAGE_NAME
 ```
 
 ### Manually Removing the Solution
-If the interactive removal fails, a development environment is unavailable, or the CodePipeline removal option is not available, the solution may be remove manually.
+If the interactive removal fails, a development environment is unavailable, or the CodePipeline removal option is not available, the solution may be removed manually.
 
 #### Note on S3 Bucket Namespace
 S3 Bucket names are required to be globally unique. To maintain this, VAM uses a "namespace" prefix which is made up of the following elements seperated by hyphens (-):
@@ -440,7 +440,7 @@ Under the CloudFormation service in the AWS Console, delete the following stacks
 * *namespace*-image-builder
 * *namespace*-customDomains
 
-#### Removeing Webinfra
+#### Removing Webinfra
 Once the `*namespace*-webinfra` is the only remaining stack, it's time to empty the loggin bucket. Refer to the [earlier section](#Empty-Buckets) for more information on emptying an S3 Bucket, and empty the `*namespace*-logging` bucket. Now go back to the CloudFormation Console page and delete the `*namespace*-webinfra` stack.
 
 ### LTI Handler Stack
