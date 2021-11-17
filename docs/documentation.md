@@ -1,7 +1,7 @@
 ## Deployment Guide
 
-[Installation Overview](/installationOverview.md)\
-[Deploying Updates](/deployingUpdates.md)
+[Installation Overview](/deployment-guide/installationOverview.md)\
+[Deploying Updates](/deployment-guide/deployingUpdates.md)
 
 ## User Guide
 
