@@ -20,7 +20,7 @@ solution. A benefit of this method is that updated zip files are automatically d
 the same configuration.
 
 ### Step 1: Verify the zip archive
-Download the ZIP archive for the solution. A SHA 256 hash should exist to verify the archive is the one expected.
+Download the ZIP archive for the solution. A SHA 256 hash should exist to verify the archive is the one expected. If you do not have the checksum, feel free to continue to Step 2.
 
 * Unzip the archive.
 * Execute the following relative to the root of the unzipped archive:
