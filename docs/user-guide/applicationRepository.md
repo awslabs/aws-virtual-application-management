@@ -19,7 +19,8 @@ The below is an example of the info.json file that is required. The example belo
 }
 ```
 
-n.b. double backslashes in paths
+> **Note:** double backslashes in paths.
+
 
 The icon provided should be named "icon.png" and should have dimensions of 96x96px.
 
