@@ -34,7 +34,7 @@ Download the ZIP archive for the solution. A SHA 256 hash should exist to verify
 * Create an S3 bucket with versioning enabled. This is required by CodePipeline.
 * Upload the VAM solution zip to this bucket.
 
-> **Note:** Create the S3 bucket in the same region where VAM will ultimately be deployed. For example,
+> **Note:** create the S3 bucket in the same region where VAM will ultimately be deployed. For example,
 if VAM should primarily run in us-west-2 for cost purposes, then the S3 bucket should live there also.
 
 ### Step 3: Creating a CloudFormation stack
@@ -378,7 +378,7 @@ The CodePipeline is owned by the Cloud Formation stack created in the initial st
 If you want to remove (un-deploy) the solution, run the following command.
 
 
-> **Note:** This operation can not be undone. Please make sure to un-deploy if you are absolutely sure that you no longer 
+> **Note:** this operation can not be undone. Please make sure to un-deploy if you are absolutely sure that you no longer 
 need the solution. You can recreate the solution after you remove it but you cannot get the previous solution deployment
 back once you remove it.
 
