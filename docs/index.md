@@ -1,4 +1,4 @@
-## Welcome to AWS Virtual Application Management (AWS VAM)
+# Welcome to AWS Virtual Application Management (AWS VAM)
 
 **Amazon AppStream 2.0** offers a rich set of features to allow customers to stream non-persistent applications and desktops to end users. These features offer a variety of controls to effectively scale fleets of resources and various properties pertaining to the streaming session. However, customers across industries and verticals have identified the following challenges when working with the service:
 
@@ -8,6 +8,34 @@
 
 Based on feedback from various customers, AWS VAM was developed as solution to address the management and deployment of images. The intent is to provide a **companion application** for AppStream 2.0 with the additional capabilites for administrators to create, manage, and deploy images and fleets. At it's core, it is a frontend application that sits on top of the AppStream 2.0 backend resources, a sample of which can be seen in the image below. Automation is provided through Powershell with the ability for IT to automatically deploy applications by configuring **Chocolatey/Powershell** scripts in an application repository provided by the solution.
 
-### Documentation
+## Documentation
 
-To learn more about launching and using the AWS solution, please checkout [Documentation](/documentation.md)
+### Deployment Guide
+
+[Installation Overview](/deployment-guide/installationOverview.md)\
+[Deploying Updates](/deployment-guide/deployingUpdates.md)
+
+### User Guide
+
+[Application Repository](/user-guide/applicationRepository.md)\
+[Sidebar: Introduction](/user-guide/sidebarIntroduction.md)\
+[Sidebar: Dashboard](/user-guide/sidebarDashboard.md)\
+[Sidebar: Applications](/user-guide/sidebarApplications.md)\
+[Sidebar: AppStream Images](/user-guide/sidebarAppStreamImages.md)\
+[Sidebar: AppStream Fleets](/user-guide/sidebarAppStreamFleets.md)\
+[Sidebar: Dynamic Catalogs](/user-guide/sidebarDynamicCatalogs.md)
+
+### Best Practices
+
+[Multiple Deployment Environments](/best-practices/multipleDeploymentEnvironments.md)\
+[Amazon Inspector](/best-practices/amazonInspector.md)\
+[AWS CloudTrail](/best-practices/awsCloudTrail.md)\
+[AWS Shield](/best-practices/awsShield.md)
+
+### FAQs
+
+[FAQs](/faqs/faqs.md)
+
+### Troubleshooting Guide
+
+[Common Errors](/troublshooting-guide/commonErrors.md)
