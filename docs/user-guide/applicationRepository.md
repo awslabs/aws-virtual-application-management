@@ -6,7 +6,7 @@ Applications are Windows executables that are installed to an image builder, sna
 
 Additional Applications can be added to the solution by configuring them in the "Application Repo" bucket. To register an application you will need to provide a metadata file, an icon image and optionally powershell scripts to perform custom installs.
 
-The below is an example of the info.json file that is required. The example below works in conjunction with the "Chocolatey" package manger http://chocolatey.org/.
+The below is an example of the info.json file that is required. The example below works in conjunction with the "Chocolatey" package manager http://chocolatey.org/.
 
 ```
 {
