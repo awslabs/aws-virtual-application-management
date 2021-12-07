@@ -20,7 +20,7 @@ solution. A benefit of this method is that updated zip files are automatically d
 the same configuration.
 
 ### Step 1: Verify the zip archive
-Download the ZIP archive for the solution. A SHA 256 hash should exist to verify the archive is the one expected. If you do not have the checksum, feel free to continue to Step 2.
+Download the ZIP archive for the solution. A SHA 256 hash should exist to verify the archive is the one expected. If you do not have the checksum, feel free to continue to Step 2 after unzipping the archive.
 
 * Unzip the archive.
 * Execute the following relative to the root of the unzipped archive:
@@ -32,7 +32,7 @@ Download the ZIP archive for the solution. A SHA 256 hash should exist to verify
 ### Step 2: Creating the S3 bucket
 
 * Create an S3 bucket with versioning enabled. This is required by CodePipeline.
-* Upload the VAM solution zip to this bucket.
+* Zip the contents of the archive, as including the "aws-virtual application-management" top level folder will cause the CodePipeline to fail. Upload the VAM solution zip to this bucket.
 
 > **Note:** create the S3 bucket in the same region where VAM will ultimately be deployed. For example,
 if VAM should primarily run in us-west-2 for cost purposes, then the S3 bucket should live there also.
@@ -42,7 +42,7 @@ if VAM should primarily run in us-west-2 for cost purposes, then the S3 bucket s
 Create a CloudFormation stack using the CLI or console. The CloudFormation template used to create
 the stack can be found in the zip file (`components/vam-silky-smooth-deployments/packages/deployment-pipeline/config/buildspec/cloudformation.yml`).
 
-* Open https://console.aws.amazon.com/cloudformation/home#/stacks/create/template in a web browser (and login to the appropriate account if needed)
+* Open [https://console.aws.amazon.com/cloudformation/home#/stacks/create/template](https://console.aws.amazon.com/cloudformation/home#/stacks/create/template) in a web browser (and login to the appropriate account if needed)
 * Choose `Upload a template file`.
 * Click `Choose file`.
 * Select the file `components/vam-silky-smooth-deployments/packages/deployment-pipeline/config/buildspec/cloudformation.yml` from the extracted source code and click `Next`.
@@ -56,17 +56,16 @@ the stack can be found in the zip file (`components/vam-silky-smooth-deployments
 
 ### Step 4: Obtaining website URL
 
-Once the CloudFormation stack is created, the CodePipeline pipeline deploys the application
-(https://console.aws.amazon.com/codesuite/codepipeline/pipelines). If you have opted to receive
+Once the CloudFormation stack is created, the CodePipeline pipeline deploys the application [https://console.aws.amazon.com/codesuite/codepipeline/pipelines](https://console.aws.amazon.com/codesuite/codepipeline/pipelines). If you have opted to receive
 email notifications, you can wait until you receive the notification.
 
 ### Step 5: Logging in
 
-To login, check your email for an invite. It will have your temporary password inside.
+To login, check your email for an invite. It will have your temporary password inside. If the page does not render, make sure you add your IP address to the AWS Web Application Firewall.
 
 ## Deploy using a pre-existing VPC and subnets
 
-Search for the VPC ID and corresponding private subnet IDs to use either using the AWS console or AWS CLI.
+Search for the VPC ID and corresponding private subnet IDs either using the AWS console or AWS CLI.
 The VPC and subnets must be in the same region where you plan to deploy the solution.
 Paste these parameters in the corresponding fields in the optional CloudFormation parameters section. Note that multiple subnet IDs should be comma separated. 
 For more information on VPC configuration, [click here](https://docs.aws.amazon.com/appstream2/latest/developerguide/managing-network-internet-NAT-gateway.html)
