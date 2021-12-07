@@ -1,6 +1,6 @@
 # Deploying Updates
 
-Following an initial successful deployment, you can subsdequently deploy individually to the 5 serverless projects that are part of this solution.
+Following an initial successful deployment, you can subsequently deploy individually to the 5 serverless projects that are part of this solution.
 
 ### Deploying Updates to the Web-Infra Serverless Project
 
