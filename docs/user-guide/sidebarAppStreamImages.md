@@ -1,11 +1,11 @@
 # AppStream Images
 
-The Appstream Images page allows the user to view a list of images which have been created within the solution. It provides the user with a button to create images (see [Create New Appstream Images within VAM](#creating-appstream-images)).
+The Appstream Images page allows the user to view a list of images which have been created within the solution. From this page, a user is able to define and launch new images (see [Create New Appstream Images within VAM](#creating-appstream-images)).
 
 With each images listed, the user will note the following data:
 
-**Image name**\
-**Image status**: including 'Available', 'Processing' or 'Error'
+**Image name**: unique name for an image\
+**Image status**: image build status, including 'Available', 'Processing' or 'Error'
 
 Each image listing also provides the following actions:
 
@@ -14,7 +14,7 @@ Each image listing also provides the following actions:
     
 ## Creating Appstream Images
 
-The Create Image page allows the user to fill a form with data necessary in order to create a new Appstream image. The form is accessible by clicking on the Create Image button on the Appstream Image list page. The form requests the following data.
+The Create Image page allows the user to fill a form with data necessary to create a new Appstream image. The form is accessible by clicking on the Create Image button on the Appstream Image list page. The form requests the following data.
 
 ### Basic Settings
 
@@ -22,37 +22,28 @@ The Create Image page allows the user to fill a form with data necessary in orde
 
 **Image Builder Instance Type**: this field presents a dropdown with the various instance types available for use with the solution. See [Amazon EC2 Instance Types](https://aws.amazon.com/ec2/instance-types/) for a comprehensive list of instance types and specifications.
 
-**Applications**: This is a list of applications available for an image. Check the box for each application to be installed. At least one new application must be installed on the imgae. If an base image is to be used (advanced), the applications on the base image need not be selected.
+**Applications**: This is a list of applications available for an image. Check the box for each application to be installed. At least one new application must be installed on the image. If a base image is to be used (see [Advanced Settings](#advanced-settings)), the applications on the base image need not be selected.
 
-(only if deployed with customer owned AD) **Dynamic Catalogs Enabled?**: Toggle the Dynamic Catalogs feature on/off. With Dynamic Catalogs, one can limit access to one or more applications on a fleet to a particular Active Directory (AD) group. This feature is only available if one supplies settings at solution deployment time to utilize an existing Active Directory. If utilizing a solution deployed AD, the Dynamic Catalogs are not available.
+**Dynamic Catalogs Enabled?** (only if deployed with customer owned AD): Toggle the Dynamic Catalogs feature on/off. With Dynamic Catalogs, one can limit access to one or more applications on a fleet to a particular Active Directory (AD) group. This feature is only available if one supplies settings at solution deployment time to utilize an existing Active Directory. If utilizing a solution deployed AD, the Dynamic Catalogs are not available.
 
 ### Advanced Settings
 
-**Base Images**: Here a dropdown will list images which already exist in the solution. Optionally select an image to use as the base image for this image. New applications selected from the list in the form will be added to the base image which will then be used to create the new image.
+**Base Images**: Here a dropdown will list images which already exist in the solution. Optionally select an image to use as the base image for the new image. New applications selected from the list in the form will be added to the base image which will then be used to create the new image.
 
 **Image Builder ID**: If a previously used image builder already exists, it will be listed in this drop down. This is similar to utilizing a base image in that the image builder will be used with the settings of the previous task completed on that image builder.
 
 **Snapshot Image Builder**: IMPORTANT: if this is turned OFF, no new image will actually be created. The steps will be run, but the snapshot is what completes the image generation process. This should usually be left ON.
 
-**Delete Image Builder**: By default the Image Builder is deleted once image generation is complete (whether or not the a snapshot was created). An Image Builder is a running VM and incurs cost and should be deleted if there is no intended further use. The following is an example scenario where one may wish to NOT delete the image builder after completion.
+**Delete Image Builder**: By default, the Image Builder is deleted once image generation is complete (whether or not the a snapshot was created). An Image Builder is a running VM and incurs cost and should be deleted if there is no intended further use. The following is an example scenario where one may wish to NOT delete the image builder after completion:
 
-* Use the Create Image form to create an image\
-     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;skip installing at least one application\
-     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do not snapshot the image builder\
-     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do not delete the image builder
-* Use the AWS Conosle access the image builder through the AppStream 2.0 service.\
-     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do additional advanced configuration on the image builder\
-     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;log out of the image builder
-* Use the Create Image form to create the final image\
-     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;add the last application(s)\
-     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;snapshot the image builder\
-     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;optionally delete the image builder
-
-When all fields on the form are completed as needed, click "Create Image" to complete the image creation process. Click "Cancel" at anytime to abort and return to the image list.
+1. Use the Create Image form to create an image and skip installing at least one application. Ensure to not snapshot the image builder and do not delete the image builder.
+2. Use the AWS Conosle access the image builder through the AppStream 2.0 service, log into the image builder, and do additional advanced configuration. Once you have completed modifying the image builder, lot out of the instance.
+3. Back in VAM, use the Create Image form to create the final image and add the last application(s) to the image builder. Optionally, delete the image builder.
+4. When all fields on the form are completed as needed, click "Create Image" to complete the image creation process. Click "Cancel" at anytime to abort and return to the image list.
 
 ## Image Details
 
-The image details page provides information about a selected image. To get to image details, start at the [Appstream Images list](#appstream-images-introduction), find the desired image and click the Image Details button.
+The image details page provides information about a selected image. To get to image details, start at the Appstream Images list, find the desired image, and click the Image Details button.
 
 ### General Details
 
