@@ -32,7 +32,7 @@ Download the ZIP archive for the solution. A SHA 256 hash should exist to verify
 ### Step 2: Creating the S3 bucket
 
 * Create an S3 bucket with versioning enabled. This is required by CodePipeline.
-* Zip the contents of the archive, as including the "aws-virtual application-management" top level folder will cause the CodePipeline to fail. Upload the VAM solution zip to this bucket.
+* Zip the contents of the archive, as including the "aws-virtual-application-management" top level folder will cause the CodePipeline to fail. Upload the VAM solution zip to this bucket.
 
 > **Note:** create the S3 bucket in the same region where VAM will ultimately be deployed. For example,
 if VAM should primarily run in us-west-2 for cost purposes, then the S3 bucket should live there also.
