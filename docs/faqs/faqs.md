@@ -2,35 +2,39 @@
 
 ## General
 
-Q: What is AWS Virtual Application Management?
+**Q: What is AWS Virtual Application Management (AWS VAM)?**
 
-Amazon AppStream 2.0 is a fully managed non-persistent application and desktop streaming service that provides users instant access to their desktop applications from anywhere. Amazon AppStream 2.0 simplifies application management, improves security, and reduces costs by moving a company’s applications from their users’ physical devices to the AWS Cloud. The Amazon AppStream 2.0 streaming protocol provides users a responsive, fluid performance that is almost indistinguishable from a natively installed application. With Amazon AppStream 2.0, organizations can realize increased flexibility, improved scalability, and the agility to support a broad range of compute and storage requirements for their applications.
+AWS Virtual Application Management is an AWS solution that was developed to improve the management and deployment of Amazon AppStream 2.0 images at scale. The solution was initially developed through work with Cornell University's IT department and has been abstracted for the use by the general technological community. The intent is to provide a **companion** application for AppStream 2.0 service with the additional capabilites for administrators to create, manage, and deploy images and fleets. At it's core, it is a frontend application that sits on top of the AppStream 2.0 backend resources. Automation is provided through Powershell with the ability for IT to automatically deploy applications by configuring **Chocolatey/Powershell** scripts in an application repository provided by the solution.
 
-Q: What's the difference between the original Amazon AppStream and Amazon AppStream 2.0?
+**Q: Is AWS VAM replacement for Amazon AppStream 2.0?**
 
-Amazon AppStream 2.0 is the next-generation desktop application streaming service from AWS. Amazon AppStream was an SDK-based service that customers could use to set up their own streaming service with DIY engineering. AppStream 2.0 provides a fully managed streaming service with no DIY effort. AppStream 2.0 offers a greater range of instance types; streams desktop applications to HTML5-compatible web browsers with no plugins required; provides dual-monitor support on web browsers and 4-monitor, 4K monitor, and USB peripheral support through the AppStream 2.0 client for Windows. In addition, AppStream 2.0 simplifies application lifecycle management and lets your applications access services in your VPC.
+No. Amazon AppStream 2.0 is the next-generation desktop application streaming service from AWS. AWS VAM is a frontend application that makes API calls to the backend AppStream 2.0 images and fleets for higher level management. If needed, you can still access the backend AppStream 2.0 resources created by AWS VAM through the AWS Management Console, SDK, or CLI. 
 
-Q: Can I continue to use the original Amazon AppStream service?
+**Q: Can I still use my Amazon AppStream 2.0 resources that were created before deploying AWS VAM?**
 
-No. You cannot use the original Amazon AppStream service. Amazon AppStream 2.0 offers a greater range of instance types, streams desktop applications with no rewrite, simplifies application lifecycle management, and allows your apps to access services in your VPC.
+Yes. Resources created with AWS VAM will not affect your current AppStream 2.0 instances and fleets. Keep in mind that AppStream 2.0 resources created outside of the AWS VAM console will not be available in the solution. To bring those resources over you will need to recreate them within AWS VAM, which can be done by using the AppStream 2.0 image used to create the fleet.
 
-Q: What are the benefits of streaming over rendering content locally?
+**Q: Will AWS VAM affect my current AppStream 2.0 environment?**
 
-Interactively streaming your application from the cloud provides several benefits:
+If you are using Active Directory, keep in mind that AWS VAM will create it's own Active Directory if one is not specified during deployment. This may affect how you have setup your deployment. To avoid issues, either specify your existing Active Directory or create the AWS VAM environment with a separate VPC for the Amazon AppStream 2.0 resources.
 
-Instant-on: Streaming your application with Amazon AppStream 2.0 lets your users start using your application immediately, when using an image builder or Always-On fleet, without the delays associated with large file downloads and time-consuming installations.
+**Q: Why use AWS VAM vs. AppStream 2.0?** 
 
-Remove device constraints: You can leverage the compute power of AWS to deliver experiences that wouldn’t normally be possible due to the GPU, CPU, memory, or physical storage constraints of local devices.
+Amazon AppStream 2.0 offers a rich set of features to allow customers to stream non-persistent applications and desktops to end users. These features offer a variety of controls to effectively scale fleets of resources and various properties pertaining to the streaming session. However, customers across industries and verticals have identified the following challenges when working with the service:
 
-Multi-platform support: You can take your existing applications and start streaming them to a computer without any modifications.
+1. Building and patching applications on AppStream Image Builders is a time consuming and error prone process
+2. IT is often the contact point for launching new AppStream Fleets rather than providing requesters a point-and-click self-service portal
+3. It is difficult to understand and optimize usage, requiring additional work to create custom built dashboards
 
-Easy updates: Because your application is centrally managed by Amazon AppStream 2.0, updating your application is as simple as providing a new version of your application to Amazon AppStream 2.0. That's all you need to do to immediately upgrade all your users, without any action on their part.
+AWS VAM addresses these issues though:
 
-Improved security: Amazon AppStream 2.0 runs your applications on instances within AWS and only transmits encrypted pixels to end user device. You can apply various security controls provided by AWS to secure your streaming instances. For more details, see Security in Amazon AppStream 2.0.
+1. Capabilities in managing AppStream Image Builder application repositories through Powershell/Chocolatey automation scripts
+2. An easy point-and-click self-service portal enabling users to launch AppStream 2.0 resources without contacting IT
+3. Pre-configured Dashboards for understanding resource usage (must enable [AppStream 2.0 Usage Reports](https://docs.aws.amazon.com/appstream2/latest/developerguide/configure-usage-reports.html)
 
-Q: Do some applications work better with Amazon AppStream 2.0 than others?
+**Q: Do some applications work better with AWS VAM?**
 
-Many types of applications work well as streaming applications, including CAD, CAM, CAE, 3D modeling, simulation, games, video and photo-editing software, medical imaging, and life sciences applications. These applications benefit most from streaming because the application runs on the vast computational resources of AWS, yet your users can interact with the application using low-powered devices, with very little noticeable change in application performance.
+Applications that have been successfully used with AppStream 2.0 should be considered candidates for AWS VAM. However, applications with complex licensing or significant dependence on third party services can present challenges when writing automation scripts with Chocolatey/Powershell. The [Cornell University choco-packages public GitHub repository](https://github.com/CU-CommunityApps/choco-packages/tree/master/packages) has many useful common application samples that can be referenced when creating automation scripts.
 
 Q: Does Amazon AppStream 2.0 support microphones?
 
