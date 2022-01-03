@@ -36,124 +36,27 @@ AWS VAM addresses these issues though:
 
 Applications that have been successfully used with AppStream 2.0 should be considered candidates for AWS VAM. However, applications with complex licensing or significant dependence on third party services can present challenges when writing automation scripts with Chocolatey/Powershell. The [Cornell University choco-packages public GitHub repository](https://github.com/CU-CommunityApps/choco-packages/tree/master/packages) has many useful common application samples that can be referenced when creating automation scripts.
 
-Q: Does Amazon AppStream 2.0 support microphones?
+**Q: Can I provide my users a desktop experience?**
 
-Yes. Amazon AppStream 2.0 supports most analog and USB microphones, including built-in microphones.
+Yes. AWS VAM allows you to choose choose between an application or desktop stream view for your AppStream 2.0 instances when you configure the fleet. The application view displays only the windows of the applications that are opened by users, while the desktop view displays the standard desktop experience that is provided by the operating system.
 
-Q: Does Amazon AppStream 2.0 support USB devices such as 3D mice?
+**Q: Can AWS VAM be accessed while offline?**
 
-Yes. Amazon AppStream 2.0 supports most USB devices such as 3D mice through the Windows Client. All USB devices are disabled by default. Administrators can enable USB devices for their users. 
+No. AWS VAM requires a sustained internet connection or network route to access the frontend application as well as to communicate with the backend AWS services. 
 
-Q: How do users enable audio input in an Amazon AppStream 2.0 streaming session?
-
-Users enable audio input from the Amazon AppStream 2.0 toolbar by selecting the Settings icon and selecting Enable Microphone.
-
-Q: How can end users use their webcam from within an AppStream 2.0 session?
-The Video and Audio Conferencing topic in the AppStream 2.0 documentation provides guidance to help your users use their webcams within an AppStream 2.0 streaming session.
-
-Q: What webcam video resolution does AppStream 2.0 support for streaming sessions?
-For streaming sessions, AppStream 2.0 supports a maximum webcam video resolution of 1080p, which measures 1920x1080 pixels.
-
-Q: Can users use their webcam and microphone in an AppStream 2.0 streaming session?
-Yes, to learn more visit Real-Time Audio-Video in the AppStream 2.0 documentation. 
-
-Q: How do users manage their webcam video input and microphone audio input during an AppStream 2.0 streaming session?
-Users who are connected to a streaming session through the AppStream 2.0 client or a web browser can enable, disable, and select the webcam and microphone to use in their session from the AppStream 2.0 toolbar. 
-
-Q: What is the best AppStream 2.0 instance type to use for streaming video conferencing applications?
-The best AppStream 2.0 instance type depends on your video conferencing applications, performance requirements, and environment. We recommend that you test different instance types and evaluate how they perform in your environment with the video conferencing applications that you want to use. Doing so will help you choose the instance type that best suits your needs. For more information about available instance types, see Amazon AppStream 2.0 pricing.
-
-Q: What browsers support real-time audio-video (AV) in an Amazon AppStream 2.0 session?
-Google Chrome, Microsoft Edge, Firefox, and additional web browsers support audio-input in Amazon AppStream 2.0 streaming sessions. Microsoft Internet Explorer 11 (IE11) does not support audio-input, and the microphone option will not appear on the Amazon AppStream 2.0 toolbar in streaming sessions running in IE11. To use a local webcam within an AppStream 2.0 streaming session, connect from a Chromium-based web browser, including Google Chrome or Microsoft Edge. 
-
-Q: What does a user need to access applications streamed from Amazon AppStream 2.0?
-A user needs to have applications set up by an administrator, a modern web browser that can support HTML5, a broadband internet connection with at least 2 Mbps capability, and outbound access to the internet via HTTPS (443). For web-based AppStream 2.0 streaming sessions, up to two monitors are supported. To use up to four monitors, 4K monitors and USB peripherals such as 3D mice, users can download and use the AppStream 2.0 client for Windows.
-
-Q: What is the AppStream 2.0 Windows Client?
-
-The AppStream 2.0 client for Windows is a native application that is designed for users who require additional functionality not available from web browsers during their AppStream 2.0 streaming sessions. The AppStream 2.0 client lets users use multiple monitors and USB peripherals such as 3D mice with their applications. The client also supports keyboard shortcuts, such as Alt + Tab, clipboard shortcuts, and function keys. The AppStream 2.0 client is supported on the following versions of Windows: Windows 7, Windows 8, Windows 8.1, and Windows 10. Both 32-bit and 64-bit versions of Windows are supported.
-
-Q: What are the system requirements for using the AppStream 2.0 Windows Client?
-
-The minimum system requirements are 2 GB of ram and 150 MB of disk space.
-
-Q: What monitor configurations are supported by the AppStream 2.0 Windows Client?
-
-For browser-based streaming sessions, AppStream 2.0 supports the use of up to two monitors with a maximum display resolution of 2560x1440 pixels per monitor. The AppStream 2.0 client for Windows supports up to 4 monitors with a maximum display resolution of 2560x1440 pixels per monitor. For streaming sessions that are supported by the Graphics Design and Graphics Pro instance families, the AppStream 2.0 client also supports the use of up to 2 monitors with a maximum display resolution of 4096x2160 pixels per monitor.
-
-Q: How can I deploy the AppStream 2.0 Windows Client to my users?
-
-Users can download and install the Windows Client. To use USB peripherials, a users need local administrator rights to install the AppStream 2.0 USB driver. You can remotely install the Windows Client using remote deployment tools like Microsoft System Center Configuration Manager (SCCM). Learn more in our documentation. 
-
-Q: Can users configure location and language settings for their applications?
-
-Yes. Users can set the time zone, locale, and input method to be used in their streaming sessions to match their location and language preferences.
-
-Q: Can users copy and paste between their local device and their Amazon AppStream 2.0 streaming applications?
-
-Yes. Users can use the Windows Client and Google Chrome to access their streaming applications can copy and paste text between their local device and their streaming applications in the same way they copy and paste between applications on their local device - for example, using keyboard shortcuts. For other browsers, users can use the Amazon AppStream 2.0 web clipboard tool.
-
-Q: Can I provide my users a desktop experience?
-
-Yes. AppStream 2.0 allows you to choose between an application or desktop stream view when you configure the fleet. The application view displays only the windows of the applications that are opened by users, while the desktop view displays the standard desktop experience that is provided by the operating system.
-
-Q: Can my Amazon AppStream 2.0 applications run offline?
-
-No. Amazon AppStream 2.0 requires a sustained internet connection or network route to an AppStream 2.0 streaming VPC endpoint to access your applications.
-
-Q: What does Amazon AppStream 2.0 manage on my behalf?
+Q: What does the AWS VAM environment consist of and what does it manage on my behalf?
 
 Streaming resources: AppStream 2.0 launches and manages AWS resources to host your application, deploys your application on those resources, and scales your application to meet end user demand.
 
 Simplified app management: Amazon AppStream 2.0 delivers the latest version of an application instantly to users, and eliminates the pain of patching and updating applications on every end-user device. Because your application is centrally managed by AppStream 2.0, updating your application is as simple as providing a new version of your application to AppStream 2.0. Applications can be assigned to users dynamically and removed instantly at any time, improving business flexibility and reducing costs.
 
-Q: Can I use tags to categorize AppStream 2.0 resources?
-
-Yes. you can assign tags to manage and track the following Amazon AppStream 2.0 resources: Applications, appblocks, image builders, images, fleets, and stacks. AWS enables you to assign metadata to your AWS resources in the form of tags. Tags let you categorize your AppStream 2.0 resources so you can easily identify their purpose and track costs accordingly. For example, you can use tags to identify all resources used by a particular department, project, application, vendor, or use case. Then, you can use AWS Cost Explorer to identify trends, pinpoint cost drivers, and detect anomalies in your account.
-
-You can assign or remove tags using the AppStream 2.0 management console, command line interface, or API. Tags have a key and a corresponding value, and you can assign up to 50 tags per AppStream 2.0 resource.
-
-Q. What resources can I create with AWS CloudFormation?
-
-With CloudFormation, you can automate creating fleets, deploying stacks, adding and managing user pool users, launching image builders, and creating directory configurations alongside your other AWS resources.
-
 Q: How do I use my AWS Direct Connect, AWS VPN, or other VPN tunnel to stream my applications?
 
 First, create an Amazon Virtual Private Cloud (Amazon VPC) endpoint in the same Amazon VPC as your AWS Direct Connect, AWS VPN, or other VPN tunnel. Then, specify the VPC endpoint when creating a new stack, modifying an existing one, or creating a new image builder. Your users will then use the VPC endpoint when they stream their applications. To learn more about the AppStream 2.0 streaming VPC endpoints, see Creating and Streaming From VPC Interface Endpoints in the AppStream 2.0 Administration Guide. 
- 
-## Try sample applications
-
-Q: Can I try sample applications?
-
-Yes. Visit Try Sample Applications low-friction, setup-free trial experience for Amazon AppStream 2.0 service.
-
-Q: What do I need to start using Try It Now?
-
-You need an AWS account and a broadband Internet connection with at least 1 Mbps bandwidth to use Try It Now. You also need a browser capable of supporting HTML5.
-
-Q: Will I be charged for using Try It Now?
-
-You won’t be charged any AWS fees for using Try It Now. However, you may incur other fees such as Internet or broadband charges to connect to the Try It Now experience.
-
-Q: What applications can I use with Try It Now?
-
-Try It Now includes popular productivity, design, engineering, and software development applications running on Amazon AppStream 2.0 for you to try. To see the full list of available applications, go to the Try It Now catalog page after signing in with your AWS account.
-
-Q: How long can I stream applications via Try It Now?
-
-You can stream the applications included in Try It Now for up to 30 minutes. At the end of 30 minutes, your streaming session is automatically terminated and any unsaved data will be deleted.
-
-Q: Can I save files within Try It Now?
-
-You can save files to your Amazon AppStream 2.0 session storage and download them to your client device before your streaming session ends. Your files are not saved when you disconnect from your Try It Now session, or when your session ends, and any unsaved data will be deleted.
-
-Q: Can I submit an application to be included in Try It Now?
-
-Yes. You can submit a request to include your application in Try It Now. After your request is received, AWS usually reviews the request and responds within 10 business days.
 
 ## Getting started
 
-Q: How do I get started with Amazon AppStream 2.0?
+Q: How do I get started with AWS VAM?
 
 You can begin using Amazon AppStream 2.0 by visiting the AWS Management Console, or by using the AWS SDK. Visit Stream Desktop Applications for a 10 step tutorial.
 
@@ -212,6 +115,36 @@ Your users' application settings are encrypted in transit to the S3 bucket in yo
 
 Q: Can I dynamically entitle users to apps?
 Yes, you can use the dynamic app framework APIs to build a dynamic app provider that specifies what apps uers can launch at run-time. The apps provided can be virtualized apps that are delivered from a Windows file share or other storage technology. To learn more, see Manage App Entitlement with the Dynamic App Framework.
+ 
+## Try sample applications
+
+Q: Can I try sample applications?
+
+Yes. Visit Try Sample Applications low-friction, setup-free trial experience for Amazon AppStream 2.0 service.
+
+Q: What do I need to start using Try It Now?
+
+You need an AWS account and a broadband Internet connection with at least 1 Mbps bandwidth to use Try It Now. You also need a browser capable of supporting HTML5.
+
+Q: Will I be charged for using Try It Now?
+
+You won’t be charged any AWS fees for using Try It Now. However, you may incur other fees such as Internet or broadband charges to connect to the Try It Now experience.
+
+Q: What applications can I use with Try It Now?
+
+Try It Now includes popular productivity, design, engineering, and software development applications running on Amazon AppStream 2.0 for you to try. To see the full list of available applications, go to the Try It Now catalog page after signing in with your AWS account.
+
+Q: How long can I stream applications via Try It Now?
+
+You can stream the applications included in Try It Now for up to 30 minutes. At the end of 30 minutes, your streaming session is automatically terminated and any unsaved data will be deleted.
+
+Q: Can I save files within Try It Now?
+
+You can save files to your Amazon AppStream 2.0 session storage and download them to your client device before your streaming session ends. Your files are not saved when you disconnect from your Try It Now session, or when your session ends, and any unsaved data will be deleted.
+
+Q: Can I submit an application to be included in Try It Now?
+
+Yes. You can submit a request to include your application in Try It Now. After your request is received, AWS usually reviews the request and responds within 10 business days.
 
 ## Images
 
