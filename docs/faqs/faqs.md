@@ -8,11 +8,11 @@ AWS Virtual Application Management is an AWS solution that was developed to impr
 
 **Q: Is AWS VAM replacement for Amazon AppStream 2.0?**
 
-No. Amazon AppStream 2.0 is the next-generation desktop application streaming service from AWS. AWS VAM is a frontend application that makes API calls to the backend AppStream 2.0 images and fleets for higher level management. If needed, you can still access the backend AppStream 2.0 resources created by AWS VAM through the AWS Management Console, SDK, or CLI. 
+No. Amazon AppStream 2.0 is the next-generation desktop application streaming service from AWS. AWS VAM is a frontend application that makes API calls to the backend AppStream 2.0 images and fleets for higher level management. If needed, backend AppStream 2.0 resources created by AWS VAM through can be accessed through the AWS Management Console, SDK, or CLI. 
 
 **Q: Can I still use my Amazon AppStream 2.0 resources that were created before deploying AWS VAM?**
 
-Yes. Resources created with AWS VAM will not affect your current AppStream 2.0 instances and fleets. Keep in mind that AppStream 2.0 resources created outside of the AWS VAM console will not be available in the solution. To bring those resources over you will need to recreate them within AWS VAM, which can be done by using the AppStream 2.0 image used to create the fleet.
+Yes. Resources created with AWS VAM will not affect the current AppStream 2.0 instances and fleets. Keep in mind that AppStream 2.0 resources created outside of the AWS VAM console will not be available in the solution. To bring those resources over they will need to be recreated within AWS VAM, which can be done by using the AppStream 2.0 image used to create the fleet.
 
 **Q: Will AWS VAM affect my current AppStream 2.0 environment?**
 
@@ -44,77 +44,60 @@ Yes. AWS VAM allows you to choose choose between an application or desktop strea
 
 No. AWS VAM requires a sustained internet connection or network route to access the frontend application as well as to communicate with the backend AWS services. 
 
-Q: What does the AWS VAM environment consist of and what does it manage on my behalf?
+**Q: What does the AWS VAM environment consist of?**
 
-Streaming resources: AppStream 2.0 launches and manages AWS resources to host your application, deploys your application on those resources, and scales your application to meet end user demand.
+AWS VAM consists of:
 
-Simplified app management: Amazon AppStream 2.0 delivers the latest version of an application instantly to users, and eliminates the pain of patching and updating applications on every end-user device. Because your application is centrally managed by AppStream 2.0, updating your application is as simple as providing a new version of your application to AppStream 2.0. Applications can be assigned to users dynamically and removed instantly at any time, improving business flexibility and reducing costs.
+Frontend: static Amazon S3 website fronted by Amazon CloudFront with authentication enabled through Cognito. Users can use the frontend to manage their application and backend AppStream 2.0 resources.
 
-Q: How do I use my AWS Direct Connect, AWS VPN, or other VPN tunnel to stream my applications?
+Backend: API Gateway, DynamoDB, and S3 buckets to capture changes made through the frontend and store applications configurations.
 
-First, create an Amazon Virtual Private Cloud (Amazon VPC) endpoint in the same Amazon VPC as your AWS Direct Connect, AWS VPN, or other VPN tunnel. Then, specify the VPC endpoint when creating a new stack, modifying an existing one, or creating a new image builder. Your users will then use the VPC endpoint when they stream their applications. To learn more about the AppStream 2.0 streaming VPC endpoints, see Creating and Streaming From VPC Interface Endpoints in the AppStream 2.0 Administration Guide. 
+Active Directory and EC2 Host instances: secure authentication for users into AppStream 2.0 instances is provided through Active Directory, while also being the means to allow an EC2 Host to use PS Remoting to install applications onto the AppStream Image Builder through automation scripts.
+
+**Q: How do I use my AWS Direct Connect, AWS VPN, or other VPN tunnel to stream my applications?**
+
+First, create an Amazon Virtual Private Cloud (Amazon VPC) endpoint in the same Amazon VPC as the AWS Direct Connect, AWS VPN, or other VPN tunnel. Then, specify the VPC endpoint when creating a new stack, modifying an existing one, or creating a new image builder. Users will then use the VPC endpoint when they stream their applications. To learn more about the AppStream 2.0 streaming VPC endpoints, see Creating and Streaming From VPC Interface Endpoints in the AppStream 2.0 Administration Guide. 
 
 ## Getting started
 
-Q: How do I get started with AWS VAM?
+**Q: How do I get started with AWS VAM?**
 
-You can begin using Amazon AppStream 2.0 by visiting the AWS Management Console, or by using the AWS SDK. Visit Stream Desktop Applications for a 10 step tutorial.
+To get started, navigate to the [AWS VAM GitHub repository](https://github.com/awslabs/aws-virtual-application-management) and clone the solution. Once that is complete, follow the README.md to launch the solution either through AWS CloudFormation or programmatically.
 
-Q: What resources do I need to set up to stream my applications using Amazon AppStream 2.0?
+**Q: What resources do I need to set up to stream my applications using AWS VAM?**
 
-You need to create an Amazon AppStream 2.0 stack in your AWS account to start streaming applications to your users. A stack includes a fleet of Amazon AppStream 2.0 instances that executes and streams applications to end users. When you use Elastic fleets, each instance is launched using an AppStream 2.0-managed image, while Always-On and On-Demand fleets use an image that you create containing your applications. You can select the instance type and size for your fleet depending on what CPU, memory, and graphics your user needs. To learn more about Amazon AppStream 2.0 resources, please visit this page.
+The resources required are as follows:
 
-Q: How do I import my applications to Amazon AppStream 2.0?
+1. Provide an AWS VPC and an Active Directory configuration (AD Connector or AWS Managed Active Directory) to successfully launch the solution. If you do not have one currently configured, you can have the solution create a VPC and an AWS Managed Active Directory for you.
+2. Once the solution is launched, ensure to whitelist the IP range within AWS WAF that will be used to access the frontend.  
+3. Once you successfully log into AWS VAM, depending on your initial launch configuration, you will have to add applications into the S3 application repository. If you launched with demo applications enabled, you will have a prepopulated list. From their, launch your images and fleets. 
+4. Once the fleet is succesfully created, you can test out the streaming applications from within AppStream 2.0. 
 
-If your applications require Active Directory, a custom driver, or require a reboot to install, you will need to create an AppStream 2.0 image using an image builder via the AWS Management Console, then use an Always-On or On-Demand fleet to stream the applications to your users. Image Builder allows you to install and test your applications just as you would with any Microsoft Windows or Linux desktop, and then create an image. You can complete all the install, test, and creation steps for the image without leaving the console.
+**Q: How do I configure my applications in AWS VAM?**
 
-If your applications don’t require Active Directory and can be run from virtual hard disks without being configured, you can package them within virtual hard disks and upload them to an S3 bucket within your account. Once you have uploaded your applications, you can create AppStream 2.0 app block and application resources, and assign them to an AppStream 2.0 Elastic fleet to stream to your users.
+At a high level, you will need to configure either a Powershell or Chocolatey scripts inside of the S3 application repository. Once this is done properly, the application will automatically populate the list of available applications within VAM. For more details please see the documentation on [Application Repository] (https://awslabs.github.io/aws-virtual-application-management/user-guide/applicationRepository.html).
 
-Q: How do I create an Amazon AppStream 2.0 image to import my applications?
+**Q:  Will I need to access the AppStream 2.0 Image Builder during the application installation process?**
 
-You can create an Amazon AppStream 2.0 image using Image Builder via the AWS Management Console. Image Builder allows you to install and test your applications just as you would with any Windows or Linux desktop, and then create an image. You can complete all the install, test, and creation steps for the image without leaving the console.
+For many applications, this will not be necessary. Applications can be installed simply by launching the image builder with the desired applications and having the scripts configure everything. In cases where complex licensing or additional configurations are required, you may need to access the Image Builder once the applications are installed. This can be done my keeping the AppStream Image Builder available after all applications have been installed and logging into the instance through the AWS Management Console. 
 
-Q: What instance types are available to use with my Amazon AppStream 2.0 fleet?
+**Q: What instance types are available to use with AWS VAM?**
 
 Amazon AppStream 2.0 provides a menu of instance types for configuring a fleet or an image builder. You can select the instance type that best matches your applications and end-user requirements. You can choose from General Purpose, Compute Optimized, Memory Optimized, Graphics Design, Graphics Pro and Graphics G4 instance families. 
 
-Q: Can I change an instance type after creating a fleet?
+**Q: Can I change an instance type after creating a fleet?**
 
-Yes. You can change your instance type after you have created a fleet. To change the instance type, you will need to stop the fleet, edit the instance type, and then start the fleet again. For more information, see Set up AppStream 2.0 Stacks and Fleets.
+Yes, but not within AWS VAM. You can change your instance type after you have created a fleet within the AWS Console or programmatically. To change the instance type, you will need to stop the fleet, edit the instance type, and then start the fleet again. For more information, see Set up AppStream 2.0 Stacks and Fleets.
 
-Q: Can I connect Amazon AppStream 2.0 instances to my VPC?
+**Q: Can I use custom branding with AWS VAM?**
 
-Yes. You can choose the VPCs to which your Amazon AppStream 2.0 instances (fleet and image builders) connect. When you create your fleet, or launch Image Builder, you can specify one or more subnets in your VPC. If you have a VPC with a VPN connection to your on-premises network, then Amazon AppStream 2.0 instances in your fleet can communicate with your on-premises network. You retain the usual control you have over network access within your VPC, using all the normal configuration options such as security groups, network access control lists, and routing tables. For more information about creating a VPC and working with subnets, see Working with VPCs and Subnets.
+Yes. To do this, you will need to familiarize yourself with the cloned GitHub repository and make changes using the branding that you desire. Unfortunately, there does not exist an easy way to do this within the AWS VAM frontend itself. 
 
-Q: Can I use custom branding with Amazon AppStream 2.0?
+As for branking your AppStream 2.0 images, you will have to do that within the AWS Console. You can customize your users' Amazon AppStream 2.0 experience with your logo, color, text, and help links in the application catalog page. To replace AppStream 2.0's default branding and help links, log in to the AppStream 2.0 console, navigate to Stacks, and select a your application stack. Then, click Branding, choose Custom, select your options, and click Save. Your custom branding will apply to every new application catalog launched using SAML 2.0 single-sign-on (SSO) or the CreateStreamingURL API. You can revert to the default AppStream 2.0 branding and help links at any time. To learn more, visit Add Your Custom Branding to Amazon AppStream 2.0.
 
-Yes. You can customize your users' Amazon AppStream 2.0 experience with your logo, color, text, and help links in the application catalog page. To replace AppStream 2.0's default branding and help links, log in to the AppStream 2.0 console, navigate to Stacks, and select a your application stack. Then, click Branding, choose Custom, select your options, and click Save. Your custom branding will apply to every new application catalog launched using SAML 2.0 single-sign-on (SSO) or the CreateStreamingURL API. You can revert to the default AppStream 2.0 branding and help links at any time. To learn more, visit Add Your Custom Branding to Amazon AppStream 2.0.
+**Q: Can users save their application settings?**
 
-Q: Can I define default application settings for my users?
-
-Yes, you can set default application settings for your users. This includes application connection profiles, browser settings, and installing plugins.
-
-Q: Can users save their application settings?
-
-Yes. You can enable persistent application and Windows settings for your users on AppStream 2.0. Your users' plugins, toolbar settings, browser favorites, application connection profiles, and other settings will be saved and applied each time they start a streaming session. Your users' settings are stored in an S3 bucket you control in your AWS account.
-
-To learn more about persistent application settings, see Enable Application Settings Persistence for Your AppStream 2.0 Users.
-
-Q: Am I charged for persistent user application settings?
-
-There is no additional AppStream 2.0 charge to use this feature. However, persistent user application settings are stored in an Amazon S3 bucket in your account, and you will be billed for the S3 storage used for your user’s settings data. See Amazon S3 pricing or Enable Application Settings Persistence for Your AppStream 2.0 Users for more information.
-
-Q: Is there a limit to the file size of my users' persistent application settings?
-By default, the maximum user profile file size is 1 GB. See Enable Application Settings Persistence for Your AppStream 2.0 Users to increase this.
-
-Q: Will my users' application settings persist across stacks?
-Yes. Your users' application settings persist across stacks.
-
-Q: How are my users' application settings secured?
-Your users' application settings are encrypted in transit to the S3 bucket in your account using Amazon S3's SSL endpoints. Your users' application settings are encrypted at rest using S3-managed encryption keys.
-
-Q: Can I dynamically entitle users to apps?
-Yes, you can use the dynamic app framework APIs to build a dynamic app provider that specifies what apps uers can launch at run-time. The apps provided can be virtualized apps that are delivered from a Windows file share or other storage technology. To learn more, see Manage App Entitlement with the Dynamic App Framework.
+Yes, but not through AWS VAM. You can enable persistent application and Windows settings for your users on AppStream 2.0 through the AWS Console. Your users' plugins, toolbar settings, browser favorites, application connection profiles, and other settings will be saved and applied each time they start a streaming session. Your users' settings are stored in an S3 bucket you control in your AWS account.
  
 ## Try sample applications
 
@@ -507,6 +490,11 @@ Yes. You can setup every Amazon AppStream 2.0 stack as an entity or a package in
 Q: Who can access the management console for my Amazon AppStream 2.0 application?
 
 You can use AWS Identity and Access Management (IAM) to add users to your AWS account and grant them access to view and manage your Amazon AppStream 2.0 application. For more information, see “What is IAM?” in the IAM User Guide.
+
+## Dynamic Applications
+
+Q: Can I dynamically entitle users to apps?
+Yes, you can use the dynamic app framework APIs to build a dynamic app provider that specifies what apps uers can launch at run-time. The apps provided can be virtualized apps that are delivered from a Windows file share or other storage technology. To learn more, see Manage App Entitlement with the Dynamic App Framework.
 
 ## Microsoft Active Directory domain support
 
