@@ -93,7 +93,7 @@ Yes, but not within AWS VAM. You can change your instance type after you have cr
 
 Yes. To do this, you will need to familiarize yourself with the cloned GitHub repository and make changes using the branding that you desire. Unfortunately, there does not exist an easy way to do this within the AWS VAM frontend itself. 
 
-As for branking your AppStream 2.0 images, you will have to do that within the AWS Console. You can customize your users' Amazon AppStream 2.0 experience with your logo, color, text, and help links in the application catalog page. To replace AppStream 2.0's default branding and help links, log in to the AppStream 2.0 console, navigate to Stacks, and select a your application stack. Then, click Branding, choose Custom, select your options, and click Save. Your custom branding will apply to every new application catalog launched using SAML 2.0 single-sign-on (SSO) or the CreateStreamingURL API. You can revert to the default AppStream 2.0 branding and help links at any time. To learn more, visit Add Your Custom Branding to Amazon AppStream 2.0.
+As for branding your AppStream 2.0 images, you will have to do that within the AWS Console. You can customize your users' Amazon AppStream 2.0 experience with your logo, color, text, and help links in the application catalog page. To replace AppStream 2.0's default branding and help links, log in to the AppStream 2.0 console, navigate to Stacks, and select a your application stack. Then, click Branding, choose Custom, select your options, and click Save. Your custom branding will apply to every new application catalog launched using SAML 2.0 single-sign-on (SSO) or the CreateStreamingURL API. You can revert to the default AppStream 2.0 branding and help links at any time. To learn more, visit Add Your Custom Branding to Amazon AppStream 2.0.
 
 **Q: Can users save their application settings?**
 
@@ -101,79 +101,63 @@ Yes, but not through AWS VAM. You can enable persistent application and Windows 
  
 ## Try sample applications
 
-Q: Can I try sample applications?
+**Q: Can I try sample applications?**
 
-Yes. Visit Try Sample Applications low-friction, setup-free trial experience for Amazon AppStream 2.0 service.
+Yes. When setting up your environment through AWS Cloudformation or programmatically, ensure that the field for DemoApplications is set to true. This will launch a list of preconfigured applications in an application repository with applications including, but not limited to, Firefox, Google Chrome, Notepad, etc. This is also a great way to see how applications are configured in the S3 application repository.
 
-Q: What do I need to start using Try It Now?
+**Q: Will I be charged for using the demo applications?**
 
-You need an AWS account and a broadband Internet connection with at least 1 Mbps bandwidth to use Try It Now. You also need a browser capable of supporting HTML5.
+You won’t be charged any AWS fees for using the demo applications. All applications are free to the public by their providers. However, you may incur other fees such as Internet or broadband charges and AppStream resources to run the applications.
 
-Q: Will I be charged for using Try It Now?
+**Q: Can I add an application to be included in the demo repository bucket?**
 
-You won’t be charged any AWS fees for using Try It Now. However, you may incur other fees such as Internet or broadband charges to connect to the Try It Now experience.
+Yes. Once AWS VAM is launched, you may navigate to the application repository bucket that was configured and begin adding your own applications. Remember, this can be done either using Powershell or Chocolatey.
 
-Q: What applications can I use with Try It Now?
+**Q: What is Powershell?**
 
-Try It Now includes popular productivity, design, engineering, and software development applications running on Amazon AppStream 2.0 for you to try. To see the full list of available applications, go to the Try It Now catalog page after signing in with your AWS account.
+PowerShell is a cross-platform task automation solution made up of a command-line shell, a scripting language, and a configuration management framework. As a scripting language, PowerShell is commonly used for automating the management of systems. In our solution, since AppStream 2.0 and Active Directory are Windows based technologies, the scripting language is preconfigured in the environment and automatically supported without the need for the user to add anything.
 
-Q: How long can I stream applications via Try It Now?
+**Q: What is Chocolatey?**
 
-You can stream the applications included in Try It Now for up to 30 minutes. At the end of 30 minutes, your streaming session is automatically terminated and any unsaved data will be deleted.
-
-Q: Can I save files within Try It Now?
-
-You can save files to your Amazon AppStream 2.0 session storage and download them to your client device before your streaming session ends. Your files are not saved when you disconnect from your Try It Now session, or when your session ends, and any unsaved data will be deleted.
-
-Q: Can I submit an application to be included in Try It Now?
-
-Yes. You can submit a request to include your application in Try It Now. After your request is received, AWS usually reviews the request and responds within 10 business days.
+(Chocolatey)[https://chocolatey.org/] is the largest online registry of Windows packages. Chocolatey packages encapsulate everything required to manage a particular piece of software into one deployment artifact by wrapping installers, executables, zips, and/or scripts into a compiled package file. In our solution the package manager is preconfigured in the environment and automatically supported without the need for the user to install anything. We recommend using Chocolatey whenever possible as it is simple to use, but more complex applications configurations may require the use of Powershell.
 
 ## Images
 
-Q: How can I create images with my own applications?
+**Q: How can I create AppStream 2.0 images with my own applications on AWS VAM?**
 
-You can use Amazon AppStream 2.0 Image Builder to create images with your own applications. To learn more, please visit the tutorial found on this page.
+At a high level, you will need to configure either a Powershell or Chocolatey scripts inside of the S3 application repository. Once this is done properly, the application will automatically populate the list of available applications within VAM. For more details please see the documentation on [Application Repository] (https://awslabs.github.io/aws-virtual-application-management/user-guide/applicationRepository.html).
 
-Q: With which operating system do my apps need to be compatible?
+After that is successfully done, you will navigate to the Images section of AWS VAM to configure the image specifications of your deployment. You will have the option of choosing your application from the list when configuring the Image. After successfully starting the image builder process, all you have to do is wait for it to create a install your applications using the scripts, which takes about 40 minutes to an hour. For more information please see our documentation on (AppStream Images)[https://awslabs.github.io/aws-virtual-application-management/user-guide/sidebarAppStreamImages.html].
 
-Amazon AppStream 2.0 streams applications that can run on the following 64-bit Windows OS versions - Windows Server 2012 R2, Windows Server 2016 and Windows Server 2019. You can add support for 32-bit Windows applications by using the WoW64 extensions. If your application has other dependencies, such as the .NET framework, include those dependencies in your application installer. Amazon AppStream 2.0 also streams applications that can run on Amazon Linux 2 operating system.
+**Q: With which operating system do my apps need to be compatible?**
 
-Q: Can I install anti-virus software on my Amazon AppStream 2.0 image to secure my applications?
+Amazon AppStream 2.0 streams applications that can run on the following 64-bit Windows OS versions - Windows Server 2012 R2, Windows Server 2016 and Windows Server 2019. You can add support for 32-bit Windows applications by using the WoW64 extensions. If your application has other dependencies, such as the .NET framework, include those dependencies in your application installer.
 
-You can install any tools, including anti-virus programs on your AppStream 2.0 image. However, you need to ensure that these applications do not block access to the AppStream 2.0 service. We recommend testing your applications before publishing them to your users. You can learn more by reading Windows Update and Antivirus Software on AppStream 2.0 and Data Protection in AppStream 2.0 in the Amazon AppStream 2.0 Administration Guide.
+**Q: Can I install anti-virus software on my Amazon AppStream 2.0 image to secure my applications?**
 
-Q: Can I customize the Windows operating system using group policies?
+You can install any tools, including anti-virus programs on your AppStream 2.0 image. However, you need to ensure that these applications do not block access to the AppStream 2.0 service. We recommend testing your applications before publishing them to your users. You can learn more by reading Antivirus Software on AppStream 2.0 and Data Protection in AppStream 2.0 in the (Amazon AppStream 2.0 Administration Guide)[https://docs.aws.amazon.com/appstream2/latest/developerguide/appstream2-dg.pdf].
 
-Any changes that are made to the image using Image Builder through local group policies will be reflected in your AppStream 2.0 images. Any customizations made with domain based group policies can only be applied to domain joined fleets.
+**Q: Can I customize the Windows operating system using group policies?**
 
-Q: How do I keep my Amazon AppStream 2.0 images updated?
+Any changes that are made to the image using Image Builder through local group policies will be reflected in your AppStream 2.0 images. Any customizations made with domain based group policies will also be applied to the fleets, as AppStream 2.0 images are domain joined within AWS VAM.
 
-AppStream 2.0 regularly releases base images that include operating system updates and AppStream 2.0 agent updates. The AppStream 2.0 agent software runs on your streaming instances and enables your users to stream applications. When you create a new image, the *Always use latest agent version* option is selected by default. When this option is selected, any new image builder or fleet instance that is launched from your image will always use the latest AppStream 2.0 agent version. If you deselect this option, your image will use the agent version you selected when you launched the image builder. Alternatively, you can use managed AppStream 2.0 image updates with your images to install the latest operating system updates, driver updates, and AppStream 2.0 agent software and create new images. You are responsible for installing and maintaining the updates for the operating system, your applications, and their dependencies. For more information, see Keep Your AppStream 2.0 Image Up-to-Date.
+**Q: How do I keep my Amazon AppStream 2.0 images and applications updated?**
 
-Q: How do I update my applications in an existing image?
+AppStream 2.0 regularly releases base images that include operating system updates and AppStream 2.0 agent updates. The AppStream 2.0 agent software runs on your streaming instances and enables your users to stream applications. When you create a new image, the *Always use latest agent version* option is selected by default. When this option is selected, any new image builder or fleet instance that is launched from your image will always use the latest AppStream 2.0 agent version. To deselect this option you would need to go through the AWS Console. If it is diselected, your image will use the agent version you selected when you launched the image builder. 
 
-To update applications on the image, or to add new applications, launch Image Builder using an existing image, update your applications and create a new image. Existing streaming instances will be replaced with instances launched from the new image within 16 hours or immediately after users have disconnected from them, whichever is earlier. You can immediately replace all the instances in the fleet with instances launched from the latest image by stopping the fleet, changing the image used, and starting it again.
+As for your applications, you will need to update the package number within the S3 application repository periodically and relaunch the image builder instances through AWS VAM to release those updates. Doing so will allow the package manager to grab the specified package version. Existing streaming instances will be replaced with instances launched from the new image within 16 hours or immediately after users have disconnected from them, whichever is earlier. You can immediately replace all the instances in the fleet with instances launched from the latest image by stopping the fleet, changing the image used, and starting it again.
 
-Q: Can I connect my Amazon AppStream 2.0 applications to my existing resources, such as a licensing server?
+**Q: Can I connect my Amazon AppStream 2.0 applications to my existing resources, such as a licensing server with AWS VAM?**
 
-Yes. Amazon AppStream 2.0 allows you to launch streaming instances (fleets and image builders) in your VPC, which means you can control access to your existing resources from your AppStream 2.0 applications. For more information, see Network Settings for Fleet and Image Builder Instances.
+Yes. Amazon AppStream 2.0 allows you to launch streaming instances (fleets and image builders) in your VPC, which means you can control access to your existing resources from your AppStream 2.0 applications. Keep in mind that this configuration will require either manual configuration once the applications are installed on the image builder, or automation through Powershell scripts.
 
-Q. Can I copy my Amazon AppStream 2.0 images?
+**Q. Can I copy my Amazon AppStream 2.0 images with AWS VAM**?
 
-Yes. You can copy your Amazon AppStream 2.0 application images across AWS Regions. To copy an image, launch the AppStream 2.0 console and select the region that contains your existing image. In the navigation pane, choose Images, select your existing image, click Actions, select Copy, and pick your target AWS Region. You can also use the CopyImage API to programmatically copy images. Visit Tag and Copy an Image for more information.
+Yes. Within the AWS VAM Console, when you configure an image, you can choose a base image to build from. Not adding additional configurations except for the name of the new image will clone the base image with all it's configuration applications. To copy those images across regions you will need to access the AWS Console.
 
-Q: Can I share application images with other AWS Accounts?
+**Q: Can I share application images with other AWS Accounts with AWS VAM?**
 
-Yes. You can share your AppStream 2.0 application images with other AWS accounts within the same AWS Region. You control the shared image and can remove it from another AWS account at any time. To learn more, visit Administer Your Amazon AppStream 2.0 Image
-
-Q: What permissions can I give other AWS accounts when I share my application image(s) with them?
-
-You maintain full privileges to the application image. You can share the image with other AWS accounts, granting them permission to either create image builders, use for fleets, or both. These permissions can later be revoked. However, if you granted the destination AWS account permission to create image builders, you will not be able to revoke access to the image builders or images they create from your image.
-
-Q: If I share an application image with another AWS account, can I delete it or remove permissions?
-
-Yes. You control the image. In order to delete the image, you will first have to stop sharing the image from all AWS accounts you shared it with. The AWS accounts you shared the image with will no longer see the image in their Image Registry, and will be unable to select it for new or existing fleets. Existing streaming instances in the fleets will continue to stream applications, but the fleet will terminate existing unused instances. If you originally granted permissions for creating image builders, they will be unable to create new image builders from it, but existing ones will continue to work. Images in the destination account created from image builders from the shared image will continue to work.
+No. You will need to access the AWS Console or configure this programmatically. You can share your AppStream 2.0 application images with other AWS accounts within the same AWS Region. You control the shared image and can remove it from another AWS account at any time. To learn more, visit (Administer Your Amazon AppStream 2.0 Image)[https://docs.aws.amazon.com/appstream2/latest/developerguide/administer-images.html].
 
 ## Graphics instances
 
@@ -541,6 +525,8 @@ No. At this time we do not support User Pools users connecting to domain joined 
 Q: How do my users sign in to streaming instances that are joined to an Active Directory domain?
 
 When your users access a streaming instance through a web browser, they sign in to their Microsoft Active Directory domain by entering their domain password. When your users access a streaming instance by using the AppStream 2.0 client for Windows, they can either enter their Active Directory domain password or use a smart card that is trusted by the Active Directory domain. 
+
+## Workflows
 
 ## Pricing and billing
 
