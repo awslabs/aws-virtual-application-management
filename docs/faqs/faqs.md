@@ -237,43 +237,31 @@ When launching AWS VAM, add the name and G Suite Domain Name in the appropriate 
 
 No. You will need to either relaunch the solution or disable it within the AWS Console or programmatically.
 
+**Q: How is the data stored in my user's home folders secured?**
+
+Files and folders in your users' home folders are encrypted in transit using Amazon S3's SSL endpoints. Files and folders are encrypted at rest using Amazon S3-managed encryption keys.
+
 ## Monitoring
 
-Q: How do I monitor usage of my Amazon AppStream 2.0 fleet resources?
+**Q: How do I monitor usage of my Amazon AppStream 2.0 fleet resources within AWS VAM?**
 
-There are two ways you can monitor your Amazon AppStream 2.0 fleet. First, the AppStream 2.0 console provides a lightweight, real-time view of the state of your AppStream 2.0 fleet, and offers up to two weeks of historical usage data. Metrics are displayed automatically, and don’t require any setup.
+When you logging into the solution, there see 7-8 icons on the left hand side of the dashboard, depending on how you configured the solution. The first one is the Dashboard feature of AWS VAM. 
 
-Second, you can access AppStream 2.0 metrics using CloudWatch. The CloudWatch console allows you to specify reporting intervals, create custom dashboards and graphs, and set alarms.
+The Dashboard feature comes with two dashboards to explore: 
 
-To learn more, see Monitoring Amazon AppStream 2.0 Resources.
+**Average Session Length**: this provides the combined average session length by a fleet in minutes. This way you can tell which fleets and at what times have the longest sessions on average.
 
-Q: What information can I get from the Amazon AppStream 2.0 usage metrics?
+**Daily Sessions**: Combines the total amount of daily sessions for a given fleet in minutes to have a broad look which fleets are being used the most. 
 
-You can see the size of your Amazon AppStream 2.0 fleet, the number of running instances, the number of instances available to accept new connections, and the utilization of your fleet. You can track these metrics over time so that you can optimize your fleet settings to suit your needs.
+You can also view the fleet metrics through the Amazon AppStream 2.0 console or within Amazon CloudWatch.
 
-Using Amazon CloudWatch, you can also set alarms to notify you of changes to your fleet, or when there is insufficient capacity to support your users.
+**Q: Can I add additional metrics into AWS VAM?**
 
-For the complete list of available metrics, see Monitoring Amazon AppStream 2.0 Resources.
+Yes, you can create custom metrics for Amazon AppStream 2.0 through AWS VAM. Keep in mind that this will involve making changes to the code repostiroy of the solution.
 
-Q: Can I create custom Amazon CloudWatch metrics for Amazon AppStream 2.0?
+**Q: Do I need to do any additional configurations to start?**
 
-Yes, you can create custom metrics for Amazon AppStream 2.0. For more information, see Publish Custom Metrics.
-
-Q: How frequently are Amazon AppStream 2.0 metrics published to Amazon CloudWatch?
-
-Amazon AppStream 2.0 sends metrics to Amazon CloudWatch every 1 minute. The metrics are stored in CloudWatch using the standard retention policy. For more information, see Amazon CloudWatch FAQs.
-
-Q: How do I create CloudWatch alarms for Amazon AppStream 2.0?
-
-You can create Amazon CloudWatch alarms for Amazon AppStream 2.0 using the CloudWatch console or the CloudWatch APIs.
-
-Q: Are there additional costs for using CloudWatch metrics with Amazon AppStream 2.0?
-
-There is no additional charge for viewing CloudWatch metrics for AppStream 2.0. You may incur additional charges for setting up CloudWatch alarms and retrieving metrics via the CloudWatch APIs. For more information, see Amazon CloudWatch Pricing.
-
-Q: Does Amazon AppStream 2.0 offer a set of public APIs?
-
-Yes, Amazon AppStream 2.0 includes APIs that you can use to easily integrate and extend the service. The APIs enable you to create, update, and delete Amazon AppStream 2.0 resources, and provide detailed information about resource states. You can create URLs for administrators to connect to their image builders to install applications, and create URLs for users to access their AppStream 2.0 applications. See our API reference for more information.
+Metrics monitoring is heavily tied to (User Sessions Reports)[https://docs.aws.amazon.com/appstream2/latest/developerguide/enable-usage-reports.html]. The solution enables User Sessions Reports by default. User Sessions Reports collects detailed metrics on Amazon Appstream usage and stores the information as a CSV file in Amazon S3. This data will collect information from all running fleets in your AppStream 2.0 environment and display them on this dashboard. Currently this functionality is still in development and may require a partner to configure.
 
 ## Streaming
 
@@ -309,10 +297,6 @@ Q: Can I change the security groups to which my image builders are assigned afte
 No. You cannot change the security groups to which your fleets are assigned after they have been created. To assign an image builder to a different security groups, you will need to create a new image builder.
 
 You can also change the rules of a security group in your VPC at any time using the Amazon EC2 console. Note that the new rules will apply to all resources assigned to that security group. For more information, refer to Security Groups for your VPC.
-
-Q: How is the data stored in my user's home folders secured?
-
-Files and folders in your users' home folders are encrypted in transit using Amazon S3's SSL endpoints. Files and folders are encrypted at rest using Amazon S3-managed encryption keys.
 
 Q: How is the data from my streamed application encrypted to the client?
 
@@ -471,8 +455,6 @@ Yes. Amazon AppStream 2.0 is included in the AWS System and Organizational Contr
 
 ## Launch deployment types
 
-## Workflows
-
-## Dynamic Catalogs
+## Partners
 
 ## Security, Authentication
