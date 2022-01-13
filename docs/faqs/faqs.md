@@ -285,50 +285,29 @@ Yes. When your fleet successfully launches, you may test a streaming instance to
 
 ## Identity
 
-Q: How do I authenticate users with Amazon AppStream 2.0 applications?
+**Q: How do I authenticate users into AWS VAM?**
 
-There are three options to authenticate users with Amazon AppStream 2.0: you can use built-in user management, you can build a custom identity, or you can set up federated access using SAML 2.0.
+By default, the solution will configure authentication into AWS VAM with Amazon Cognito. An administrator will provide their email and given an ability to setup their password. To configure your preferred method of signing users into AWS VAM you will need to configure that during the setup process. Once this is configured, changing your preferred authentication provider will require redeploying the solution.
 
-When using built-in user management, you can set up and manage your users in the AppStream 2.0 management console from the User Pool tab. To add a new user, all you need is their first and last name, and an e-mail address. To learn more about user management within AppStream 2.0, see Using the AppStream 2.0 User Pool.
+**Q: Can I use AWS VAM with my existing user directory, including Microsoft Active Directory?**
 
-When using federated sign-in to authenticate users, you will set up identity federation using SAML 2.0, which allows you to use your existing user directory to control access to applications available via AppStream 2.0. For details on setting up SAML integration, see the steps outlined here.
+Yes. AWS VAM supports identity federation using SAML 2.0, which allows you to use your existing user directory to manage end user access to the solution.
 
-When building an entitlement service, you should authenticate users either with a custom identity or by using a service such as Login with Amazon. After your custom identity has authenticated a user, it should call into Amazon AppStream 2.0 to create a new streaming URL. AppStream 2.0 returns a URL for the session that can be opened in a browser to start the streaming session.
+**Q: Does AWS VAM allow me to setup authentication into Amazon AppStream 2.0 instances?**
 
-Q: Can I use Amazon AppStream 2.0 with my existing user directory, including Microsoft Active Directory?
-
-Yes. Amazon AppStream 2.0 supports identity federation using SAML 2.0, which allows you to use your existing user directory to manage end user access to your AppStream 2.0 apps. For details on setting up SAML integration, read Single Sign-on Access (SAML 2.0) in the Amazon AppStream 2.0 Administration Guide.
-
-Q: What type of identity federation does Amazon AppStream 2.0 support?
-
-Amazon AppStream 2.0 supports federation using SAML 2.0 (Identity Provider initiated). This type of federated access allows a user to sign in by first authenticating with an identity federation provider, after which they can access their AppStream 2.0 apps.
-
-Q: What are the requirements for setting up identity federation with Amazon AppStream 2.0?
-
-To configure identity federation with Amazon AppStream 2.0, you need a SAML 2.0 Identity Provider that links to an existing LDAP-compatible directory, such as Microsoft Active Directory. Microsoft Active Directory Federation Services (ADFS), Ping Identity, Okta, and Shibboleth, are all examples of SAML 2.0 Identity Providers that will work with AppStream 2.0.
-
-Q: Can I control which users access my Amazon AppStream 2.0?
-
-Yes. When using built-in user management, you can control which users have access to your Amazon AppStream 2.0 stacks in the User Pool tab of the AppStream 2.0 management console. To learn more about user management within AppStream 2.0, see Using the AppStream 2.0 User Pool.
-
-When you use SAML 2.0, you can control which users have access to your Amazon AppStream 2.0 stacks by mapping the users in your federation service to the IAM role that has access permissions to the stack. Please refer to the AppStream 2.0 documentation for detailed information and step-by-step guidelines for popular federation services.
-
-Q: Can I enable multi-factor authentication for my users?
-
-Yes. You can enable Multi-Factor Authentication when using federation with SAML 2.0 or when using your own entitlement service.
-
-Q: Can users choose which Amazon AppStream 2.0 stack they want to access during signing-in?
-
-Yes. You can setup every Amazon AppStream 2.0 stack as an entity or a package in your federation service. This allows your users to select which stack they want to access while signing in from your application portal.
-
-Q: Who can access the management console for my Amazon AppStream 2.0 application?
-
-You can use AWS Identity and Access Management (IAM) to add users to your AWS account and grant them access to view and manage your Amazon AppStream 2.0 application. For more information, see “What is IAM?” in the IAM User Guide.
+Yes. This will require setting up your own identity provider through the Amazon AppStream 2.0 solution in the code base before deployment.
 
 ## Dynamic Applications
 
-Q: Can I dynamically entitle users to apps?
+**Q: What are dynamic applications?**
+
+**Q: Can I dynamically entitle users to apps with AWS VAM?**
+
 Yes, you can use the dynamic app framework APIs to build a dynamic app provider that specifies what apps uers can launch at run-time. The apps provided can be virtualized apps that are delivered from a Windows file share or other storage technology. To learn more, see Manage App Entitlement with the Dynamic App Framework.
+
+**Q: Do I need to configure any additional steps to start using dynamic applications within AWS VAM?**
+
+TODO
 
 ## Microsoft Active Directory domain support
 
@@ -375,8 +354,6 @@ No. At this time we do not support User Pools users connecting to domain joined 
 Q: How do my users sign in to streaming instances that are joined to an Active Directory domain?
 
 When your users access a streaming instance through a web browser, they sign in to their Microsoft Active Directory domain by entering their domain password. When your users access a streaming instance by using the AppStream 2.0 client for Windows, they can either enter their Active Directory domain password or use a smart card that is trusted by the Active Directory domain. 
-
-## Workflows
 
 ## Pricing and billing
 
@@ -431,6 +408,8 @@ Q: Is Amazon AppStream 2.0 included in the System and Organizational Controls (S
 Yes. Amazon AppStream 2.0 is included in the AWS System and Organizational Controls (SOC) reports. AWS System and Organization Controls Reports are independent third-party examination reports that demonstrate how AWS achieves key compliance controls and objectives. The purpose of these reports is to help you and your auditors understand the AWS controls established to support operations and compliance. You can learn more about the AWS Compliance programs by visiting AWS Compliance Programs or by visiting the Services in Scope by Compliance Program.
 
 ## Launch deployment types
+
+## Workflows
 
 ## Partners
 
