@@ -265,46 +265,25 @@ Metrics monitoring is heavily tied to (User Sessions Reports)[https://docs.aws.a
 
 ## Streaming
 
-Q: What streaming protocol does Amazon AppStream 2.0 use?
+**Q: Can I restrict network access from fleets and image builders launched in my VPC using AWS VAM?**
 
-Amazon AppStream 2.0 uses NICE DCV to stream your applications to your users. NICE DCV is a proprietary protocol used to stream high-quality, application video over varying network conditions. It streams video and audio encoded using standard H.264 over HTTPS. The protocol also captures user input and sends it over HTTPS back to the applications being streamed from the cloud. Network conditions are constantly measured during this process and information is sent back to the encoder on the server. The server dynamically responds by altering the video and audio encoding in real time to produce a high-quality stream for a wide variety of applications and network conditions.
+Yes. You have the ability to configure your own VPC when launching the AWS VAM solution. This will require the vpc and two subnets for a highly available deployment. The restrict network access, configure security groups to specify network traffic that is allowed between your streaming instances and resources in your VPC. Whenever you launch and image builder or fleet, AWS VAM will launch those resources in the configured VPC. 
 
-Q: What is the maximum network latency recommended while accessing Amazon AppStream 2.0?
+**Q: Can I change my VPC configuration within AWS VAM?**
 
-While the remoting protocol has a maximum round-trip latency recommendation of 250 ms, the best user experience is achieved at less than 100 ms. If you are located more than 2000 miles from the AWS Regions where Amazon AppStream 2.0 is currently available, you can still use the service, but your experience may be less responsive.
-Security
+No. Changing your VPC configuration will require accessing the AWS Console to edit your network setup or acessing resources programmatically.
 
-Q: How do I restrict network access from fleets and image builders launched in my VPC?
+**Q: Can I change the security groups to which my fleets are assigned after they have been created?**
 
-Security groups enable you to specify network traffic that is allowed between your streaming instances and resources in your VPC. You can restrict network access by assigning an image builder or fleet to the security groups in your VPC. For more information, refer to Security Group for Your VPC.
+Yes, but not within AWS VAM. This will have to be done through the AWS Console or programmatically. You can change the security groups to which your fleets are assigned, so long as they are in the stopped status.
 
-Q: Can I use existing VPC security groups to secure AppStream 2.0 fleets and image builders?
+**Q: Can I control data transfer between AppStream 2.0 and my users' devices?**
 
-Yes. You can assign an image builder or fleet to existing security groups in your VPC.
+Yes. You can choose whether to allow users to transfer data between their streaming applications and their local device through copy or paste, file upload or download, or print actions. This will have to be configured through the AWS console or programmatically. To learn move, visit (Create Fleets and Stacks)[https://docs.aws.amazon.com/appstream2/latest/developerguide/set-up-stacks-fleets.html].
 
-Q: How many security groups can I apply to a fleet or image builder?
+**Q: Can I stream my applications through AWS VAM?**
 
-You can assign an image builder or fleet to up to five security groups.
-
-Q: Can I change the security groups to which my fleets are assigned after they have been created?
-
-Yes. You can change the security groups to which your fleets are assigned, so long as they are in the stopped status.
-
-You can also change the rules of a security group in your VPC at any time using the Amazon EC2 console. Note that the new rules will apply to all resources assigned to that security group. For more information, refer to Security Groups for your VPC.
-
-Q: Can I change the security groups to which my image builders are assigned after they have been created?
-
-No. You cannot change the security groups to which your fleets are assigned after they have been created. To assign an image builder to a different security groups, you will need to create a new image builder.
-
-You can also change the rules of a security group in your VPC at any time using the Amazon EC2 console. Note that the new rules will apply to all resources assigned to that security group. For more information, refer to Security Groups for your VPC.
-
-Q: How is the data from my streamed application encrypted to the client?
-
-The streamed video and user inputs are sent over HTTPS and are SSL-encrypted between the Amazon AppStream 2.0 instance executing your applications, and your end users.
-
-Q. Can I control data transfer between AppStream 2.0 and my users' devices?
-
-Yes. You can choose whether to allow users to transfer data between their streaming applications and their local device through copy or paste, file upload or download, or print actions. To learn move, visit Create Fleets and Stacks.
+Yes. When your fleet successfully launches, you may test a streaming instance to make sure that your applications work as expected. To have others access your AppStream 2.0 fleet securely you will want to integrate with your Active Directory, SSO Provider, or LTI system.
 
 ## Identity
 
@@ -458,3 +437,7 @@ Yes. Amazon AppStream 2.0 is included in the AWS System and Organizational Contr
 ## Partners
 
 ## Security, Authentication
+
+Q: How is the data from my streamed application encrypted to the client?
+
+The streamed video and user inputs are sent over HTTPS and are SSL-encrypted between the Amazon AppStream 2.0 instance executing your applications, and your end users.
