@@ -64,8 +64,6 @@ First, create an Amazon Virtual Private Cloud (Amazon VPC) endpoint in the same 
 
 **Q: Are all AppStream 2.0 instance types available in AWS VAM?**
 
-## Graphics instances
-
 Q: Does Amazon AppStream 2.0 offer GPU-accelerated instances?
 
 Yes. All AppStream 2.0 instance types, including Graphics Design, Graphics Pro, and Graphics G4 instance families, are available to launch with AWS VAM. Ensure to increase your service quota limits for instances and fleet size through AWS Support.
@@ -87,7 +85,7 @@ The resources required are as follows:
 
 **Q: How do I configure my applications in AWS VAM?**
 
-At a high level, you will need to configure either a Powershell or Chocolatey scripts inside of the S3 application repository. Once this is done properly, the application will automatically populate the list of available applications within VAM. For more details please see the documentation on [Application Repository] (https://awslabs.github.io/aws-virtual-application-management/user-guide/applicationRepository.html).
+At a high level, you will need to configure either a Powershell or Chocolatey scripts inside of the S3 application repository. Once this is done properly, the application will automatically populate the list of available applications within VAM. For more details please see the documentation on [Application Repository](https://awslabs.github.io/aws-virtual-application-management/user-guide/applicationRepository.html).
 
 **Q:  Will I need to access the AppStream 2.0 Image Builder during the application installation process?**
 
@@ -131,15 +129,15 @@ PowerShell is a cross-platform task automation solution made up of a command-lin
 
 **Q: What is Chocolatey?**
 
-(Chocolatey)[https://chocolatey.org/] is the largest online registry of Windows packages. Chocolatey packages encapsulate everything required to manage a particular piece of software into one deployment artifact by wrapping installers, executables, zips, and/or scripts into a compiled package file. In our solution the package manager is preconfigured in the environment and automatically supported without the need for the user to install anything. We recommend using Chocolatey whenever possible as it is simple to use, but more complex applications configurations may require the use of Powershell.
+[Chocolatey](https://chocolatey.org/) is the largest online registry of Windows packages. Chocolatey packages encapsulate everything required to manage a particular piece of software into one deployment artifact by wrapping installers, executables, zips, and/or scripts into a compiled package file. In our solution the package manager is preconfigured in the environment and automatically supported without the need for the user to install anything. We recommend using Chocolatey whenever possible as it is simple to use, but more complex applications configurations may require the use of Powershell.
 
 ## Images
 
 **Q: How can I create AppStream 2.0 images with my own applications on AWS VAM?**
 
-At a high level, you will need to configure either a Powershell or Chocolatey scripts inside of the S3 application repository. Once this is done properly, the application will automatically populate the list of available applications within VAM. For more details please see the documentation on [Application Repository] (https://awslabs.github.io/aws-virtual-application-management/user-guide/applicationRepository.html).
+At a high level, you will need to configure either a Powershell or Chocolatey scripts inside of the S3 application repository. Once this is done properly, the application will automatically populate the list of available applications within VAM. For more details please see the documentation on [Application Repository](https://awslabs.github.io/aws-virtual-application-management/user-guide/applicationRepository.html).
 
-After that is successfully done, you will navigate to the Images section of AWS VAM to configure the image specifications of your deployment. You will have the option of choosing your application from the list when configuring the Image. After successfully starting the image builder process, all you have to do is wait for it to create a install your applications using the scripts, which takes about 40 minutes to an hour. For more information please see our documentation on (AppStream Images)[https://awslabs.github.io/aws-virtual-application-management/user-guide/sidebarAppStreamImages.html].
+After that is successfully done, you will navigate to the Images section of AWS VAM to configure the image specifications of your deployment. You will have the option of choosing your application from the list when configuring the Image. After successfully starting the image builder process, all you have to do is wait for it to create a install your applications using the scripts, which takes about 40 minutes to an hour. For more information please see our documentation on [AppStream Images](https://awslabs.github.io/aws-virtual-application-management/user-guide/sidebarAppStreamImages.html).
 
 **Q: With which operating system do my apps need to be compatible?**
 
@@ -147,7 +145,7 @@ Amazon AppStream 2.0 streams applications that can run on the following 64-bit W
 
 **Q: Can I install anti-virus software on my Amazon AppStream 2.0 image to secure my applications?**
 
-You can install any tools, including anti-virus programs on your AppStream 2.0 image. However, you need to ensure that these applications do not block access to the AppStream 2.0 service. We recommend testing your applications before publishing them to your users. You can learn more by reading Antivirus Software on AppStream 2.0 and Data Protection in AppStream 2.0 in the (Amazon AppStream 2.0 Administration Guide)[https://docs.aws.amazon.com/appstream2/latest/developerguide/appstream2-dg.pdf].
+You can install any tools, including anti-virus programs on your AppStream 2.0 image. However, you need to ensure that these applications do not block access to the AppStream 2.0 service. We recommend testing your applications before publishing them to your users. You can learn more by reading Antivirus Software on AppStream 2.0 and Data Protection in AppStream 2.0 in the [Amazon AppStream 2.0 Administration Guide](https://docs.aws.amazon.com/appstream2/latest/developerguide/appstream2-dg.pdf).
 
 **Q: Can I customize the Windows operating system using group policies?**
 
@@ -169,7 +167,7 @@ Yes. Within the AWS VAM Console, when you configure an image, you can choose a b
 
 **Q: Can I share application images with other AWS Accounts with AWS VAM?**
 
-No. You will need to access the AWS Console or configure this programmatically. You can share your AppStream 2.0 application images with other AWS accounts within the same AWS Region. You control the shared image and can remove it from another AWS account at any time. To learn more, visit (Administer Your Amazon AppStream 2.0 Image)[https://docs.aws.amazon.com/appstream2/latest/developerguide/administer-images.html].
+No. You will need to access the AWS Console or configure this programmatically. You can share your AppStream 2.0 application images with other AWS accounts within the same AWS Region. You control the shared image and can remove it from another AWS account at any time. To learn more, visit [Administer Your Amazon AppStream 2.0 Image](https://docs.aws.amazon.com/appstream2/latest/developerguide/administer-images.html).
 
 ## Fleets
 
@@ -261,7 +259,7 @@ Yes, you can create custom metrics for Amazon AppStream 2.0 through AWS VAM. Kee
 
 **Q: Do I need to do any additional configurations to start?**
 
-Metrics monitoring is heavily tied to (User Sessions Reports)[https://docs.aws.amazon.com/appstream2/latest/developerguide/enable-usage-reports.html]. The solution enables User Sessions Reports by default. User Sessions Reports collects detailed metrics on Amazon Appstream usage and stores the information as a CSV file in Amazon S3. This data will collect information from all running fleets in your AppStream 2.0 environment and display them on this dashboard. Currently this functionality is still in development and may require a partner to configure.
+Metrics monitoring is heavily tied to [User Sessions Reports](https://docs.aws.amazon.com/appstream2/latest/developerguide/enable-usage-reports.html). The solution enables User Sessions Reports by default. User Sessions Reports collects detailed metrics on Amazon Appstream usage and stores the information as a CSV file in Amazon S3. This data will collect information from all running fleets in your AppStream 2.0 environment and display them on this dashboard. Currently this functionality is still in development and may require a partner to configure.
 
 ## Streaming
 
@@ -279,7 +277,7 @@ Yes, but not within AWS VAM. This will have to be done through the AWS Console o
 
 **Q: Can I control data transfer between AppStream 2.0 and my users' devices?**
 
-Yes. You can choose whether to allow users to transfer data between their streaming applications and their local device through copy or paste, file upload or download, or print actions. This will have to be configured through the AWS console or programmatically. To learn move, visit (Create Fleets and Stacks)[https://docs.aws.amazon.com/appstream2/latest/developerguide/set-up-stacks-fleets.html].
+Yes. You can choose whether to allow users to transfer data between their streaming applications and their local device through copy or paste, file upload or download, or print actions. This will have to be configured through the AWS console or programmatically. To learn move, visit [Create Fleets and Stacks](https://docs.aws.amazon.com/appstream2/latest/developerguide/set-up-stacks-fleets.html).
 
 **Q: Can I stream my applications through AWS VAM?**
 
