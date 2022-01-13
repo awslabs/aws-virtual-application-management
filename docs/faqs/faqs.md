@@ -219,55 +219,23 @@ There are no charges for using Fleet Auto Scaling policies. However, each CloudW
 
 **Q: Does AWS VAM allow me to configure persistent storage so that I can save and access files between sessions?**
 
-Yes, but the functionality is currently limited to Google Drive and Home Folders. By default, AWS VAM configures Home Folders. While launching AWS VAM, you can define your Google Drive for G Suite Domain within the solution so that your fleets launch with your preferred persistent storage provider. If you need to configure Microsoft One Drive for Business, you will need to configure that in the streaming page of the Amazon AppStream 2.0 Console or programmatically. 
+Yes, but the functionality is currently limited to Google Drive and Home Folders. By default, AWS VAM configures Home Folders for your AppStream 2.0 persistent storage. While launching AWS VAM, you can define your Google Drive for G Suite Domain within the solution so that your fleets launch with your preferred persistent storage provider. If you need to configure Microsoft One Drive for Business, you will need to configure that in the streaming page of the Amazon AppStream 2.0 Console or programmatically. 
 
-Q: How do users access persistent storage from their Amazon AppStream 2.0 sessions?
+**Q: Are there any differences in accessing persistent within Amazon AppStream 2.0 sessions launched using AWS VAM?**
 
-Users can access a home folder during their application streaming session. Any file they save to their home folder will be available for use in the future. They can also connect their G Suite account to access Google Drive and connect their Microsoft OneDrive for Business account to access OneDrive within AppStream 2.0. New files added or changes made to existing files within a streaming session are automatically synced between AppStream 2.0 and their persistent storage options.
+No. Users can access a home folder during their application streaming session. Any file they save to their home folder will be available for use in the future. 
 
-Q. Can I enable multiple persistent storage options for an Amazon AppStream 2.0 stack?
+**Q. Can I enable multiple persistent storage options for an Amazon AppStream 2.0 stack with AWS VAM?**
 
-Yes. You can enable Home Folders, Google Drive for G Suite, and Microsoft OneDrive for Business. To optimize your internet bandwidth, create a VPC endpoint for Amazon S3 and authorize AppStream 2.0 to access your VPC endpoint. This routes Home Folders data through your VPC and Google Drive or OneDrive data through the public Internet.
+Yes. If you configured Google Drive when launching AWS VAM, Home Folders and Google Drive for G Suite will be available within your AppStream 2.0 streaming sessions. To Microsoft OneDrive for Business you will need to configure that through the AWS Console or programmatically. 
 
-Q. How do I enable Google Drive for G Suite for Amazon AppStream 2.0?
+**Q. How do I enable Google Drive for G Suite for Amazon AppStream 2.0 within AWS VAM?**
 
-When creating an Amazon AppStream 2.0 stack, select the option to enable Google Drive for the stack, provide your G Suite domain names, and create the stack. To learn more, visit Enable and Administer Google Drive for Your AppStream 2.0 Users.
+When launching AWS VAM, add the name and G Suite Domain Name in the appropriate sections of the AWS CloudFormation template or programmatically.
 
-Q. Can a user remove their Google Drive for G Suite account?
+**Q. Can a user remove their Google Drive for G Suite account within AWS VAM?**
 
-Yes. Users can remove permissions that AppStream 2.0 has to their Google account from their Google account permissions page.
-
-Q. Can I control which Google Drive for G Suite accounts integrate with AppStream 2.0?
-
-Yes. Only user accounts with your G Suite organization's domain name can use their Google Drive account. Users cannot link any other accounts. To learn more, visit Enable and Administer Google Drive for Your Users.
-
-Q. What kind of data can users store in Google Drive during a streaming session?
-
-Any file type that is supported by Google Drive can be stored during the streaming session. For more details on the file types supported by Google Drive, refer to Google Drive FAQs.
-
-Q. Can users transfer files from their device to Google Drive during their streaming session?
-
-Yes. Users can transfer files to and from from their device and Google Drive using the MyFiles feature in the streaming session toolbar. Visit Enable Persistent Storage for Your AppStream 2.0 Users to learn more.
-
-Q. How do I enable Microsoft OneDrive for Business for Amazon AppStream 2.0?
-
-When creating an Amazon AppStream 2.0 stack, select the option to enable OneDrive for Business for the stack, provide your OneDrive for Business domain names, and create the stack. To learn more, visit Enable and Administer OneDrive for Your AppStream 2.0 Users.
-
-Q. Can I control which Microsoft OneDrive for Business accounts integrate with AppStream 2.0?
-
-Yes. Only user accounts with your OneDrive for Business domain names can use their accounts. Users cannot link any other accounts. To learn more, visit Enable and Administer OneDrive for Your AppStream 2.0 Users.
-
-Q. Can a user remove Microsoft OneDrive for Business?
-
-Yes. Users can remove permissions that AppStream 2.0 has to their OneDrive for Business online account.
-
-Q. What kind of data can users store in Microsoft OneDrive for Business during a streaming session?
-
-Any file type that is supported by OneDrive for Business can be stored during the streaming session. For more details on the file types supported by OneDrive for Business, refer to OneDrive for Business documentation.
-
-Q. Can users transfer files from their device to Microsoft OneDrive for Business during their streaming session?
-
-Yes. Users can transfer files to and from from their device and OneDrive for Business using the MyFiles feature in the streaming session toolbar. To learn more, visit Enable and Administer OneDrive for Your AppStream 2.0 Users.
+No. You will need to either relaunch the solution or disable it within the AWS Console or programmatically.
 
 ## Monitoring
 
@@ -500,3 +468,11 @@ Yes. Amazon AppStream 2.0 is PCI compliant and conforms to the Payment Card Indu
 Q: Is Amazon AppStream 2.0 included in the System and Organizational Controls (SOC) reports?
 
 Yes. Amazon AppStream 2.0 is included in the AWS System and Organizational Controls (SOC) reports. AWS System and Organization Controls Reports are independent third-party examination reports that demonstrate how AWS achieves key compliance controls and objectives. The purpose of these reports is to help you and your auditors understand the AWS controls established to support operations and compliance. You can learn more about the AWS Compliance programs by visiting AWS Compliance Programs or by visiting the Services in Scope by Compliance Program.
+
+## Launch deployment types
+
+## Workflows
+
+## Dynamic Catalogs
+
+## Security, Authentication
