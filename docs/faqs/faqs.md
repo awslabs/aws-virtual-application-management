@@ -18,6 +18,10 @@ Yes. Resources created with AWS VAM will not affect the current AppStream 2.0 in
 
 If you are using Active Directory, keep in mind that AWS VAM will create it's own Active Directory if one is not specified during deployment. This may affect how you have setup your deployment. To avoid issues, either specify your existing Active Directory or create the AWS VAM environment with a separate VPC for the Amazon AppStream 2.0 resources.
 
+**Q: Are resources created within AWS VAM available within AppStream 2.0?**
+
+Yes. All AppStream 2.0 resources that will be created through AWS VAM will be available within the AWS Console and programmatically. This allows you to make detailed configurations to your streaming sessions, fleets, and images which are currently not available through AWS VAM. 
+
 **Q: Why use AWS VAM vs. AppStream 2.0?** 
 
 Amazon AppStream 2.0 offers a rich set of features to allow customers to stream non-persistent applications and desktops to end users. These features offer a variety of controls to effectively scale fleets of resources and various properties pertaining to the streaming session. However, customers across industries and verticals have identified the following challenges when working with the service:
@@ -57,6 +61,14 @@ Active Directory and EC2 Host instances: secure authentication for users into Ap
 **Q: How do I use my AWS Direct Connect, AWS VPN, or other VPN tunnel to stream my applications?**
 
 First, create an Amazon Virtual Private Cloud (Amazon VPC) endpoint in the same Amazon VPC as the AWS Direct Connect, AWS VPN, or other VPN tunnel. Then, specify the VPC endpoint when creating a new stack, modifying an existing one, or creating a new image builder. Users will then use the VPC endpoint when they stream their applications. To learn more about the AppStream 2.0 streaming VPC endpoints, see Creating and Streaming From VPC Interface Endpoints in the AppStream 2.0 Administration Guide. 
+
+**Q: Are all AppStream 2.0 instance types available in AWS VAM?**
+
+## Graphics instances
+
+Q: Does Amazon AppStream 2.0 offer GPU-accelerated instances?
+
+Yes. All AppStream 2.0 instance types, including Graphics Design, Graphics Pro, and Graphics G4 instance families, are available to launch with AWS VAM. Ensure to increase your service quota limits for instances and fleet size through AWS Support.
 
 ## Getting started
 
@@ -99,9 +111,9 @@ As for branding your AppStream 2.0 images, you will have to do that within the A
 
 Yes, but not through AWS VAM. You can enable persistent application and Windows settings for your users on AppStream 2.0 through the AWS Console. Your users' plugins, toolbar settings, browser favorites, application connection profiles, and other settings will be saved and applied each time they start a streaming session. Your users' settings are stored in an S3 bucket you control in your AWS account.
  
-## Try sample applications
+## Demo applications
 
-**Q: Can I try sample applications?**
+**Q: Are demo applications with AWS VAM?**
 
 Yes. When setting up your environment through AWS Cloudformation or programmatically, ensure that the field for DemoApplications is set to true. This will launch a list of preconfigured applications in an application repository with applications including, but not limited to, Firefox, Google Chrome, Notepad, etc. This is also a great way to see how applications are configured in the S3 application repository.
 
@@ -159,146 +171,55 @@ Yes. Within the AWS VAM Console, when you configure an image, you can choose a b
 
 No. You will need to access the AWS Console or configure this programmatically. You can share your AppStream 2.0 application images with other AWS accounts within the same AWS Region. You control the shared image and can remove it from another AWS account at any time. To learn more, visit (Administer Your Amazon AppStream 2.0 Image)[https://docs.aws.amazon.com/appstream2/latest/developerguide/administer-images.html].
 
-## Graphics instances
-
-Q: Does Amazon AppStream 2.0 offer GPU-accelerated instances?
-
-Yes. Amazon AppStream 2.0 offers Graphics Design, Graphics Pro and Graphics G4 instance families.
-
-Graphics Design instances are ideal for delivering applications such as Adobe Premiere Pro, Autodesk Revit, and Siemens NX that rely on hardware acceleration of DirectX, OpenGL, or OpenCL. Powered by AMD FirePro S7150x2 Server GPUs and equipped with AMD Multiuser GPU technology, instances start from 2 vCPU, 7.5 GiB system memory, and 1 GiB graphics memory, to 16 vCPUs, 61 GiB system memory, and 8 GiB graphics memory.
-
-Graphics g4dn instances are based on the EC2 G4 family. Amazon EC2 g4dn instances deliver the industry’s most cost-effective and versatile GPU instance for running graphics-intensive applications on AWS. G4dn instances provide the latest generation NVIDIA T4 GPUs, AWS custom Intel Cascade Lake CUs, up to 100 Gbps of networking throughput, and up to 1.8 TB of local NVMe storage. These instances are ideal for streaming graphics intensive applications that rely on NVIDIA GPU libraries such as CUDA using AppStream 2.0. AppStream 2.0 offers six different g4dn instance sizes, ranging from 4 vCPUs and 16 GiB of memory to 64 vCPUs and 256 GiB of memory
-
-The Graphics Pro instance family offers three different instance types to support the most demanding graphics applications. Powered by NVIDIA Tesla M60 GPUs with 2048 parallel processing cores, there are three Graphics Pro instances types starting from 16 vCPUs, 122 GiB system memory, and 8 GiB graphics memory, to 64 vCPUs, 488 GiB system memory, and 32 GiB graphics memory. These instance types are ideal for graphic workloads that need a massive amount of parallel processing power for 3D rendering, visualization, and video encoding, including applications such as Petrel from Schlumberger Software, Landmark's DecisionSpace, or MotionDSP's Ikena. For more information on available instance types and pricing, see Amazon AppStream 2.0 pricing.
-
 ## Fleets
 
-Q: What are fleets?
+**Q: Are Amazon Appstream 2.0 fleets different from AWS VAM fleets?**
 
-Fleets are an AppStream 2.0 resource that represent the configuration details for the streaming instances your users will use to launch their applications and desktops. The fleet consists of configuration details such as instance type and size, networking, and user session timeouts.
+Yes, though within AWS VAM a fleet is combined with the streaming session to create a logical whole. Fleets in AppStream 2.0 consist of configuration details such as instance type and size, networking, and user session timeouts. Traditionally, you would also configure a Session configuration to the Fleet to define additional capabilities such as Authentication, Persistent Storage, and Branding. Within AWS VAM, this separation of logical entities does not exist to simplify the launch experience for users.
 
-Q: What types of fleets are available with Amazon AppStream 2.0?
+**Q: What types of fleets are available with AWS VAM?**
 
-Amazon AppStream 2.0 offers three fleet types: Always-On, On-Demand, and Elastic. These fleet types allow you to choose how applications and desktops are delivered, the speed of session start, and cost to stream.
+AWS VAM offers two fleet types: Always-On and On-Demand. These fleet types allow you to choose how applications and desktops are delivered, the speed of session start, and cost to stream. Elastic Fleets are currently not supported, though are being actively reviewed by the development team.
 
-Q: What are the differences between the fleet types?
+**Q: What are the differences between the fleet types within AWS VAM?**
 
 Always-On and On-Demand fleet streaming instances are launched using the custom AppStream 2.0 image that you create that contains your applications and configurations. You can specify how many instances to launch manually, or dynamically using Fleet Auto Scaling policies. Streaming instances must be provisioned before a user can stream.
 
-Elastic fleet streaming instances are launched using an AppStream 2.0 managed image, with applications and configurations delivered at run time. AppStream 2.0 manages the capacity of Elastic fleets for you. Elastic fleets only support applications from App Blocks, and cannot be joined to a Microsoft Active Directory domain.
-
-Q: Can I switch my Amazon AppStream 2.0 Always-On fleet to On-Demand or vice versa?
+**Q: Can I switch my Amazon AppStream 2.0 Always-On fleet to On-Demand or vice versa within AWS VAM?**
 
 You can only specify the fleet type when you create a new fleet, and you cannot change the fleet type once the fleet has been created.
 
-Q: What are the benefits to Always-On and On-Demand fleets for Amazon AppStream 2.0?
+**Q: What are the benefits to Always-On and On-Demand fleets?**
 
 Always-On and On-Demand fleets are best for when your applications require Microsoft Active Directory domain support, or can only be delivered using an AppStream 2.0 image. Always-On fleet streaming instances provide instant access to applications and you pay the running instance rate even when no users are streaming. On-Demand fleet streaming instances launch the application after an up to 2-minute wait, and you pay the running instance rate only when users are streaming. On-Demand fleet streaming instances that are provisioned but not yet used are charged at a lower stopped instance fee. You manage the capacity of Always-On and On-Demand fleet streaming instances using auto scaling rules.
 
-Elastic fleet streaming instances launch the requested application after it has been downloaded and mounted to the streaming instance, and you only pay the running instance rate for the duration of the user’s streaming session. AWS manages the streaming instance availability, and no auto scaling rules are required.
-  	On-Demand 	Always-On 	Elastic
-Applications 	Custom image 	Custom image 	App blocks
- Instances 	Stopped 	Running 	Running
-Capacity management 	Customer managed with auto scaling 	Customer managed with auto scaling 	AWS managed
-User session start 	Up to 2 minutes 	Instant on 	Up to 1 minutes
-Use cases 	Use cases where cost savings are critical such as education 	Businesses that need instant availability of applications 	Trials, trainings, and demos, and converting software to software as a service 
-
-## Applications for Elastic Fleets
-
-Q: What applications can I use with an Elastic fleet?
-
-Elastic fleets can use applications that are designed to be self-contained, portable and can operate off a different volume. This is similar to installing an application to a USB hard disk drive, and running it from any PC you use.
-
-Q: How do I import my applications for Elastic fleets?
-
-Elastic fleets use applications that are saved within virtual hard disk (VHD) files and saved to an S3 bucket within your AWS account. The VHD is downloaded to the streaming instance and mounted when your user chooses which application to launch. To learn more about importing applications for Elastic fleets, read Create and Manage App Blocks and Applications for Elastic Fleets in the Amazon AppStream 2.0 Administration Guide.
-
-Q: What are AppStream 2.0 AppBlocks and AppStream 2.0 Applications?
-
-AppBlocks are an AppStream 2.0 resource that has the details for the virtual hard drive with your application’s files, and the setup script for how to mount it to the streaming instance. Applications are an AppStream 2.0 resource that has the details for how to launch applications from an AppBlock. You must associate your Applications to AppBlocks before you can associate them to the Elastic fleet.
-
-Q: How are App Blocks mounted to an Elastic fleet streaming instance?
-
-When you create the App Block, you must specify a setup script. The setup script specifies how to mount the App Block to the streaming instance, and allows you to complete any customization or configuration needed before the application launches. To learn more about creating the setup script, read Create the Setup Script for the VHD in the Amazon AppStream 2.0 Administration Guide
-Platform support
-
-Q: What client operating systems and browsers are supported?
-
-Amazon AppStream 2.0 can stream your applications to HTML5-compatible browsers, including the latest versions of Google Chrome, Mozilla Firefox, Microsoft Internet Explorer, and Microsoft Edge, on desktop devices, including Windows, Mac, Chromebooks, and Linux PCs. The AppStream 2.0 client for Windows lets your users use 4 monitors, 4K monitors and and USB peripherals such as 3D mouse with your applications on AppStream 2.0. The AppStream 2.0 client for Windows is supported on the following versions of Windows: Windows 7, Windows 8, Windows 8.1, and Windows 10. Both 32-bit and 64 bit versions of Windows are supported.
-
-Q: What Windows server operating system is supported?
-
-Amazon AppStream 2.0 streams applications that can run on the following 64-bit OS versions - Windows Server 2012 R2, Windows Server 2016 and Windows Server 2019. You can add support for 32-bit applications by using the WoW64 extensions. If your application has other dependencies, such as the .NET framework, include those dependencies in your application installer.
-
-Q: Which Linux distribution is supported?
-
-Amazon AppStream 2.0 supports Amazon Linux 2 operating system.
-
-Q: Which AWS regions does Amazon AppStream 2.0 support?
-
-Please refer to the AWS Regional Products and Services page for details of Amazon AppStream 2.0 service availability by region
-
-Q: What instance types are available to use with my Amazon AppStream 2.0 fleet?
-
-Amazon AppStream 2.0 provides a menu of instance types for configuring a fleet. You can select the instance type that best matches your applications and end-user requirements. You can choose from General Purpose, Compute Optimized, Memory Optimized, Graphics Design, Graphics Desktop, or Graphics Pro instance families.
-
 ## Auto scaling
 
-Q: How does Amazon AppStream 2.0 scale?
+**Q: Does AWS VAM allows me to define auto scaling for my fleets?**
 
-Amazon AppStream 2.0 Always-On and On-Demand fleets use Fleet Auto Scaling to launch Amazon AppStream 2.0 instances running your application and to adjust the number of streaming instances to match the demand for end-user sessions. Each end-user session runs on a separate instance, and all of the applications that are streamed within a session run on the same instance. An instance is used to stream applications for only one user, and is replaced with a new instance at the end of the session. For more information, read Fleet Auto Scaling for Amazon AppStream 2.0 in the Amazon AppStream 2.0 Administration Guide.
+Yes. AWS VAM allows you to define your minimum and maximum fleet size for your autoscaling configuration. To configure dynamic scaling policies based on a schedule, usage, or both you will need to access the AWS Console within the fleet section or configure those programmatically. 
 
-The capacity of Elastic fleets is fully managed for you, and does not require any autoscaling policies.
+**Q: How can I create auto scaling policies for my Amazon AppStream 2.0 fleet within AWS VAM?**
 
-Q: What scaling policy does Amazon AppStream 2.0 support?
+During the fleet configuration process there will be a section for you to define your minimum and maximum number of instances for the autoscaling fleet to follow.
 
-You can set a fixed fleet size to keep a constant number of AppStream 2.0 streaming instances, or use dynamic scaling policies that adjust capacity based on a schedule, usage, or both. Using dynamic scaling policies allows you to manage your cost while ensuring there is sufficient capacity for your users to stream. For more information, read Fleet Auto Scaling for Amazon AppStream 2.0 in the Amazon AppStream 2.0 Administration Guide.
+**Q: What is the minimum size I can set for my Amazon AppStream 2.0 fleet within AWS VAM?**
 
-Q: What is an Amazon AppStream 2.0 Fleet Auto Scaling policy?
+You can set your Fleet Auto Scaling policies to scale in to zero instances. However, your initial configuration within AWS VAM will need to have a fleet size of at least one. 
 
-A Fleet Auto Scaling policy is a dynamic scaling policy that allows you to scale the size of your fleet to match the supply of available instances to user demand. You can define scaling policies that adjust the size of your fleet automatically based on a variety of utilization metrics, and optimize the number of running instances to match user demand. For more information, read Fleet Auto Scaling for Amazon AppStream 2.0 in the Amazon AppStream 2.0 Administration Guide.
-
-Q: How can I create auto scaling policies for my Amazon AppStream 2.0 fleet?
-
-You can create automatic scaling policies from the Fleets tab in the AppStream 2.0 console, or by using the AWS SDK.
-
-Q: Which Amazon AppStream 2.0 CloudWatch metrics can I use to build Fleet Auto Scaling polices?
-
-You can use the following metrics to build your Fleet Auto Scaling policies:
-
-• Capacity utilization: you can scale your fleet based on the percentage of instances in your fleet that are being used
-• Available capacity: you can scale your fleet based on the number of available instances in your fleet
-• Insufficient capacity error: you can provision new instances when users can’t start streaming sessions due to lack of capacity
-
-For more information, please see Fleet Auto Scaling for Amazon AppStream 2.0.
-
-Q: Can my Amazon AppStream 2.0 fleet have more than one associated Fleet Auto Scaling policy?
-
-Yes. You can have up to 50 Fleet Auto Scaling policies associated with a single fleet. Each policy allows you to set a single criteria and action for resizing your fleet.
-
-Q: What is the minimum size I can set for my Amazon AppStream 2.0 fleet when using Fleet Auto Scaling policies?
-
-You can set your Fleet Auto Scaling policies to scale in to zero instances. Scaling policies associated with your fleet decrease fleet capacity until it reaches your defined minimum, or the default setting of one if you haven’t set a minimum. For more information, please see Fleet Auto Scaling for Amazon AppStream 2.0.
-
-Q: What is the maximum size I can set for my Amazon AppStream 2.0 fleet when using Fleet Auto Scaling policies?
+**Q: What is the maximum size I can set for my Amazon AppStream 2.0 fleet within AWS VAM?**
 
 Fleet Auto Scaling policies increase fleet capacity until it reaches your defined maximum size or until service limits apply. For more information, please see Fleet Auto Scaling for Amazon AppStream 2.0. For service limit information, please see Amazon AppStream 2.0 Service Limits.
 
-Q: Are there additional costs for using Fleet Auto Scaling policies with Amazon AppStream 2.0 fleets?
+**Q: Are there additional costs for using Fleet Auto Scaling policies with Amazon AppStream 2.0 fleets within AWS VAM?**
 
 There are no charges for using Fleet Auto Scaling policies. However, each CloudWatch alarm that you create and use to trigger scaling policies for your AppStream 2.0 fleets may incur additional CloudWatch charges. For more information, see Amazon CloudWatch Pricing.
 
 ## Persistent storage
 
-Q: Does Amazon AppStream 2.0 offer persistent storage so that I can save and access files between sessions?
+**Q: Does AWS VAM allow me to configure persistent storage so that I can save and access files between sessions?**
 
-Yes. Amazon AppStream 2.0 offers multiple options for persistent file storage to allow users to store and retrieve files between their application streaming sessions. You can use a home folder backed by Amazon S3, Google Drive for G Suite, or Microsoft OneDrive for Business. Each of these are accessed from the my files tab within an active AppStream 2.0 streaming session, and content can be saved or opened directly from the File menu in most apps.
-
-Home folders are AppStream 2.0's native persistent storage option. Users can access a home folder on their streaming instance and save content in their folder. Files are stored in an S3 bucket which is automatically created in your AWS account. To learn more, visit Enable and Administer Home Folders for Your AppStream 2.0 Users.
-
-For Windows OS based AppStream 2.0 stacks, you can enable Google Drive for G Suite, and users can link their G Suite account to access files on Google Drive. Changes are automatically synced with Google Drive. To learn more, visit Enable and Administer Google Drive for Your AppStream 2.0 Users.
-
-For Windows OS based AppStream 2.0 stacks, you can enable Microsoft OneDrive for Business, and users can link their OneDrive for Business account to access their files on OneDrive. Changes are automatically synced with OneDrive for Business. To learn more, visit Enable and Administer OneDrive for Your AppStream 2.0 Users.
+Yes, but the functionality is currently limited to Google Drive and Home Folders. By default, AWS VAM configures Home Folders. While launching AWS VAM, you can define your Google Drive for G Suite Domain within the solution so that your fleets launch with your preferred persistent storage provider. If you need to configure Microsoft One Drive for Business, you will need to configure that in the streaming page of the Amazon AppStream 2.0 Console or programmatically. 
 
 Q: How do users access persistent storage from their Amazon AppStream 2.0 sessions?
 
