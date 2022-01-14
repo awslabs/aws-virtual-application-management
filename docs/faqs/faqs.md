@@ -64,9 +64,11 @@ First, create an Amazon Virtual Private Cloud (Amazon VPC) endpoint in the same 
 
 **Q: Are all AppStream 2.0 instance types available in AWS VAM?**
 
-Q: Does Amazon AppStream 2.0 offer GPU-accelerated instances?
-
 Yes. All AppStream 2.0 instance types, including Graphics Design, Graphics Pro, and Graphics G4 instance families, are available to launch with AWS VAM. Ensure to increase your service quota limits for instances and fleet size through AWS Support.
+
+**Q: Does AWS VAM require an Active Directory?**
+
+Yes. AWS VAM will be able to operate successfully without either AWS Managed Active Directory or AD Connector. During launch you will be provided the option to configure an Active Directory. If you do not, the solution deploys an AWS Managed Active Directory for you by default.
 
 ## Getting started
 
@@ -347,55 +349,41 @@ When your users access a streaming instance through a web browser, they sign in 
 
 ## Pricing and billing
 
-Q: How much does Amazon AppStream 2.0 cost?
+**Q: How much does AWS VAM cost?**
 
-You are charged for the streaming resources in your Amazon AppStream 2.0 environment, and monthly user fees per unique authorized user accessing applications via Windows operating system based Amazon AppStream 2.0 streaming instance. You pay for these on-demand, and never have to make any long-term commitments.
+AWS VAM is usage based. Most of the deployment is serverless, such as the website and API configuration. However, resources such as AppStream 2.0, Managed AD and AD Connector, and the EC2 Installer host are not serverless and will incur running costs. In general, the running cost of AWS VAM that has been deployed but has not been used to launch AppStream 2.0 resources, in other words idly running, will end up being roughly around the cost of running the Directory Service for the solution, logging, and storage. For a solution running AD Connector that will end up being $50-$60 a month while for AWS Managed Active Directory this is closer to $150-160. Remember, Active Direcotry is required for this solution.
 
-The streaming resources consist of Amazon AppStream 2.0 instances in your Amazon AppStream 2.0 fleet as well as image builder instances. You have the option to have Always-On and On-Demand fleets. For Always-On fleets you pay for instances in your fleet that are running, even if users are not connected. These instances are billed per hour or per second based on the operating system and fleet type you select, and the price per hour is based on the instance type you select. For On-Demand fleets you pay for the instances in your fleet that are running only when a user is connected. These instances are billed per hour or per second based on the operating system you select, and the price per hour is based on the instance type you select. In an On-Demand fleet if an instance is running but not connected to a user, you pay a nominal hourly On-Demand Stopped Instance fee, which is the same for all instance types within a region. Image builder instances are only available as always on, and you pay for instances that are running, even if users are not connected. The charge for Always-On and On-Demand fleet instances as well as image builder instances includes the cost of the storage volumes used by the Amazon AppStream 2.0 image, and outbound bandwidth used by the streaming protocol. You can control the number of streaming instances in an Always-On or On-Demand fleet using fixed or dynamic scaling policies.
+For AWS VAM that is actively being used your costs will depend on your Amazon AppStream 2.0 instances, API calls, and S3 storage created through usage logs. Pricing for these services remain the same as displayed on their respective billing pages.
 
-Elastic fleet streaming instances are billed per second with a minimum of 15 minutes for the duration of the streaming session, with a price per hour based on the instance type you select when creating the fleet.
+**Q: How can I reduce my costs for AWS VAM?**
 
-The monthly user fee is used to pay for the Microsoft Remote Desktop Services Subscriber Access License (RDS SAL). This fee is charged per unique authorized user, and is charged in full (not pro-rated), regardless of when a user first accesses Amazon AppStream 2.0 in that month when streaming from a Microsoft Windows Server streaming instance. Schools, universities, and public institutions may qualify for reduced user fees. Please reference the Microsoft Licensing Terms and Documents for qualification requirements. If you think you may qualify, please contact us. We will review your information and work with you to reduce your Microsoft RDS SAL fee. There is no user fee incurred when using image builder instances or when streaming from Linux-based streaming instances.
+To reduce your costs, consider launching with AD Connector. If you no longer need the Image Builder instances, ensure to delete or stop them. You may also stop the AWS EC2 Installer Host if it is no longer required.
 
-You are charged separately for your usage of Amazon Simple Storage Service (S3) for any data stored within S3 buckets within your account.
-
-Q: Can I bring my own licenses and waive the user fees?
+**Q: Can I bring my own licenses and waive the user fees with AWS VAM?**
 
 Yes. If you have Microsoft License Mobility, you may be eligible to bring your own Microsoft RDS CAL licenses and use them with Windows based Amazon AppStream 2.0. For users covered with your own licenses, you won’t incur the monthly user fees. For more information about using your existing Microsoft RDS SAL licenses with Amazon AppStream 2.0, please visit this page, or consult with your Microsoft representative.
 
-Q: What are the requirements for schools, universities, and public institutions to reduce their user fee?
+**Q: What are the requirements for schools, universities, and public institutions to reduce their user fee?**
 
 Schools, universities, and public institutions may qualify for reduced user fees. Please reference the Microsoft Licensing Terms and Documents for qualification requirements. If you think you may qualify, please contact us. We will review your information and work with you to reduce your Microsoft RDS SAL fee. There is no user fee incurred when using image builder instances.
 
-Q: What do I need to provide to qualify as a school, university, or public institution?
+**Q: What do I need to provide to qualify as a school, university, or public institution?**
 
 You will need to provide AWS your institution's full legal name, principal office address, and public website URL. AWS will use this information to qualify you for AppStream 2.0's reduced user fees for qualified educational institutions. Please note: The use of Microsoft software is subject to Microsoft’s terms. You are responsible for complying with Microsoft licensing. If you have questions about your licensing or rights to Microsoft software, please consult your legal team, Microsoft, or your Microsoft reseller. You agree that we may provide the information to Microsoft in order to apply educational pricing to your Amazon AppStream 2.0 usage.
 
-Q. Does qualification for Amazon AppStream 2.0's reduced RDS SAL user fees affect other AWS cloud services?
-
-No, your user fees are specific to Amazon AppStream 2.0, and do not affect any other AWS cloud services or licenses you have.
-
-Q: Can I use tags to obtain usage and cost details for Amazon AppStream 2.0 on my AWS monthly billing report?
-
-Yes. When you set tags to appear on your monthly Cost Allocation Report, your AWS monthly bill will also include those tags. You can then easily track costs according to your needs. To do this, first assign tags to your Amazon AppStream 2.0 resources by following the steps in Tagging Your AppStream 2.0 Resources. Next, select the tag keys to include in your cost allocation report by following the steps in Setting Up Your Monthly Cost Allocation Report.
-
-Q: Are there any costs associated with tagging Amazon AppStream 2.0 resources?
-
-There are no additional costs when using tags with Amazon AppStream 2.0.
-
 ## Compliance
 
-Q: Is Amazon AppStream 2.0 HIPAA eligible?
+**Q: Is AWS VAM HIPAA eligible?**
 
-Yes. If you have an executed Business Associate Addendum (BAA) with AWS, you can use Amazon AppStream 2.0 with the AWS accounts associated with your BAA to stream desktop applications with data containing protected health information (PHI). If you don’t have an executed BAA with AWS, contact us and we will put you in touch with a representative from our AWS sales team. For more information, see HIPAA Compliance. 
+Yes. All services used within AWS VAM are HIPAA eligible. If you have an executed Business Associate Addendum (BAA) with AWS, you can use AWS VAM with the AWS accounts associated with your BAA to stream desktop applications with data containing protected health information (PHI). If you don’t have an executed BAA with AWS, contact us and we will put you in touch with a representative from our AWS sales team.
 
-Q: Is AppStream 2.0 PCI Compliant?
+**Q: Is AWS VAM PCI Compliant?**
 
-Yes. Amazon AppStream 2.0 is PCI compliant and conforms to the Payment Card Industry Data Security Standard (PCI DSS). PCI DSS is a proprietary information security standard administered by the PCI Security Standards Council, which was founded by American Express, Discover Financial Services, JCB International, MasterCard Worldwide and Visa Inc. PCI DSS applies to all entities that store, process or transmit cardholder data (CHD) and/or sensitive authentication data (SAD) including merchants, processors, acquirers, issuers, and service providers. The PCI DSS is mandated by the card brands and administered by the Payment Card Industry Security Standards Council. For more information, see PCI DSS Compliance.
+Yes. All services used within AWS VAM are PCI Compliant. PCI DSS applies to all entities that store, process or transmit cardholder data (CHD) and/or sensitive authentication data (SAD) including merchants, processors, acquirers, issuers, and service providers. The PCI DSS is mandated by the card brands and administered by the Payment Card Industry Security Standards Council.
 
-Q: Is Amazon AppStream 2.0 included in the System and Organizational Controls (SOC) reports?
+**Q: Is AWS VAM included in the System and Organizational Controls (SOC) reports?**
 
-Yes. Amazon AppStream 2.0 is included in the AWS System and Organizational Controls (SOC) reports. AWS System and Organization Controls Reports are independent third-party examination reports that demonstrate how AWS achieves key compliance controls and objectives. The purpose of these reports is to help you and your auditors understand the AWS controls established to support operations and compliance. You can learn more about the AWS Compliance programs by visiting AWS Compliance Programs or by visiting the Services in Scope by Compliance Program.
+All services used within AWS VAM will have their associated AWS System and Organizational Controls (SOC) reports. AWS System and Organization Controls Reports are independent third-party examination reports that demonstrate how AWS achieves key compliance controls and objectives. The purpose of these reports is to help you and your auditors understand the AWS controls established to support operations and compliance. You can learn more about the AWS Compliance programs by visiting the [Services in Scope by Compliance Program](https://aws.amazon.com/compliance/services-in-scope/).
 
 ## Launch deployment types
 
@@ -403,7 +391,7 @@ Yes. Amazon AppStream 2.0 is included in the AWS System and Organizational Contr
 
 ## Partners
 
-## Security, Authentication
+## Security
 
 Q: How is the data from my streamed application encrypted to the client?
 
