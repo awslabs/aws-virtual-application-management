@@ -301,57 +301,47 @@ Yes. This will require setting up your own identity provider through the Amazon 
 
 **Q: What are dynamic applications?**
 
+Dynamic applications provides you the ability to choose subsets of your existing application repositories on a particular AppStream 2.0 image and stream that subset to users. This allows IT to configure a single image with all the necessary applications while providing the flexibility to choose only the relevent applications to use for a particular working group.
+
 **Q: Can I dynamically entitle users to apps with AWS VAM?**
 
-Yes, you can use the dynamic app framework APIs to build a dynamic app provider that specifies what apps uers can launch at run-time. The apps provided can be virtualized apps that are delivered from a Windows file share or other storage technology. To learn more, see Manage App Entitlement with the Dynamic App Framework.
+Yes. Dynamic applications is a feature that can be configured within AWS VAM during launch with AWS CloudFormation or programmatically. By turning on the feature, you will have an additional icon called **Dynamic Applications** that will allow you to choose an image, grab a subset of the applications, and stream those to a particular user group from your Active Directory Domain.
 
 **Q: Do I need to configure any additional steps to start using dynamic applications within AWS VAM?**
 
-TODO
+No. However, for proper user authentication you may need to add groups within AWS Managed Active Directory (AD) or have your own AD configured during launch.
 
 ## Microsoft Active Directory domain support
 
-Q: Can I join Amazon AppStream 2.0 image builders to Microsoft Active Directory domains?
+**Q: Does Amazon VAM automatically joing my Amazon AppStream 2.0 image builders to Microsoft Active Directory domains?**
 
-Yes, Amazon AppStream 2.0 Windows OS-based streaming instances can be joined to your Microsoft Active Directory domains. This allows you to apply your existing Active Directory policies to your streaming instances, and provides your users with single sign on access to Intranet sites, file shares, and network printers from within their applications. Your users are authenticated using a SAML 2.0 provider of your choice, and can access applications that require a connection to your Active Directory domain. You can join image builders, Always-On fleet streaming instances, and On-Demand fleet streaming instances that use the Windows OS to Active Directory domains. Linux OS-based AppStream 2.0 image builders, Always-On fleet streaming instances, and On-Demand fleet streaming instances cannot be joined to Active Directory domains.
+Yes, Amazon AppStream 2.0 Windows OS-based streaming instances are joined automatically to a Microsoft Active Directory within AWS VAM. By default, if an Active Domain is not specified, the solution will launch an AWS Managed Active Directory. This is to ensure that Power-Shell Remoting can work as expected. If you define your own Active Directory, the solution will automatically deploy the solution and domain join all your images and fleets to that Active Directory. 
 
-Q: What Microsoft Active Directory versions are supported?
+**Q: What Microsoft Active Directory versions are supported?**
 
 Microsoft Active Directory Domain Functional Level Windows Server 2008 R2 and newer are supported by Amazon AppStream 2.0.
 
-Q: Which AWS Directory Services directory options are supported by Amazon AppStream 2.0?
+**Q: Which AWS Directory Services directory options are supported by AWS VAM?**
 
-Amazon AppStream 2.0 supports AWS Directory Services Microsoft AD. Other options such as AD Connector and Simple AD are not supported. To learn more about AWS Microsoft AD see What Is AWS Directory Service.
+Amazon AppStream 2.0 supports AWS Directory Services Microsoft AD and AD Connector. Other options such as Simple AD or user managed AD on EC2 are not supported.
 
-Q: How do I join my Amazon AppStream 2.0 instances to my Microsoft Active Directory domain?
+**Q: Can I use my existing Organization Units (OU) structure with AWS VAM?**
 
-To get started you will need a Microsoft Active Directory domain that is accessible from an Amazon VPC, the credentials of a user with authority to join the domain, and the domain Organizational Unit (OU) you want to join to your fleet. For more information, see Using Active Directory Domains with AppStream 2.0.
+Yes, you can use your existing Organizational Unit (OU) structure with AWS VAM.
 
-Q: Can I use my existing Organization Units (OU) structure with Amazon AppStream 2.0?
+**Q: What gets joined to my Microsoft Active Directory domain by AWS VAM?**
 
-Yes, you can use your existing Organizational Unit (OU) structure with Amazon AppStream 2.0. To learn more, see Using Active Directory Domains with AppStream 2.0.
+AWS VAM will automatically create a unique computer object for every image builder and Always-On or On-Demand fleet instance you configure to be joined to your Microsoft Active Directory domain.
 
-Q: What gets joined to my Microsoft Active Directory domain by Amazon AppStream 2.0?
+**Q: How can I identify Amazon AppStream 2.0 computer objects in my Microsoft Active Directory domain?**
 
-Amazon AppStream 2.0 will automatically create a unique computer object for every image builder and Always-On or On-Demand fleet instance you configure to be joined to your Microsoft Active Directory domain.
+Amazon AppStream 2.0 computer objects are only be created in the Microsoft Active Directory Organization Unit (OU) you specify. The description field indicates that the object is an AppStream 2.0 instance, and to which fleet the object belongs. To learn more, see [Using Active Directory Domains with AppStream 2.0](https://docs.aws.amazon.com/appstream2/latest/developerguide/active-directory.html).
 
-Q: How can I identify Amazon AppStream 2.0 computer objects in my Microsoft Active Directory domain?
+**Q: How do I provide users with access to Amazon AppStream 2.0 streaming instances that are joined to a Microsoft Active Directory domain within AWS VAM?**
 
-Amazon AppStream 2.0 computer objects are only be created in the Microsoft Active Directory Organization Unit (OU) you specify. The description field indicates that the object is an AppStream 2.0 instance, and to which fleet the object belongs. To learn more, see Using Active Directory Domains with AppStream 2.0.
+To enable user access, you will need to set up federated access using a SAML 2.0 provider of your choice. This allows you to use your existing user directory to control access to streaming applications available via Amazon AppStream 2.0.
 
-Q: How are computer objects that are created by Amazon AppStream 2.0 deleted from my Microsoft Active Directory domain?
-
-Computer objects created by Amazon AppStream 2.0 that are no longer used will remain in your Active Directory (AD) if the AppStream 2.0 fleet or image builder is deleted, you update a fleet or image builder to a new OU, or select a different AD. To remove unused objects you will have to delete them manually from your AD domain. To learn more, see Using Active Directory Domains with AppStream 2.0.
-
-Q: How do I provide users with access to Amazon AppStream 2.0 streaming instances that are joined to a Microsoft Active Directory domain?
-
-To enable user access, you will need to set up federated access using a SAML 2.0 provider of your choice. This allows you to use your existing user directory to control access to streaming applications available via Amazon AppStream 2.0. For details on setting up SAML 2.0 integration, see the steps outlined at Setting Up SAML.
-
-Q: Can I connect my users that are managed through User Pools to my Active Directory domain?
-
-No. At this time we do not support User Pools users connecting to domain joined resources. To learn more about User Pools see, Using the AppStream 2.0 User Pool.
-
-Q: How do my users sign in to streaming instances that are joined to an Active Directory domain?
+**Q: How do my users sign in to streaming instances that are joined to an Active Directory domain?**
 
 When your users access a streaming instance through a web browser, they sign in to their Microsoft Active Directory domain by entering their domain password. When your users access a streaming instance by using the AppStream 2.0 client for Windows, they can either enter their Active Directory domain password or use a smart card that is trusted by the Active Directory domain. 
 
