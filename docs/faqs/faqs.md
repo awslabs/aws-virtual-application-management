@@ -76,6 +76,38 @@ Yes. AWS VAM will be able to operate successfully without either AWS Managed Act
 
 To get started, navigate to the [AWS VAM GitHub repository](https://github.com/awslabs/aws-virtual-application-management) and clone the solution. Once that is complete, follow the README.md to launch the solution either through AWS CloudFormation or programmatically.
 
+**Q: What are the available configurations while launching AWS VAM?**
+
+Here are all the available optional configuration parameters and their description on how they affect the deployment:
+
+**FederationIdpName** - name of the SAML identity provider. This will be the default SAML identity provider that will be used to access AppStream 2.0 streaming instances. If this is not configured, you will need to add a SAML provider later for a production deployment.
+
+**FederationIdpMetadata** - identity provider SAML metadata. Provide either an S3 URI or a publicly accessible http url for the provider SAML metadata. 
+
+**GSuiteDomains** - GSuite Domains that will be used with GDrive as a storage mechanism for the instances. If this is not configured, AppStream 2.0 will default to using Home Folders for persistent storage.
+
+**EmbedHosts** - list of external domains that embedded AppStream is enabled for. If this is not configured, no embedded hosts will be added.
+
+**VpcId** - VPC Id to use for the Installer host and AWS Directory Service. If you do not specify a VPC one will be created during deployment. This feature allows you to have control over the VPC configuration that will be most optimal for your deployment, such as providing access to a license server for specific applications. Otherwise, you can have the solution configure a VPC for you and make modifications later.
+
+**SubnetIds** - subnets to use for the Installer host and AWS Directory Service if you are bringing your own VPC. Specify the subnets separated by commas. If you do not specify any, two subnets will be created during deployment, as this is required for Active Directory. Note the Installer host will join the first subnet listed.
+
+**AppStreamDirectoryConfig** - Whether or not to create an AppStream Directory Config. If you have an existing AppStream Directory Config, specify that here if you are planning to use your existing Active Directory. Otherwise, the deployment will identify that a Directory Config exists and will fail as it is unable to create a new one.
+
+**AdDomain** - NetBios name of the Active Directory domain to join. Use this feature if you are planning to bring your own Active Directory Domain. Otherwise, the solution will create it's own Managed Active Directory by default. Any values required to bring your own Active Directory left blank will result in the solution creating it's own default Active Directory.
+
+**AdDomainName** - Active Directory domain name to join. Use this feature if you are planning to bring your own Active Directory Domain. Otherwise, the solution will create it's own Managed Active Directory by default. Any values required to bring your own Active Directory left blank will result in the solution creating it's own default Active Directory.
+
+**Ou** - OU that the installer host, image builders and AppStream fleets (by default) will join. For example 'OU=Appstream,DC=ad,DC=test-domain,DC=com'. This OU should have an appropriate Group Policy Object configured. Use this feature if you are planning to bring your own Active Directory Domain. Otherwise, the solution will create it's own Managed Active Directory by default. Any values required to bring your own Active Directory left blank will result in the solution creating it's own default Active Directory.
+
+**DnsIpAddresses** - DNS IP addresses for the domain. The VPC specified will be updated to use these IP addresses. Use this feature if you are planning to bring your own Active Directory Domain. Otherwise, the solution will create it's own Managed Active Directory by default. Any values required to bring your own Active Directory left blank will result in the solution creating it's own default Active Directory.
+
+**DirectoryId** - DirectoryId for the AWS Managed Microsoft AD, or AD Connector. Use this feature if you are planning to bring your own Active Directory Domain. Otherwise, the solution will create it's own Managed Active Directory by default. Any values required to bring your own Active Directory left blank will result in the solution creating it's own default Active Directory.
+
+**AppStreamServiceAccountSecretArn** - ARN for a Secret Manager secret containing credentials for the AppStream service account. The secret must contain the parameters 'username' and 'password'. This will be necessary for authentication into Active Directory by the AWS EC2 Installer Host Instance to sucessfully operate PowerShell Remoting.
+
+**ImageBuilderServiceAccountSecretArn** - ARN for a Secret Manager secret containing credentials for the account that Image Builders should use to configure applications. The secret must contain the parameters 'username' and 'password'. This will be necessary for authentication into Active Directory by the AWS EC2 Installer Host Instance to sucessfully operate PowerShell Remoting
+
 **Q: What resources do I need to set up to stream my applications using AWS VAM?**
 
 The resources required are as follows:
@@ -313,6 +345,24 @@ Yes. Dynamic applications is a feature that can be configured within AWS VAM dur
 
 No. However, for proper user authentication you may need to add groups within AWS Managed Active Directory (AD) or have your own AD configured during launch.
 
+## Workflows
+
+**Q: What are workflows within AWS VAM?**
+
+Workflows is a feature within AWS VAM primarily used for tracking purposes. If there is an error within the AppStream Image Builder during the build process, you are able to review a detailed error report stating at which step the deployment failed and an error message associated with the failure. 
+
+**Q: What are some components of the AWS VAM Workflow feature?**
+
+There are three primary components that users should be aware of with Workflows:
+
+**Dashboard**: provides the ability to see the list of Image Builder Instances currently in progress. 
+**Steps**: click into each step of the application deployment and view details about what is being done and any scripts that are being installed as part of the process. 
+**Properties**: displayes Step Functions Workflow details, like the lambda runtime size.
+
+**Q: How do configure workflows withinn AWS VAM?**
+
+Workflows is a default feature within AWS VAM and not additional configuration needs to be done to the solution to take advantage of it. To remove the feature you will need to edit the cloned code repository and make the necessary changes.
+
 ## Microsoft Active Directory domain support
 
 **Q: Does Amazon VAM automatically joing my Amazon AppStream 2.0 image builders to Microsoft Active Directory domains?**
@@ -371,6 +421,12 @@ Schools, universities, and public institutions may qualify for reduced user fees
 
 You will need to provide AWS your institution's full legal name, principal office address, and public website URL. AWS will use this information to qualify you for AppStream 2.0's reduced user fees for qualified educational institutions. Please note: The use of Microsoft software is subject to Microsoft’s terms. You are responsible for complying with Microsoft licensing. If you have questions about your licensing or rights to Microsoft software, please consult your legal team, Microsoft, or your Microsoft reseller. You agree that we may provide the information to Microsoft in order to apply educational pricing to your Amazon AppStream 2.0 usage.
 
+## Security
+
+Q: How is the data from my streamed application encrypted to the client?
+
+The streamed video and user inputs are sent over HTTPS and are SSL-encrypted between the Amazon AppStream 2.0 instance executing your applications, and your end users.
+
 ## Compliance
 
 **Q: Is AWS VAM HIPAA eligible?**
@@ -385,14 +441,8 @@ Yes. All services used within AWS VAM are PCI Compliant. PCI DSS applies to all 
 
 All services used within AWS VAM will have their associated AWS System and Organizational Controls (SOC) reports. AWS System and Organization Controls Reports are independent third-party examination reports that demonstrate how AWS achieves key compliance controls and objectives. The purpose of these reports is to help you and your auditors understand the AWS controls established to support operations and compliance. You can learn more about the AWS Compliance programs by visiting the [Services in Scope by Compliance Program](https://aws.amazon.com/compliance/services-in-scope/).
 
-## Launch deployment types
-
-## Workflows
-
 ## Partners
 
-## Security
+**Q: Are there any partners that support AWS VAM deployments?**
 
-Q: How is the data from my streamed application encrypted to the client?
-
-The streamed video and user inputs are sent over HTTPS and are SSL-encrypted between the Amazon AppStream 2.0 instance executing your applications, and your end users.
+Yes. Our preferred partner for advanced customizations with AWS VAM is [Synchronet](https://synchronet.com/). 
