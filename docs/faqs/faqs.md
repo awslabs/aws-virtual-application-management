@@ -4,11 +4,11 @@
 
 **Q: What is AWS Virtual Application Management (AWS VAM)?**
 
-AWS Virtual Application Management is an AWS solution that was developed to improve the management and deployment of Amazon AppStream 2.0 images at scale. The solution was initially developed through work with Cornell University's IT department and has been abstracted for the use by the general technological community. The intent is to provide a **companion** application for AppStream 2.0 service with the additional capabilites for administrators to create, manage, and deploy images and fleets. At it's core, it is a frontend application that sits on top of the AppStream 2.0 backend resources. Automation is provided through Powershell with the ability for IT to automatically deploy applications by configuring **Chocolatey/Powershell** scripts in an application repository provided by the solution.
+AWS Virtual Application Management is an AWS solution that was developed to improve the management and deployment of Amazon AppStream 2.0 images at scale. The solution was initially developed through work with Cornell University's IT department and has been abstracted for use by the general technological community. The intent is to provide a **companion** application for AppStream 2.0 service with additional capabilities for administrators to create, manage, and deploy images and fleets. At its core, it is a frontend application that sits on top of the AppStream 2.0 backend resources. Automation is provided through Powershell with the ability for IT to automatically deploy applications by configuring **Chocolatey/Powershell** scripts in an application repository provided by the solution.
 
 **Q: Is AWS VAM replacement for Amazon AppStream 2.0?**
 
-No. Amazon AppStream 2.0 is the next-generation desktop application streaming service from AWS. AWS VAM is a frontend application that makes API calls to the backend AppStream 2.0 images and fleets for higher level management. If needed, backend AppStream 2.0 resources created by AWS VAM through can be accessed through the AWS Management Console, SDK, or CLI. 
+No. Amazon AppStream 2.0 is the next-generation desktop application streaming service from AWS. AWS VAM is a frontend application that makes API calls to the backend AppStream 2.0 images and fleets for higher level management. If needed, backend AppStream 2.0 resources created by AWS VAM can be accessed through the AWS Management Console, SDK, or CLI. 
 
 **Q: Can I still use my Amazon AppStream 2.0 resources that were created before deploying AWS VAM?**
 
@@ -30,11 +30,11 @@ Amazon AppStream 2.0 offers a rich set of features to allow customers to stream 
 2. IT is often the contact point for launching new AppStream Fleets rather than providing requesters a point-and-click self-service portal
 3. It is difficult to understand and optimize usage, requiring additional work to create custom built dashboards
 
-AWS VAM addresses these issues though:
+AWS VAM addresses these issues through:
 
 1. Capabilities in managing AppStream Image Builder application repositories through Powershell/Chocolatey automation scripts
 2. An easy point-and-click self-service portal enabling users to launch AppStream 2.0 resources without contacting IT
-3. Pre-configured Dashboards for understanding resource usage (must enable [AppStream 2.0 Usage Reports](https://docs.aws.amazon.com/appstream2/latest/developerguide/configure-usage-reports.html)
+3. Pre-configured Dashboards for understanding resource usage (must enable [AppStream 2.0 Usage Reports](https://docs.aws.amazon.com/appstream2/latest/developerguide/configure-usage-reports.html))
 
 **Q: Do some applications work better with AWS VAM?**
 
@@ -68,7 +68,7 @@ Yes. All AppStream 2.0 instance types, including Graphics Design, Graphics Pro, 
 
 **Q: Does AWS VAM require an Active Directory?**
 
-Yes. AWS VAM will be able to operate successfully without either AWS Managed Active Directory or AD Connector. During launch you will be provided the option to configure an Active Directory. If you do not, the solution deploys an AWS Managed Active Directory for you by default.
+Yes. AWS VAM will not be able to operate successfully without either AWS Managed Active Directory or AD Connector. During launch, you will be provided the option to configure an Active Directory. If you do not, the solution deploys an AWS Managed Active Directory for you by default.
 
 ## Getting started
 
@@ -113,9 +113,9 @@ Here are all the available optional configuration parameters and their descripti
 The resources required are as follows:
 
 1. Provide an AWS VPC and an Active Directory configuration (AD Connector or AWS Managed Active Directory) to successfully launch the solution. If you do not have one currently configured, you can have the solution create a VPC and an AWS Managed Active Directory for you.
-2. Once the solution is launched, ensure to whitelist the IP range within AWS WAF that will be used to access the frontend.  
-3. Once you successfully log into AWS VAM, depending on your initial launch configuration, you will have to add applications into the S3 application repository. If you launched with demo applications enabled, you will have a prepopulated list. From their, launch your images and fleets. 
-4. Once the fleet is succesfully created, you can test out the streaming applications from within AppStream 2.0. 
+2. Once the solution is launched, make sure to whitelist the IP range within AWS WAF that will be used to access the frontend.  
+3. Once you successfully log into AWS VAM, depending on your initial launch configuration, you will have to add applications into the S3 application repository. If you launched with demo applications enabled, you will have a prepopulated list. From there, launch your images and fleets. 
+4. Once the fleet is successfully created, you can test out the streaming applications from within AppStream 2.0. 
 
 **Q: How do I configure my applications in AWS VAM?**
 
@@ -123,7 +123,7 @@ At a high level, you will need to configure either a Powershell or Chocolatey sc
 
 **Q:  Will I need to access the AppStream 2.0 Image Builder during the application installation process?**
 
-For many applications, this will not be necessary. Applications can be installed simply by launching the image builder with the desired applications and having the scripts configure everything. In cases where complex licensing or additional configurations are required, you may need to access the Image Builder once the applications are installed. This can be done my keeping the AppStream Image Builder available after all applications have been installed and logging into the instance through the AWS Management Console. 
+For many applications, this will not be necessary. Applications can be installed simply by launching the image builder with the desired applications and having the scripts configure everything. In cases where complex licensing or additional configurations are required, you may need to access the Image Builder once the applications are installed. This can be done by keeping the AppStream Image Builder available after all applications have been installed and logging into the instance through the AWS Management Console. 
 
 **Q: What instance types are available to use with AWS VAM?**
 
@@ -131,13 +131,13 @@ Amazon AppStream 2.0 provides a menu of instance types for configuring a fleet o
 
 **Q: Can I change an instance type after creating a fleet?**
 
-Yes, but not within AWS VAM. You can change your instance type after you have created a fleet within the AWS Console or programmatically. To change the instance type, you will need to stop the fleet, edit the instance type, and then start the fleet again. For more information, see Set up AppStream 2.0 Stacks and Fleets.
+Yes, but not within AWS VAM. You can change your instance type after you have created a fleet within the AWS Console or programmatically. To change the instance type, you will need to stop the fleet, edit the instance type, and then start the fleet again. For more information, see Set up [AppStream 2.0 Stacks and Fleets](https://docs.aws.amazon.com/appstream2/latest/developerguide/set-up-stacks-fleets.html#set-up-stacks-fleets-create).
 
 **Q: Can I use custom branding with AWS VAM?**
 
 Yes. To do this, you will need to familiarize yourself with the cloned GitHub repository and make changes using the branding that you desire. Unfortunately, there does not exist an easy way to do this within the AWS VAM frontend itself. 
 
-As for branding your AppStream 2.0 images, you will have to do that within the AWS Console. You can customize your users' Amazon AppStream 2.0 experience with your logo, color, text, and help links in the application catalog page. To replace AppStream 2.0's default branding and help links, log in to the AppStream 2.0 console, navigate to Stacks, and select a your application stack. Then, click Branding, choose Custom, select your options, and click Save. Your custom branding will apply to every new application catalog launched using SAML 2.0 single-sign-on (SSO) or the CreateStreamingURL API. You can revert to the default AppStream 2.0 branding and help links at any time. To learn more, visit Add Your Custom Branding to Amazon AppStream 2.0.
+As for branding your AppStream 2.0 images, you will have to do that within the AWS Console. You can customize your users' Amazon AppStream 2.0 experience with your logo, color, text, and help links in the application catalog page. To replace AppStream 2.0's default branding and help links, log in to the AppStream 2.0 console, navigate to Stacks, and select a your application stack. Then, click Branding, choose Custom, select your options, and click Save. Your custom branding will apply to every new application catalog launched using SAML 2.0 single-sign-on (SSO) or the CreateStreamingURL API. You can revert to the default AppStream 2.0 branding and help links at any time. To learn more, visit [Add Your Custom Branding to Amazon AppStream 2.0](https://docs.aws.amazon.com/appstream2/latest/developerguide/branding.html).
 
 **Q: Can users save their application settings?**
 
@@ -145,7 +145,7 @@ Yes, but not through AWS VAM. You can enable persistent application and Windows 
  
 ## Demo applications
 
-**Q: Are demo applications with AWS VAM?**
+**Q: Are demo applications available with AWS VAM?**
 
 Yes. When setting up your environment through AWS Cloudformation or programmatically, ensure that the field for DemoApplications is set to true. This will launch a list of preconfigured applications in an application repository with applications including, but not limited to, Firefox, Google Chrome, Notepad, etc. This is also a great way to see how applications are configured in the S3 application repository.
 
@@ -171,7 +171,7 @@ PowerShell is a cross-platform task automation solution made up of a command-lin
 
 At a high level, you will need to configure either a Powershell or Chocolatey scripts inside of the S3 application repository. Once this is done properly, the application will automatically populate the list of available applications within VAM. For more details please see the documentation on [Application Repository](https://awslabs.github.io/aws-virtual-application-management/user-guide/applicationRepository.html).
 
-After that is successfully done, you will navigate to the Images section of AWS VAM to configure the image specifications of your deployment. You will have the option of choosing your application from the list when configuring the Image. After successfully starting the image builder process, all you have to do is wait for it to create a install your applications using the scripts, which takes about 40 minutes to an hour. For more information please see our documentation on [AppStream Images](https://awslabs.github.io/aws-virtual-application-management/user-guide/sidebarAppStreamImages.html).
+After that is successfully done, you will navigate to the Images section of AWS VAM to configure the image specifications of your deployment. You will have the option of choosing your application from the list when configuring the Image. After successfully starting the image builder process, all you have to do is wait for it to create and install your applications using the scripts, which takes about 40 minutes to an hour. For more information please see our documentation on [AppStream Images](https://awslabs.github.io/aws-virtual-application-management/user-guide/sidebarAppStreamImages.html).
 
 **Q: With which operating system do my apps need to be compatible?**
 
@@ -241,11 +241,11 @@ You can set your Fleet Auto Scaling policies to scale in to zero instances. Howe
 
 **Q: What is the maximum size I can set for my Amazon AppStream 2.0 fleet within AWS VAM?**
 
-Fleet Auto Scaling policies increase fleet capacity until it reaches your defined maximum size or until service limits apply. For more information, please see Fleet Auto Scaling for Amazon AppStream 2.0. For service limit information, please see Amazon AppStream 2.0 Service Limits.
+Fleet Auto Scaling policies increase fleet capacity until it reaches your defined maximum size or until service limits apply. For more information, please see [Fleet Auto Scaling for Amazon AppStream 2.0](https://docs.aws.amazon.com/appstream2/latest/developerguide/autoscaling.html). For service limit information, please see [Amazon AppStream 2.0 Service Limits](https://docs.aws.amazon.com/appstream2/latest/developerguide/limits.html).
 
 **Q: Are there additional costs for using Fleet Auto Scaling policies with Amazon AppStream 2.0 fleets within AWS VAM?**
 
-There are no charges for using Fleet Auto Scaling policies. However, each CloudWatch alarm that you create and use to trigger scaling policies for your AppStream 2.0 fleets may incur additional CloudWatch charges. For more information, see Amazon CloudWatch Pricing.
+There are no charges for using Fleet Auto Scaling policies. However, each CloudWatch alarm that you create and use to trigger scaling policies for your AppStream 2.0 fleets may incur additional CloudWatch charges. For more information, see [Amazon CloudWatch Pricing](https://aws.amazon.com/cloudwatch/pricing/).
 
 ## Persistent storage
 
@@ -253,13 +253,13 @@ There are no charges for using Fleet Auto Scaling policies. However, each CloudW
 
 Yes, but the functionality is currently limited to Google Drive and Home Folders. By default, AWS VAM configures Home Folders for your AppStream 2.0 persistent storage. While launching AWS VAM, you can define your Google Drive for G Suite Domain within the solution so that your fleets launch with your preferred persistent storage provider. If you need to configure Microsoft One Drive for Business, you will need to configure that in the streaming page of the Amazon AppStream 2.0 Console or programmatically. 
 
-**Q: Are there any differences in accessing persistent within Amazon AppStream 2.0 sessions launched using AWS VAM?**
+**Q: Are there any differences in accessing persistent storage within Amazon AppStream 2.0 sessions launched using AWS VAM?**
 
 No. Users can access a home folder during their application streaming session. Any file they save to their home folder will be available for use in the future. 
 
 **Q. Can I enable multiple persistent storage options for an Amazon AppStream 2.0 stack with AWS VAM?**
 
-Yes. If you configured Google Drive when launching AWS VAM, Home Folders and Google Drive for G Suite will be available within your AppStream 2.0 streaming sessions. To Microsoft OneDrive for Business you will need to configure that through the AWS Console or programmatically. 
+Yes. If you configured Google Drive when launching AWS VAM, Home Folders and Google Drive for G Suite will be available within your AppStream 2.0 streaming sessions. To add Microsoft OneDrive for Business, you will need to configure that through the AWS Console or programmatically. 
 
 **Q. How do I enable Google Drive for G Suite for Amazon AppStream 2.0 within AWS VAM?**
 
@@ -277,7 +277,7 @@ Files and folders in your users' home folders are encrypted in transit using Ama
 
 **Q: How do I monitor usage of my Amazon AppStream 2.0 fleet resources within AWS VAM?**
 
-When you logging into the solution, there see 7-8 icons on the left hand side of the dashboard, depending on how you configured the solution. The first one is the Dashboard feature of AWS VAM. 
+When you log into the solution, there are 7-8 icons on the left hand side of the dashboard, depending on how you configured the solution. The first one is the Dashboard feature of AWS VAM. 
 
 The Dashboard feature comes with two dashboards to explore: 
 
@@ -289,7 +289,7 @@ You can also view the fleet metrics through the Amazon AppStream 2.0 console or 
 
 **Q: Can I add additional metrics into AWS VAM?**
 
-Yes, you can create custom metrics for Amazon AppStream 2.0 through AWS VAM. Keep in mind that this will involve making changes to the code repostiroy of the solution.
+Yes, you can create custom metrics for Amazon AppStream 2.0 through AWS VAM. Keep in mind that this will involve making changes to the code repository of the solution.
 
 **Q: Do I need to do any additional configurations to start?**
 
@@ -299,7 +299,7 @@ Metrics monitoring is heavily tied to [User Sessions Reports](https://docs.aws.a
 
 **Q: Can I restrict network access from fleets and image builders launched in my VPC using AWS VAM?**
 
-Yes. You have the ability to configure your own VPC when launching the AWS VAM solution. This will require the vpc and two subnets for a highly available deployment. The restrict network access, configure security groups to specify network traffic that is allowed between your streaming instances and resources in your VPC. Whenever you launch and image builder or fleet, AWS VAM will launch those resources in the configured VPC. 
+Yes. You have the ability to configure your own VPC when launching the AWS VAM solution. This will require a VPC and two subnets for a highly available deployment. To restrict network access, configure security groups to specify network traffic that is allowed between your streaming instances and resources in your VPC. Whenever you launch an image builder or fleet, AWS VAM will launch those resources in the configured VPC. 
 
 **Q: Can I change my VPC configuration within AWS VAM?**
 
@@ -321,7 +321,7 @@ Yes. When your fleet successfully launches, you may test a streaming instance to
 
 **Q: How do I authenticate users into AWS VAM?**
 
-By default, the solution will configure authentication into AWS VAM with Amazon Cognito. An administrator will provide their email and given an ability to setup their password. To configure your preferred method of signing users into AWS VAM you will need to configure that during the setup process. Once this is configured, changing your preferred authentication provider will require redeploying the solution.
+By default, the solution will configure authentication into AWS VAM with Amazon Cognito. An administrator will provide their email and be given the ability to setup their password. To configure your preferred method of signing users into AWS VAM you will need to configure that during the setup process. Once this is configured, changing your preferred authentication provider will require redeploying the solution.
 
 **Q: Can I use AWS VAM with my existing user directory, including Microsoft Active Directory?**
 
@@ -357,11 +357,11 @@ There are three primary components that users should be aware of with Workflows:
 
 **Dashboard**: provides the ability to see the list of Image Builder Instances currently in progress. 
 **Steps**: click into each step of the application deployment and view details about what is being done and any scripts that are being installed as part of the process. 
-**Properties**: displayes Step Functions Workflow details, like the lambda runtime size.
+**Properties**: displays Step Functions Workflow details, like the lambda runtime size.
 
-**Q: How do configure workflows withinn AWS VAM?**
+**Q: How do I configure workflows within AWS VAM?**
 
-Workflows is a default feature within AWS VAM and not additional configuration needs to be done to the solution to take advantage of it. To remove the feature you will need to edit the cloned code repository and make the necessary changes.
+Workflows is a default feature within AWS VAM and no additional configuration needs to be done to the solution to take advantage of it. To remove the feature, you will need to edit the cloned code repository and make the necessary changes.
 
 ## Microsoft Active Directory domain support
 
@@ -401,7 +401,7 @@ When your users access a streaming instance through a web browser, they sign in 
 
 **Q: How much does AWS VAM cost?**
 
-AWS VAM is usage based. Most of the deployment is serverless, such as the website and API configuration. However, resources such as AppStream 2.0, Managed AD and AD Connector, and the EC2 Installer host are not serverless and will incur running costs. In general, the running cost of AWS VAM that has been deployed but has not been used to launch AppStream 2.0 resources, in other words idly running, will end up being roughly around the cost of running the Directory Service for the solution, logging, and storage. For a solution running AD Connector that will end up being $50-$60 a month while for AWS Managed Active Directory this is closer to $150-160. Remember, Active Direcotry is required for this solution.
+AWS VAM is usage based. Most of the deployment is serverless, such as the website and API configuration. However, resources such as AppStream 2.0, Managed AD and AD Connector, and the EC2 Installer host are not serverless and will incur running costs. In general, the running cost of AWS VAM that has been deployed but has not been used to launch AppStream 2.0 resources, in other words idly running, will end up being roughly around the cost of running the Directory Service for the solution, logging, and storage. For a solution running AD Connector that will end up being $50-$60 a month while for AWS Managed Active Directory this is closer to $150-160. Remember, Active Directory is required for this solution.
 
 For AWS VAM that is actively being used your costs will depend on your Amazon AppStream 2.0 instances, API calls, and S3 storage created through usage logs. Pricing for these services remain the same as displayed on their respective billing pages.
 
@@ -411,7 +411,7 @@ To reduce your costs, consider launching with AD Connector. If you no longer nee
 
 **Q: Can I bring my own licenses and waive the user fees with AWS VAM?**
 
-Yes. If you have Microsoft License Mobility, you may be eligible to bring your own Microsoft RDS CAL licenses and use them with Windows based Amazon AppStream 2.0. For users covered with your own licenses, you won’t incur the monthly user fees. For more information about using your existing Microsoft RDS SAL licenses with Amazon AppStream 2.0, please visit this page, or consult with your Microsoft representative.
+Yes. If you have Microsoft License Mobility, you may be eligible to bring your own Microsoft RDS CAL licenses and use them with Windows based Amazon AppStream 2.0. For users covered with your own licenses, you won’t incur the monthly user fees. For more information about using your existing Microsoft RDS SAL licenses with Amazon AppStream 2.0, please visit [this](https://aws.amazon.com/premiumsupport/knowledge-center/appstream2_rds_cal/) page, or consult with your Microsoft representative.
 
 **Q: What are the requirements for schools, universities, and public institutions to reduce their user fee?**
 
@@ -435,7 +435,7 @@ AWS VAM launches with the following security services:
 
 **Q: How is the data from my streamed application encrypted to the client?**
 
-The streamed video and user inputs are sent over HTTPS and are SSL-encrypted between the Amazon AppStream 2.0 instance executing your applications, and your end users.
+The streamed video and user inputs are sent over HTTPS and are SSL-encrypted between the Amazon AppStream 2.0 instance executing your applications, and your end users. To learn more about the specifics of the protocol being used, please visit our home page for [NICE DCV](https://aws.amazon.com/hpc/dcv/).
 
 **Q: Is AWS VAM HIPAA eligible?**
 
