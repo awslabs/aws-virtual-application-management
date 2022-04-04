@@ -32,48 +32,40 @@ In order to use Dynamic Catalog the streaming instances are required to be domai
 
 Delete existing directory config or configure through the CloudFormation template parameters.
 
-
 **Q: I get this error: "Template error (AD Connector): Fn::Select cannot select nonexistent value at index 1.....Error while executing command: node ./scripts/environment-deploy.js "$ENV_TYPE" ." How to resolve?**
 
 Use 2 IP addresses as parameters to CloudFormation stack under DnsIpAddresses.
 
-**I get this error: "DOMAIN_JOIN_ERROR_NO_SUCH_DOMAIN for imagebuilder instances." How to resolve?
+**Q: I get this error: "DOMAIN_JOIN_ERROR_NO_SUCH_DOMAIN for imagebuilder instances." How to resolve?
 
 Your AD connector domain controller SG needs to allow inbound from (demo-va-claas-image-builder-ImageBuilderSecurityGroup-####) see pic for example:
 
-[ImageErrorADSecurityGroup.png]
+![AD Security Group](/ImageErrorADSecurityGroup.png)
 
-* CloudFormation Error: “1 validation error detected: Value at 'pipeline.stages.1.member.actions.1.member.configuration' failed to satisfy constraint: Map value must satisfy constraint: [Member must have length less than or equal to 1000, Member must have length greater than or equal to 1] (Service: AWSCodePipeline; Status Code: 400; Error Code: ValidationException; Request ID: 6f64ebef-eac4-43b3-8969-f284019946df; Proxy: null)”
-    * Check that all required parameters in CloudFormation stack are filled out
+**Q: I get this error in CloudFormation: “1 validation error detected: Value at 'pipeline.stages.1.member.actions.1.member.configuration' failed to satisfy constraint: Map value must satisfy constraint: [Member must have length less than or equal to 1000, Member must have length greater than or equal to 1] (Service: AWSCodePipeline; Status Code: 400; Error Code: ValidationException; Request ID: 6f64ebef-eac4-43b3-8969-f284019946df; Proxy: null).” How to resolve?"
+
+Check that all required parameters in CloudFormation stack are filled out.
 
 ## Solution Errors
 
-Post-Install:
+### Identifying errors
 
-* Ran into Image Limit and there was no error in VAM Dashboard
-    * I found the error in the SSM Command
-        * {
-            "status": 1,
-            "message": "You've reached the limit for images. Before you create a new image, you must delete at least one image or request a limit increase"
-            }
-            --- output ---
-* When a Workflow fails it stays hung and the id cannot be reused
-* If deletion of an image fails it gets removed from Dynamo still (e.g. Image is in use)
+Most errors will appear while creating AppStream Images and Fleets. When creating AppStream Images, you will find detailed error messages within Workflows. To review the errors, navigate to the Workflows, choose the appropriate image, and click on the red Error button. Depending on the step and type of error message, you should be able to to determine additional troubleshooting mechanisms. For example, if you run into issues when when launching an applicaion, in additional to the Workflow errors you can review the AppStream 2.0 Image Builder logs by logging into the image builder through the AWS Console. When in doubt, feel free to contact your AWS Solutions Architect for additional guidance.
 
-NCSU Customer Feedback
+### Deployment Troubleshooting Guide
 
-* Multiple versions of applications - Nesting versions  under the parent folder shows multiple applications, but not able to  distinguish between them. As we create a folder with the version it  would be nice to be able to have multiple versions nested in this  fashion. 
-* Cleaning up broken workflows - Not able to delete or clean up failed workflows
-* VAM interface page times out before the request to  extend the session is offered.
-* Large application installs fail due to timeout. Many of  the applications we deploy are larger than 15gb and consist of 20k+ files (Matlab).  The install times out even before the copy from S3 finishes. To resolve  this issue I have zipped the contents and within the install script added  a line to extract the contents before installation. This greatly reduces  the time for the source transfer. This works well for some applications  (this would be my preferred method just to decrease the overall build  time), but as a feature request it would be nice to have an option/way to  change that timeout or extend that timeout for applications that take an  extended period of time to install which may cause a timeout issue.  Perhaps an option "Larger Application" which would double that  timeout.
+**Q: I ran into this error: "You've reached the limit for images. Before you create a new image, you must delete at least one image or request a limit increase." How to resolve?
 
-8/24
+You have run into the AWS service limit for the specific image. Either choose a different image within your AWS service limits or increase the service limit for that particular image through the AWS console.
 
-* Install Powershell script - how to pass runtime parameters
-    * https://docs.aws.amazon.com/appstream2/latest/developerguide/programmatically-create-image.html
-    * Add Launch Parameters and Working Directory
-        * Required for COMSOL application
-* It is best to zip files before transferring to S3
+**Q: I ran into this error: "NetworkError when attempting to fetch resource." How to resolve?
 
+Your session has timed. Refresh the page and log back into the solution using your credentials.
 
+**Q: I ran into this error: "A 'wait' decision with its check function commandFinished() reached its maximum number of attempts '30'." How to resolve?
 
+Unfortunately, this is a generic error that something failed while preparing the Image Builder Environment. Check to ensure that your Active Directory security groups have not been modified and that it is still able to run PowerShell scripts on the instance. If you are unable to resolve this error, contact your AWS Solutions Architect for additional guidance.
+
+**Q I have large applications that are failing to install due to timeout (Matlab). The install times out even before the copy from S3 finishes. How to resolve? 
+
+Zip the contents and within the install script added a line to extract the contents before installation. This greatly reduces the time for the source transfer. 
