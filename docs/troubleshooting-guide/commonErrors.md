@@ -41,7 +41,7 @@ Use 2 IP addresses as parameters to CloudFormation stack under DnsIpAddresses.
 
 Your AD connector domain controller SG needs to allow inbound from (demo-va-claas-image-builder-ImageBuilderSecurityGroup-####) see pic for example:
 
-    * [Image: ImageErrorADSecurityGroup.png]
+[ImageErrorADSecurityGroup.png]
 
 * CloudFormation Error: “1 validation error detected: Value at 'pipeline.stages.1.member.actions.1.member.configuration' failed to satisfy constraint: Map value must satisfy constraint: [Member must have length less than or equal to 1000, Member must have length greater than or equal to 1] (Service: AWSCodePipeline; Status Code: 400; Error Code: ValidationException; Request ID: 6f64ebef-eac4-43b3-8969-f284019946df; Proxy: null)”
     * Check that all required parameters in CloudFormation stack are filled out
