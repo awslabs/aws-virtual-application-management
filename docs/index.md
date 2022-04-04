@@ -38,4 +38,4 @@ Based on feedback from various customers, AWS VAM was developed as solution to a
 
 ### Troubleshooting Guide
 
-[Common Errors](/troublshooting-guide/commonErrors.md)
+[Common Errors](/troubleshooting-guide/commonErrors.md)
