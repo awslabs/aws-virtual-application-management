@@ -20,7 +20,7 @@ See Systems Manager -> Parameter Store. Alternatively, check the CodeBuild outpu
 
 If you set demo deployment to true and trigger the deletion step in CodePipeline, it will delete everything.
 
-**Q: Do we need to script moving from s3 to a tmp directory for the installation of new applications? **
+**Q: Do we need to script moving from s3 to a tmp directory for the installation of new applications?**
 
 Yes.
 
@@ -28,15 +28,20 @@ Yes.
 
 In order to use Dynamic Catalog the streaming instances are required to be domain joined, which can be set with AdJoined = true in the CloudFormation template. If you just want to test the auth piece, create an image builder without Dynamic Catalog.
 
-**Q: I get this error: "Directory config already exists. Provide a unique directory name within an AWS region." How to resolve? **
+**Q: I get this error: "Directory config already exists. Provide a unique directory name within an AWS region." How to resolve?**
 
-Solution: Delete existing directory config or 
+Delete existing directory config or configure through the CloudFormation template parameters.
 
-* Template error (AD Connector): Fn::Select cannot select nonexistent value at index 1.....Error while executing command: node ./scripts/environment-deploy.js "$ENV_TYPE"
-    * Solution: Use 2 IP addresses as parameters to CloudFormation stack under DnsIpAddresses
-* DOMAIN_JOIN_ERROR_NO_SUCH_DOMAIN for imagebuilder instances
-    * Your AD connector domain controller SG needs to allow inbound from (demo-va-claas-image-builder-ImageBuilderSecurityGroup-####) see pic for example:
-    * [Image: image.png]
+
+**Q: I get this error: "Template error (AD Connector): Fn::Select cannot select nonexistent value at index 1.....Error while executing command: node ./scripts/environment-deploy.js "$ENV_TYPE" ." How to resolve?**
+
+Use 2 IP addresses as parameters to CloudFormation stack under DnsIpAddresses.
+
+**I get this error: "DOMAIN_JOIN_ERROR_NO_SUCH_DOMAIN for imagebuilder instances." How to resolve?
+
+Your AD connector domain controller SG needs to allow inbound from (demo-va-claas-image-builder-ImageBuilderSecurityGroup-####) see pic for example:
+
+    * [Image: ImageErrorADSecurityGroup.png]
 
 * CloudFormation Error: “1 validation error detected: Value at 'pipeline.stages.1.member.actions.1.member.configuration' failed to satisfy constraint: Map value must satisfy constraint: [Member must have length less than or equal to 1000, Member must have length greater than or equal to 1] (Service: AWSCodePipeline; Status Code: 400; Error Code: ValidationException; Request ID: 6f64ebef-eac4-43b3-8969-f284019946df; Proxy: null)”
     * Check that all required parameters in CloudFormation stack are filled out
