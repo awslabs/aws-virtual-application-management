@@ -36,13 +36,14 @@ Delete existing directory config or configure through the CloudFormation templat
 
 Use 2 IP addresses as parameters to CloudFormation stack under DnsIpAddresses.
 
-**Q: I get this error: "DOMAIN_JOIN_ERROR_NO_SUCH_DOMAIN for imagebuilder instances." How to resolve?
+**Q: I get this error: "DOMAIN_JOIN_ERROR_NO_SUCH_DOMAIN for imagebuilder instances." How to resolve?**
 
 Your AD connector domain controller SG needs to allow inbound from (demo-va-claas-image-builder-ImageBuilderSecurityGroup-####) see pic for example:
 
 ![AD SecurityGroup](/ImageErrorADSecurityGroup.png)
 
-**Q: I get this error in CloudFormation: “1 validation error detected: Value at 'pipeline.stages.1.member.actions.1.member.configuration' failed to satisfy constraint: Map value must satisfy constraint: [Member must have length less than or equal to 1000, Member must have length greater than or equal to 1] (Service: AWSCodePipeline; Status Code: 400; Error Code: ValidationException; Request ID: 6f64ebef-eac4-43b3-8969-f284019946df; Proxy: null).” How to resolve?"
+
+**Q: I get this error in CloudFormation: “1 validation error detected: Value at 'pipeline.stages.1.member.actions.1.member.configuration' failed to satisfy constraint: Map value must satisfy constraint: [Member must have length less than or equal to 1000, Member must have length greater than or equal to 1] (Service: AWSCodePipeline; Status Code: 400; Error Code: ValidationException; Request ID: 6f64ebef-eac4-43b3-8969-f284019946df; Proxy: null).” How to resolve?"**
 
 Check that all required parameters in CloudFormation stack are filled out.
 
@@ -54,18 +55,18 @@ Most errors will appear while creating AppStream Images and Fleets. When creatin
 
 ### Deployment Troubleshooting Guide
 
-**Q: I ran into this error: "You've reached the limit for images. Before you create a new image, you must delete at least one image or request a limit increase." How to resolve?
+**Q: I ran into this error: "You've reached the limit for images. Before you create a new image, you must delete at least one image or request a limit increase." How to resolve?**
 
 You have run into the AWS service limit for the specific image. Either choose a different image within your AWS service limits or increase the service limit for that particular image through the AWS console.
 
-**Q: I ran into this error: "NetworkError when attempting to fetch resource." How to resolve?
+**Q: I ran into this error: "NetworkError when attempting to fetch resource." How to resolve?**
 
 Your session has timed. Refresh the page and log back into the solution using your credentials.
 
-**Q: I ran into this error: "A 'wait' decision with its check function commandFinished() reached its maximum number of attempts '30'." How to resolve?
+**Q: I ran into this error: "A 'wait' decision with its check function commandFinished() reached its maximum number of attempts '30'." How to resolve?**
 
 Unfortunately, this is a generic error that something failed while preparing the Image Builder Environment. Check to ensure that your Active Directory security groups have not been modified and that it is still able to run PowerShell scripts on the instance. If you are unable to resolve this error, contact your AWS Solutions Architect for additional guidance.
 
-**Q I have large applications that are failing to install due to timeout (Matlab). The install times out even before the copy from S3 finishes. How to resolve? 
+**Q I have large applications that are failing to install due to timeout (Matlab). The install times out even before the copy from S3 finishes. How to resolve?**
 
 Zip the contents and within the install script added a line to extract the contents before installation. This greatly reduces the time for the source transfer. 
