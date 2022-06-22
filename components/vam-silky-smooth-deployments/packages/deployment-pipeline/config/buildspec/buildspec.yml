@@ -21,7 +21,7 @@ phases:
   pre_build:
     commands:
       - echo "Installing PNPM"
-      - npm install -g pnpm
+      - npm install -g pnpm@6.32.23
       - printf "\n\n"
       - echo "Installing dependencies"
       - pnpm install -r --frozen-lockfile
