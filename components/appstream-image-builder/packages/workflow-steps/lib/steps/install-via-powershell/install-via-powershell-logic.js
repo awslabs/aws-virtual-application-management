@@ -77,6 +77,7 @@ class InstallViaPowershell extends StepBase {
       script: `
         $psResult = Invoke-Command -ScriptBlock { ${packageScript} }
         $psStatus = $LASTEXITCODE
+        $Env:Path += ';C:\\Program Files\\Amazon\\Photon\\ConsoleImageBuilder\\'
 
         if ($${dapEnabled}) {
           Write-Host "Skipping add-application for ${applicationName} (dap enabled)"

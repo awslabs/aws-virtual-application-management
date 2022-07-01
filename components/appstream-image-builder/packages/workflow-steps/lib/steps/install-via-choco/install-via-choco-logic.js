@@ -78,6 +78,8 @@ class InstallViaChoco extends StepBase {
       domainCredentialsArn: imageBuilderADCredentialsArn,
       applicationExePath,
       script: `
+        $Env:Path += ';C:\\Program Files\\Amazon\\Photon\\ConsoleImageBuilder\\'
+
         if (!(Test-Path "C:\\ProgramData\\chocolatey")) {
           Set-ExecutionPolicy Bypass -Scope Process -Force
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
