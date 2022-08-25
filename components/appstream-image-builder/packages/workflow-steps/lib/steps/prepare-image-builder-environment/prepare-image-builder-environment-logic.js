@@ -102,7 +102,7 @@ class PrepareImageBuilderEnvironment extends StepBase {
 
     const ec2params = {
       ImageId: ami,
-      InstanceType: 't2.medium',
+      InstanceType: 't3.medium',
       Placement: {
         AvailabilityZone: availabilityZone,
       },

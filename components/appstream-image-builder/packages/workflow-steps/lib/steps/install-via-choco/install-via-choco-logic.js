@@ -78,8 +78,6 @@ class InstallViaChoco extends StepBase {
       domainCredentialsArn: imageBuilderADCredentialsArn,
       applicationExePath,
       script: `
-        $Env:Path += ';C:\\Program Files\\Amazon\\Photon\\ConsoleImageBuilder\\'
-
         if (!(Test-Path "C:\\ProgramData\\chocolatey")) {
           Set-ExecutionPolicy Bypass -Scope Process -Force
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
@@ -92,6 +90,7 @@ class InstallViaChoco extends StepBase {
           Write-Host "Skipping add-application for ${applicationName} (dap enabled)"
           $imOutput = '{"status": 0}'
         } else {
+          $Env:Path += ';C:\\Program Files\\Amazon\\Photon\\ConsoleImageBuilder\\'
           $imOutput = image-assistant.exe add-application --name "${applicationName}" --absolute-app-path "${applicationExePath}" --display-name "${applicationDisplayName}"
         }
 
