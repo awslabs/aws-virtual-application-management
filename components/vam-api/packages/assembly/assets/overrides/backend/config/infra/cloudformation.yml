@@ -198,6 +198,7 @@ Resources:
                 - appstream:CreateImageBuilder
                 - appstream:DescribeImageBuilders
                 - appstream:DeleteImageBuilder
+                - appstream:TagResource
               Resource: !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:*'
 
         - PolicyName: allow-pass-role-for-image-builder
