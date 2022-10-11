@@ -68,6 +68,7 @@ Resources:
                   - appstream:DisassociateFleet
                   - appstream:CreateStack
                   - appstream:CreateFleet
+                  - appstream:TagResource
                 Resource:
                   - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:*'
               - Effect: Allow
