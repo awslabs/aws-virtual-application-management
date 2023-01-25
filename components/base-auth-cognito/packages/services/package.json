@@ -10,7 +10,7 @@
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-services-container": "workspace:*",
     "@babel/runtime": "^7.12.5",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "jwk-to-pem": "^2.0.3",
     "lodash": "^4.17.21",
     "request": "^2.88.2"
