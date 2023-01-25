@@ -21,7 +21,7 @@
 
 - [AWS CLI](https://aws.amazon.com/cli/)
 - [Git CLI](https://git-scm.com/downloads)
-- [Node.js 12+](https://nodejs.org/en/download/)
+- [Node.js 14+](https://nodejs.org/en/download/)
 - [pnpm](https://pnpm.js.org/en/installation)
 - [Serverless Framework](https://www.serverless.com/framework/docs/providers/aws/guide/installation/)
 

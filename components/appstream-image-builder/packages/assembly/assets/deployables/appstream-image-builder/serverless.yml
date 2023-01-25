@@ -21,7 +21,7 @@ package:
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   region: ${self:custom.settings.awsRegion}
   profile: ${self:custom.settings.awsProfile}
   stackName: ${self:custom.settings.envName}-${self:service}
