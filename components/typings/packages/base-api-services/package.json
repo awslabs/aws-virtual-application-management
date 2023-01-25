@@ -9,7 +9,7 @@
   "dependencies": {
     "@types/aws-ee__base-services": "workspace:*",
     "@types/aws-ee__base-services-container": "workspace:*",
-    "@types/jsonwebtoken": "^8.5.1"
+    "@types/jsonwebtoken": "^9.0.0"
   },
   "license": "SEE LICENSE IN LICENSE"
 }

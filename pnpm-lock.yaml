@@ -460,7 +460,7 @@ importers:
       husky: ^3.1.0
       jest: ^24.9.0
       jest-junit: ^10.0.0
-      jsonwebtoken: ^8.5.1
+      jsonwebtoken: ^9.0.0
       jwk-to-pem: ^2.0.3
       lodash: ^4.17.21
       prettier: ^1.19.1
@@ -473,7 +473,7 @@ importers:
       '@aws-ee/base-services': link:../../../base/packages/services
       '@aws-ee/base-services-container': link:../../../base/packages/services-container
       '@babel/runtime': 7.13.10
-      jsonwebtoken: 8.5.1
+      jsonwebtoken: 9.0.0
       jwk-to-pem: 2.0.4
       lodash: 4.17.21
       request: 2.88.2
@@ -1056,7 +1056,7 @@ importers:
       husky: ^3.1.0
       jest: ^24.9.0
       jest-junit: ^10.0.0
-      jsonwebtoken: ^8.5.1
+      jsonwebtoken: ^9.0.0
       jwt-decode: ^2.2.0
       lodash: ^4.17.15
       prettier: ^1.19.1
@@ -1071,7 +1071,7 @@ importers:
       '@babel/runtime': 7.13.10
       ajv: 6.12.6
       aws-sdk: 2.872.0
-      jsonwebtoken: 8.5.1
+      jsonwebtoken: 9.0.0
       jwt-decode: 2.2.0
       lodash: 4.17.21
       underscore: 1.13.1
@@ -1433,7 +1433,7 @@ importers:
       react-timeago: 4.4.0_react@16.14.0
       rehype-raw: 5.1.0
       rehype-sanitize: 4.0.0
-      roddeh-i18n: 1.2.0
+      roddeh-i18n: 1.2.0a
       semantic-ui-react: 0.88.2_react-dom@16.14.0+react@16.14.0
       toastr: 2.1.4
       typeface-lato: 0.0.75
@@ -2874,7 +2874,7 @@ importers:
       jest: ^24.9.0
       jest-fast-check: ^1.0.0
       jest-junit: ^10.0.0
-      jsonwebtoken: ^8.5.1
+      jsonwebtoken: ^9.0.0
       jwk-to-pem: ^2.0.3
       jwt-decode: ^2.2.0
       lodash: ^4.17.15
@@ -2892,7 +2892,7 @@ importers:
       ajv: 6.12.6
       aws-sdk: 2.872.0
       cycle: 1.0.3
-      jsonwebtoken: 8.5.1
+      jsonwebtoken: 9.0.0
       jwk-to-pem: 2.0.4
       jwt-decode: 2.2.0
       lodash: 4.17.21
@@ -3082,11 +3082,11 @@ importers:
     specifiers:
       '@types/aws-ee__base-services': workspace:*
       '@types/aws-ee__base-services-container': workspace:*
-      '@types/jsonwebtoken': ^8.5.1
+      '@types/jsonwebtoken': ^9.0.0
     dependencies:
       '@types/aws-ee__base-services': link:../base-services
       '@types/aws-ee__base-services-container': link:../base-services-container
-      '@types/jsonwebtoken': 8.5.1
+      '@types/jsonwebtoken': 9.0.0
 
   components/typings/packages/base-assembly-tasks:
     specifiers: {}
@@ -11634,7 +11634,7 @@ packages:
     resolution: {integrity: sha1-7ihweulOEdK4J7y+UnC86n8+ce4=}
     dev: true
 
-  /@types/jsonwebtoken/8.5.1:
+  /@types/jsonwebtoken/9.0.0:
     resolution: {integrity: sha512-rNAPdomlIUX0i0cg2+I+Q1wOUr531zHBQ+cV/28PJ39bSPKjahatZZ2LMuhiguETkCgLVzfruw/ZvNMNkKoSzw==}
     dependencies:
       '@types/node': 14.14.36
@@ -21616,7 +21616,7 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /jsonwebtoken/8.5.1:
+  /jsonwebtoken/9.0.0:
     resolution: {integrity: sha512-XjwVfRS6jTMsqYs0EsuJ4LGxXV14zQybNd4L2r0UvbVnSF9Af8x7p5MzbJ90Ioz/9TI41/hTCvznF/loiSzn8w==}
     engines: {node: '>=4', npm: '>=1.4.28'}
     dependencies:
@@ -27104,7 +27104,7 @@ packages:
       hapi-plugin-websocket: 2.3.5_@hapi+hapi@18.4.1
       js-string-escape: 1.0.1
       jsonpath-plus: 1.1.0
-      jsonwebtoken: 8.5.1
+      jsonwebtoken: 9.0.0
       luxon: 1.28.0
       object.fromentries: 2.0.4
       semver: 6.3.0
