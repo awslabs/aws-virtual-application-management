@@ -1433,7 +1433,7 @@ importers:
       react-timeago: 4.4.0_react@16.14.0
       rehype-raw: 5.1.0
       rehype-sanitize: 4.0.0
-      roddeh-i18n: 1.2.0a
+      roddeh-i18n: 1.2.0
       semantic-ui-react: 0.88.2_react-dom@16.14.0+react@16.14.0
       toastr: 2.1.4
       typeface-lato: 0.0.75
