@@ -49,11 +49,11 @@ class WaitForImageBuilder extends StepBase {
     const name = `${namespace}-image-builder`;
     let script = `
       $Env:Path += ';C:\\Program Files\\Amazon\\Photon\\ConsoleImageBuilder\\'
-      image-assistant.exe create-image --name "${imageName}" --tags Name ${name}
+      image-assistant.exe create-image --name "${imageName}" --tags Name ${name} 
     `;
 
     if (dapEnabled) {
-      script += ' --enable-dynamic-app-catalog';
+      script += '--enable-dynamic-app-catalog';
     }
 
     // XXX just waiting for the effect, not the actual SendCommand to finish.
