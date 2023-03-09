@@ -130,6 +130,10 @@ class PrepareImageBuilderEnvironment extends StepBase {
           ],
         },
       ],
+      MetadataOptions: {
+        HttpEndpoint: enabled,
+        HttpTokens: required,
+      },
     };
 
     const ec2response = await ec2Client.runInstances(ec2params).promise();
