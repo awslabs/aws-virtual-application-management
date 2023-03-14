@@ -131,8 +131,8 @@ class PrepareImageBuilderEnvironment extends StepBase {
         },
       ],
       MetadataOptions: {
-        HttpEndpoint: enabled,
-        HttpTokens: required,
+        HttpEndpoint: 'enabled',
+        HttpTokens: 'required',
       },
     };
 
