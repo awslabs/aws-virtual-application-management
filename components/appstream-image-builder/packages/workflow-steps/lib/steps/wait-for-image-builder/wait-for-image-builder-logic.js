@@ -55,7 +55,7 @@ class WaitForImageBuilder extends StepBase {
     } else {
       let script = `
         $Env:Path += ';C:\\Program Files\\Amazon\\Photon\\ConsoleImageBuilder\\'
-        image-assistant.exe create-image --name "${imageName}" --tags Name ${name} --enable-dynamic-app-catalog'
+        image-assistant.exe create-image --name "${imageName}" --tags Name ${name} --enable-dynamic-app-catalog
       `;
     }
 
