@@ -47,13 +47,14 @@ class WaitForImageBuilder extends StepBase {
     const installerHostInstanceID = await this.payloadOrConfig.string(inPayloadKeys.installerHostInstanceID);
 
     const name = `${namespace}-image-builder`;
+    var script; 
     if (!dapEnabled) {
-      let script = `
+      var script = `
         $Env:Path += ';C:\\Program Files\\Amazon\\Photon\\ConsoleImageBuilder\\'
         image-assistant.exe create-image --name "${imageName}" --tags Name ${name} 
       `;
       } else {
-        let script = `
+        var script = `
           $Env:Path += ';C:\\Program Files\\Amazon\\Photon\\ConsoleImageBuilder\\'
           image-assistant.exe create-image --name "${imageName}" --tags Name ${name} --enable-dynamic-app-catalog
         `;
