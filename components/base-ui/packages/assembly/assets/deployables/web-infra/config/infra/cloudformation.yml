@@ -22,6 +22,9 @@ Resources:
     Properties:
       BucketName: ${self:custom.settings.loggingBucketName}
       AccessControl: LogDeliveryWrite
+      OwnershipControls:  # << Add
+        Rules:
+          - ObjectOwnership: ObjectWriter
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
