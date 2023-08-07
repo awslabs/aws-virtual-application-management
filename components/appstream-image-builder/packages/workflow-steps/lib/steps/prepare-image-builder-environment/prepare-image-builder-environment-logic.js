@@ -62,7 +62,7 @@ class PrepareImageBuilderEnvironment extends StepBase {
     await this.launchCommand();
 
     return this.wait(10)
-      .maxAttempts(30)
+      .maxAttempts(60)
       .until('commandFinished');
   }
 
